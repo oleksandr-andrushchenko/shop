@@ -1,0 +1,66 @@
+<?php
+use SNOWGIRL_CORE\View;
+use SNOWGIRL_CORE\Script\Css;
+use SNOWGIRL_SHOP\Catalog\URI as CatalogURI;
+use SNOWGIRL_SHOP\Entity\Stock;
+
+/** @var View $this */
+/** @var Stock $stock */
+$this->getLayout()
+    ->addBreadcrumb($this->h1)
+    ->addHeadCss(new Css('@snowgirl-shop/stock.css'));
+?>
+<h1 class="title"><?php echo htmlspecialchars($this->h1) ?></h1>
+
+<div class="vs">
+    <?php if ($this->vkontakteLike || $this->facebookLike) { ?>
+        <div class="subscribe">
+            <?php echo $this->vkontakteLike ?>
+            <?php echo $this->facebookLike ?>
+        </div>
+    <?php } ?>
+
+    <p class="in-process">Список постоянно обновляется...</p>
+
+    <?php if ($this->description) { ?>
+        <article class="description">
+            <p><?php echo nl2br(htmlspecialchars($this->description)) ?></p>
+
+            <p>Еще больше <a href="<?php echo (new CatalogURI)->set(CatalogURI::SALES, 1) ?>" class="highlighted"
+                             target="_blank">скидочных</a>
+                предложений в нашем <a href="<?php echo new CatalogURI() ?>" target="_blank">каталоге</a>.</p>
+        </article>
+    <?php } ?>
+
+    <?php $k = 0;
+    foreach ($this->items as $stock) { ?>
+        <div class="item vs">
+            <div class="item-title h1">
+                <?php $this->noIndexOpen() ?>
+                <?php echo $tmp = htmlspecialchars($stock->getTitle()) ?>
+                <?php $this->noIndexClose() ?>
+            </div>
+            <a href="<?php echo $this->manager->getGoLink($stock) ?>" target="_blank" rel="nofollow">
+                <div class="row">
+                    <?php
+                    $images = $stock->getImages(true);
+                    $width = 100 / count($images);
+                    ?>
+                    <?php foreach ($images as $img) { ?>
+                        <div class="col-xs-12" style="width:<?php echo $width ?>%">
+                            <?php $this->noIndexOpen() ?>
+                            <img src="<?php echo $img ?>" alt="<?php echo $tmp ?>">
+                            <?php $this->noIndexClose() ?>
+                        </div>
+                    <?php } ?>
+                </div>
+            </a>
+        </div>
+
+        <?php if (0 == $k) { ?>
+            <?php echo $this->banner ?>
+        <?php } ?>
+
+        <?php $k++;
+    } ?>
+</div>

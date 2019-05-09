@@ -1,0 +1,23 @@
+<?php
+use SNOWGIRL_SHOP\View\Widget\Grid\Brands;
+use SNOWGIRL_SHOP\Entity\Brand;
+use SNOWGIRL_CORE\Image;
+
+/** @var Brands $this */
+/** @var Brand $brand */
+?>
+
+<?php foreach ($this->items as $brand) { ?>
+    <div class="col-xs-3 col-mb-2 col-sm-1">
+        <a href="<?php echo $this->getLink($brand) ?>" class="brand<?php echo ($img = $brand->getImage()) ? ' image' : '' ?>">
+            <?php if ($img) { ?>
+                <div class="brand-cover" style="background-image:url(<?php echo $this->app->images->get($img)->getLink() ?>)"></div>
+            <?php } ?>
+            <?php if (!$img) { ?>
+                <div class="brand-caption">
+                    <span class="brand-title"><?php echo $brand->getName() ?></span>
+                </div>
+            <?php } ?>
+        </a>
+    </div>
+<?php } ?>

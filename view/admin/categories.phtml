@@ -1,0 +1,22 @@
+<!---->
+<?php
+use SNOWGIRL_CORE\View;
+use SNOWGIRL_CORE\Script\Css;
+use SNOWGIRL_CORE\Script\Js;
+use SNOWGIRL_SHOP\Manager\Category as CategoryManager;
+
+/** @var View $this */
+$this->getLayout()
+    ->setTitle($title = 'Дерево категорий')
+    ->addBreadcrumb($title)
+    ->setH1($title)
+    ->addHeadCss(new Css('@snowgirl-shop/admin/categories.css'))
+    ->addJs(new Js('@snowgirl-core/jquery.nestable.js'))
+    ->addJs(new Js('@snowgirl-shop/admin/categories.js'));
+?>
+<a class="btn btn-primary btn-toggle-collapse-all"><span class="glyphicon glyphicon-chevron-up"></span> Свернуть</a>
+<a class="btn btn-success btn-build-tree"
+   href="<?php echo $this->makeLink('admin', ['action' => 'categories-build-tree']) ?>"><span class="fa fa-tree"></span>
+    Построить</a>
+
+<?php echo $this->tree ?>

@@ -1,0 +1,11 @@
+.img-wrapper {
+    height: 100px
+}
+
+.images > div {
+    display: inline-block;
+}
+
+.transfer form {
+    display: inline-block;
+}

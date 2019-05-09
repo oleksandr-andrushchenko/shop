@@ -1,0 +1,49 @@
+<?php
+use SNOWGIRL_CORE\View;
+use SNOWGIRL_SHOP\Entity\Item;
+use SNOWGIRL_CORE\Image;
+use SNOWGIRL_CORE\Helper;
+use SNOWGIRL_SHOP\Entity\Brand;
+
+$item = $this->entity;
+/** @var View $this */
+/** @var Item $item */
+/** @var Brand $brand */
+$brand = $this->app->managers->items->getBrand($item);
+
+?>
+<div class="col-xs-3 col-mb-2 col-md-1 item">
+    <a href="<?php echo $this->app->managers->items->getLink($item) ?>" class="link-image"
+        <?php echo $brand->isNoIndex() ? 'rel="nofollow"' : '' ?>>
+        <?php if ($item->isNewly()) { ?>
+            <span class="lr newly"></span>
+        <?php } ?>
+
+        <?php if ($v = $item->getPercentageDiscount()) { ?>
+            <span class="lr discount"><?php echo $v ?></span>
+        <?php } ?>
+
+        <div class="image">
+            <?php echo $this->app->views->image($item->getImage(), Image::FORMAT_WIDTH, 227, [
+                'alt' => 'Фото ' . $item->getName(),
+                'title' => 'Смотреть ' . $item->getName()
+            ]) ?>
+        </div>
+    </a>
+
+    <div class="prices">
+        <span class="text">Цена</span>
+
+        <span class="price">
+            <span class="val"><?php echo Helper::makeNiceNumber($item->getPrice()) ?></span>
+            <span class="unit"><?php echo $this->currency->text ?></span>
+        </span>
+
+        <?php if ($tmp = $item->getOldPrice()) { ?>
+            <span class="old-price">
+                <span class="val"><?php echo Helper::makeNiceNumber($tmp) ?></span>
+                <span class="unit"><?php echo $this->currency->text ?></span>
+            </span>
+        <?php } ?>
+    </div>
+</div>

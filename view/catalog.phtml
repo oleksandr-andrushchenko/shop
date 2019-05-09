@@ -1,0 +1,445 @@
+<!--catalog-->
+<?php
+
+use SNOWGIRL_CORE\View;
+use SNOWGIRL_CORE\Script\Css;
+use SNOWGIRL_CORE\Script\Js;
+use SNOWGIRL_SHOP\Catalog\URI;
+use SNOWGIRL_CORE\Helper;
+use SNOWGIRL_SHOP\Entity\Category;
+use SNOWGIRL_SHOP\Entity\Brand;
+use SNOWGIRL_SHOP\Entity\Tag;
+use SNOWGIRL_SHOP\Entity\Country;
+use SNOWGIRL_SHOP\Entity\Vendor;
+use SNOWGIRL_SHOP\Entity\Color;
+use SNOWGIRL_SHOP\Entity\Material;
+use SNOWGIRL_SHOP\Entity\Size;
+use SNOWGIRL_SHOP\Entity\Season;
+
+/** @var View $this */
+/** @var Category $category */
+/** @var Brand $brand */
+/** @var Tag $tag */
+/** @var Country $country */
+/** @var Vendor $vendor */
+/** @var Color $color */
+/** @var Material $material */
+/** @var Size $size */
+/** @var Season $season */
+
+$this->getLayout()
+    ->addHeadCss(new Css('@snowgirl-shop/catalog.css'))
+    ->addJsConfig('filterParams', $this->uriFilterParams)
+    ->addJsConfig('viewParams', $this->uriViewParams)
+    ->addJsConfig('showTags', $this->showTags)
+    ->addJsConfig('hasItems', $this->hasItems)
+    ->addJsConfig('asyncFilters', $this->asyncFilters)
+    ->addJs(new Js('@snowgirl-shop/catalog.js'));
+
+$typeColors = [
+//    URI::SPORT => 'default',
+//    URI::SIZE_PLUS => 'default',
+//    URI::SALES => 'success'
+];
+?>
+<div class="catalog vs row <?php echo implode(' ', [
+    $this->hasApplied ? 'has-applied' : '',
+    $this->hasItems ? 'has-items' : ''
+]) ?>">
+    <div class="col-md-9 col-lg-10 right title">
+        <?php if (isset($this->h1Banner)) { ?>
+            <?php echo $this->h1Banner ?>
+        <?php } ?>
+        <h1><?php echo htmlspecialchars($this->h1) ?></h1>
+    </div>
+
+    <?php echo $this->noIndexOpen() ?>
+    <div class="col-md-3 col-lg-2 filters" id="filters">
+        <div class="categories obj-toggle-sm-categories nav-sm section" id="categories">
+            <div class="section-title">Категории</div>
+            <div class="section-body">
+                <?php if ($this->categories) { ?>
+                    <?php echo $this->categories ?>
+                <?php } else { ?>
+                    Пусто
+                <?php } ?>
+            </div>
+        </div>
+
+        <?php if ($this->hasItems) { ?>
+            <div class="other-filters vs obj-toggle-sm-other-filters nav-sm section">
+                <?php if ($this->asyncFilters || $this->filtersTypesView) { ?>
+                    <div class="section types">
+                        <div class="section-title">Разделы</div>
+                        <div class="section-body<?php echo $this->asyncFilters ? ' pending' : '' ?>">
+                            <div class="scroll"><?php echo $this->filtersTypesView ?></div>
+                            <?php if ($this->asyncFilters) { ?>
+                                <div class="pending-overlay"></div>
+                            <?php } ?>
+                        </div>
+                    </div>
+                <?php } ?>
+
+                <?php if ($this->showTags && ($this->asyncFilters || $this->filtersTagsView)) { ?>
+                    <div class="section tags suggestions" data-attr-name="<?php echo Tag::getTable() ?>"
+                         data-limit="<?php echo $this->filtersCounts['tag'] ?>">
+                        <div class="section-title nav-item nav-item-caret nav-item-caret-bottom">Популярное</div>
+                        <div class="section-body<?php echo $this->asyncFilters ? ' pending' : '' ?>">
+                            <div class="input-group input-group-sm hidden">
+                                <input class="form-control" type="text" placeholder="Поиск по тегам...">
+                                <span class="input-group-addon"><span class="fa fa-search"></span></span>
+                            </div>
+                            <div class="scroll"><?php echo $this->filtersTagsView ?></div>
+                            <?php if ($this->asyncFilters) { ?>
+                                <div class="pending-overlay"></div>
+                            <?php } ?>
+                        </div>
+                    </div>
+                <?php } ?>
+
+                <?php if ($this->asyncFilters || $this->filtersBrandsView) { ?>
+                    <div class="section brands ajax-suggestions" data-attr-name="<?php echo Brand::getTable() ?>"
+                         data-limit="<?php echo $this->filtersCounts['brand'] ?>">
+                        <div class="section-title nav-item nav-item-caret nav-item-caret-bottom">Бренды</div>
+                        <div class="section-body<?php echo $this->asyncFilters ? ' pending' : '' ?>">
+                            <div class="input-group input-group-sm">
+                                <input class="form-control" type="text" placeholder="Поиск по брендам...">
+                                <span class="input-group-addon"><span class="fa fa-search"></span></span>
+                            </div>
+                            <div class="scroll"><?php echo $this->filtersBrandsView ?></div>
+                            <?php if ($this->asyncFilters) { ?>
+                                <div class="pending-overlay"></div>
+                            <?php } ?>
+                        </div>
+                    </div>
+                <?php } ?>
+
+                <?php if ($this->asyncFilters || $this->filtersColorsView) { ?>
+                    <div class="section colors ajax-suggestions" data-attr-name="<?php echo Color::getTable() ?>"
+                         data-limit="<?php echo $this->filtersCounts['color'] ?>">
+                        <div class="section-title nav-item nav-item-caret nav-item-caret-bottom">Цвета</div>
+                        <div class="section-body<?php echo $this->asyncFilters ? ' pending' : '' ?>">
+                            <div class="input-group input-group-sm">
+                                <input class="form-control" type="text" placeholder="Поиск по цветам...">
+                                <span class="input-group-addon"><span class="fa fa-search"></span></span>
+                            </div>
+                            <div class="scroll"><?php echo $this->filtersColorsView ?></div>
+                            <?php if ($this->asyncFilters) { ?>
+                                <div class="pending-overlay"></div>
+                            <?php } ?>
+                        </div>
+                    </div>
+                <?php } ?>
+
+                <?php if ($this->asyncFilters || $this->filtersPricesView) { ?>
+                    <div class="section prices">
+                        <div class="section-title nav-item nav-item-caret nav-item-caret-bottom">Цены</div>
+                        <div class="section-body<?php echo $this->asyncFilters ? ' pending' : '' ?>">
+                            <div class="scroll"><?php echo $this->filtersPricesView ?></div>
+                            <?php if ($this->asyncFilters) { ?>
+                                <div class="pending-overlay"></div>
+                            <?php } ?>
+                        </div>
+                    </div>
+                <?php } ?>
+
+                <?php if ($this->asyncFilters || $this->filtersSeasonsView) { ?>
+                    <div class="section seasons suggestions" data-attr-name="<?php echo Season::getTable() ?>"
+                         data-limit="<?php echo $this->filtersCounts['season'] ?>">
+                        <div class="section-title nav-item nav-item-caret nav-item-caret-bottom">Сезон</div>
+                        <div class="section-body<?php echo $this->asyncFilters ? ' pending' : '' ?>">
+                            <div class="input-group input-group-sm">
+                                <input class="form-control" type="text" placeholder="Поиск по сезонам...">
+                                <span class="input-group-addon"><span class="fa fa-search"></span></span>
+                            </div>
+                            <div class="scroll"><?php echo $this->filtersSeasonsView ?></div>
+                            <?php if ($this->asyncFilters) { ?>
+                                <div class="pending-overlay"></div>
+                            <?php } ?>
+                        </div>
+                    </div>
+                <?php } ?>
+
+                <?php if ($this->asyncFilters || $this->filtersMaterialsView) { ?>
+                    <div class="section materials ajax-suggestions" data-attr-name="<?php echo Material::getTable() ?>"
+                         data-limit="<?php echo $this->filtersCounts['material'] ?>">
+                        <div class="section-title nav-item nav-item-caret nav-item-caret-bottom">Материал</div>
+                        <div class="section-body<?php echo $this->asyncFilters ? ' pending' : '' ?>">
+                            <div class="input-group input-group-sm">
+                                <input class="form-control" type="text" placeholder="Поиск по составу...">
+                                <span class="input-group-addon"><span class="fa fa-search"></span></span>
+                            </div>
+                            <div class="scroll"><?php echo $this->filtersMaterialsView ?></div>
+                            <?php if ($this->asyncFilters) { ?>
+                                <div class="pending-overlay"></div>
+                            <?php } ?>
+                        </div>
+                    </div>
+                <?php } ?>
+
+                <?php if ($this->asyncFilters || $this->filtersCountriesView) { ?>
+                    <div class="section countries suggestions" data-attr-name="<?php echo Country::getTable() ?>"
+                         data-limit="<?php echo $this->filtersCounts['country'] ?>">
+                        <div class="section-title nav-item nav-item-caret nav-item-caret-bottom">Страна</div>
+                        <div class="section-body<?php echo $this->asyncFilters ? ' pending' : '' ?>">
+                            <div class="input-group input-group-sm">
+                                <input class="form-control" type="text" placeholder="Поиск по странам...">
+                                <span class="input-group-addon"><span class="fa fa-search"></span></span>
+                            </div>
+                            <div class="scroll"><?php echo $this->filtersCountriesView ?></div>
+                            <?php if ($this->asyncFilters) { ?>
+                                <div class="pending-overlay"></div>
+                            <?php } ?>
+                        </div>
+                    </div>
+                <?php } ?>
+
+                <?php if ($this->asyncFilters || $this->filtersSizesView) { ?>
+                    <div class="section sizes suggestions" data-attr-name="<?php echo Size::getTable() ?>"
+                         data-limit="<?php echo $this->filtersCounts['size'] ?>">
+                        <div class="section-title nav-item nav-item-caret nav-item-caret-bottom">Размер</div>
+                        <div class="section-body<?php echo $this->asyncFilters ? ' pending' : '' ?>">
+                            <div class="input-group input-group-sm">
+                                <input class="form-control" type="text" placeholder="Поиск по размеру...">
+                                <span class="input-group-addon"><span class="fa fa-search"></span></span>
+                            </div>
+                            <div class="scroll"><?php echo $this->filtersSizesView ?></div>
+                            <?php if ($this->asyncFilters) { ?>
+                                <div class="pending-overlay"></div>
+                            <?php } ?>
+                        </div>
+                    </div>
+                <?php } ?>
+
+                <?php if ($this->asyncFilters || $this->filtersVendorsView) { ?>
+                    <div class="section vendors suggestions" data-attr-name="<?php echo Vendor::getTable() ?>"
+                         data-limit="<?php echo $this->filtersCounts['vendor'] ?>">
+                        <div class="section-title nav-item nav-item-caret nav-item-caret-bottom">Магазины</div>
+                        <div class="section-body<?php echo $this->asyncFilters ? ' pending' : '' ?>">
+                            <div class="input-group input-group-sm">
+                                <input class="form-control" type="text" placeholder="Поиск по магазинам...">
+                                <span class="input-group-addon"><span class="fa fa-search"></span></span>
+                            </div>
+                            <div class="scroll"><?php echo $this->filtersVendorsView ?></div>
+                            <?php if ($this->asyncFilters) { ?>
+                                <div class="pending-overlay"></div>
+                            <?php } ?>
+                        </div>
+                    </div>
+                <?php } ?>
+            </div>
+        <?php } ?>
+    </div>
+    <?php echo $this->noIndexClose() ?>
+
+    <?php if ($this->hasItems) { ?>
+        <div class="col-md-9 col-lg-10 right views obj-toggle-sm-views nav-sm" id="view">
+            <form class="inner form-inline" action="<?php echo (new URI($this->uriParams))->_unset(URI::PAGE_NUM)->output() ?>" method="get">
+                <?php $this->noIndexOpen() ?>
+                <label><span class="text">Сортировать по:</span>
+                    <select class="form-control input-sm" name="sort">
+                        <?php foreach ($this->sortValues as $value) { ?>
+                            <option value="<?php echo $value ?>"
+                                <?php echo $value == $this->uriParams[URI::ORDER] ? 'selected' : '' ?>><?php echo $this->sortValuesNames[$value] ?>
+                            </option>
+                        <?php } ?>
+                    </select>
+                </label>
+                <?php if (isset($this->showValues)) { ?>
+                    <span class="new-group text">Показать по:</span>
+                    <?php foreach ($this->showValues as $i => $value) { ?>
+                        <a href="<?php echo (new URI($this->uriParams))->set(URI::PER_PAGE, $value)->_unset(URI::PAGE_NUM)->output() ?>"
+                           class="btn btn-sm btn-default link-show<?php echo (0 == $i && !$this->uriParams[URI::PER_PAGE]) || $value == $this->uriParams[URI::PER_PAGE] ? ' active' : '' ?>"
+                           rel="nofollow"><?php echo $value ?></a>
+                    <?php } ?>
+                <?php } ?>
+                <?php $this->noIndexClose() ?>
+            </form>
+        </div>
+    <?php } ?>
+
+    <div class="col-md-9 col-lg-10 right applied">
+        <?php if ($this->category) { ?>
+            <div class="applied-group">
+                <?php $this->noIndexOpen() ?>
+                <span class="text">Категория:</span>
+                <?php $this->noIndexClose() ?>
+
+                <a href="<?php echo (new URI($this->uriParams))->_unset(URI::PAGE_NUM)->_unset(Category::getPk())->output() ?>"
+                   class="btn btn-sm btn-success" rel="nofollow">
+                    <?php echo $this->category->getBreadcrumb() ?: $this->category->getName() ?>
+                    <span class="fa fa-times"></span>
+                </a>
+            </div>
+        <?php } ?>
+
+        <?php if ($this->hasAppliedFilters) { ?>
+            <div class="applied-group">
+                <?php if ($this->hasAppliedFilters) { ?>
+                    <?php $this->noIndexOpen() ?>
+                    <span class="text">Фильтры:</span>
+                    <?php $this->noIndexClose() ?>
+                <?php } ?>
+
+                <?php foreach ($this->types as $type) { ?>
+                    <a href="<?php echo (new URI($this->uriParams))->_unset(URI::PAGE_NUM)->_unset($type)->output() ?>"
+                       class="btn btn-sm btn-<?php echo $typeColors[$type] ?? 'primary' ?> <?php echo $type ?>"
+                       rel="nofollow">
+                        <?php echo $this->typesNames[$type] ?? $type ?>
+                        <span class="fa fa-times"></span>
+                    </a>
+                <?php } ?>
+
+                <?php foreach ($this->filters as $k => $v) { ?>
+                    <?php
+                    $v = is_array($v) ? $v : [$v];
+                    $s = count($v);
+                    $isOrFilter = in_array($k, $this->orFiltersKeys);
+                    $isGroup = $isOrFilter && $s > 1;
+                    $isColor = 'color_id' == $k;
+                    ?>
+                    <?php if ($isGroup) { ?>
+                        <span class="applied-filter-group">
+                    <?php } ?>
+
+                    <?php for ($i = 0; $i < $s; $i++) { ?>
+                        <?php $entity = URI::getPageComponentByParam($k, $v[$i]) ?>
+                        <a href="<?php echo (new URI($this->uriParams))->_unset(URI::PAGE_NUM)->pop($k, $v[$i])->output() ?>"
+                           class="btn btn-sm btn-<?php echo $isColor ? 'default' : 'primary' ?>" rel="nofollow">
+                            <?php echo $isColor ? ('<span class="fa fa-circle color' . ('multi' == ($tmp = $entity->getHex()) ? ' color-multi' : '') . '" ' . ('trans' == $tmp ? 'style="background-color:transparent"' : ('multi' == $tmp ? '' : ('style="color:#' . $tmp . '"'))) . '></span> ') : '' ?>
+                            <?php echo $entity->getName() ?>
+                            <span class="fa fa-times"></span>
+                        </a>
+                        <?php echo $i != $s - 1 && $isOrFilter ? 'или' : '' ?>
+                    <?php } ?>
+
+                    <?php if ($isGroup) { ?>
+                        </span>
+                    <?php } ?>
+                <?php } ?>
+
+                <?php foreach ($this->prices as $k => $v) { ?>
+                    <a href="<?php echo (new URI($this->uriParams))->_unset(URI::PAGE_NUM)->_unset($k)->output() ?>"
+                       class="btn btn-sm btn-primary <?php echo str_replace('_', '-', $k) ?>" rel="nofollow">
+                        <?php echo URI::PRICE_FROM == $k ? ' от ' : ' до ' ?><?php echo $v ?>
+                        <?php echo $this->currency->text ?>
+                        <span class="fa fa-times"></span>
+                    </a>
+                <?php } ?>
+            </div>
+        <?php } ?>
+
+        <?php if ($this->hasAppliedSorting) { ?>
+            <div class="applied-group">
+                <?php $this->noIndexOpen() ?>
+                <span class="text">Отсортировано по:</span>
+                <?php $this->noIndexClose() ?>
+
+                <a href="<?php echo (new URI($this->uriParams))->_unset(URI::PAGE_NUM)->_unset(URI::ORDER)->output() ?>"
+                   class="btn btn-sm btn-default" rel="nofollow">
+                    <?php echo $this->sortValuesNames[$this->uriParams[URI::ORDER]] ?>
+                    <span class="fa fa-times"></span>
+                </a>
+            </div>
+        <?php } ?>
+
+        <?php if ($this->hasApplied) { ?>
+            <div class="applied-group">
+                <?php $this->noIndexOpen() ?>
+                <a href="<?php echo (new URI)->output() ?>" class="btn btn-sm btn-default" rel="nofollow">
+                    Очистить всё
+                    <span class="fa fa-times"></span>
+                </a>
+                <?php $this->noIndexClose() ?>
+            </div>
+        <?php } ?>
+
+        <?php if ($this->totalCount) { ?>
+            <div class="applied-group">
+                <span class="new-group text">Найдено: <?php echo Helper::makeNiceNumber($this->totalCount) ?></span>
+            </div>
+        <?php } ?>
+
+        <?php /** @todo MINI PAGINATION GOES HERE */ ?>
+    </div>
+
+    <?php if ($this->hasItems) { ?>
+        <?php if (isset($this->categoriesGrid)) { ?>
+            <div class="col-md-9 col-lg-10 right categories-grid">
+                <?php echo $this->categoriesGrid->addParams(['padding' => 5]) ?>
+            </div>
+        <?php } ?>
+
+        <?php if (isset($this->brandsGrid)) { ?>
+            <div class="col-md-9 col-lg-10 right brands-grid">
+                <?php echo $this->brandsGrid->addParams(['padding' => 3]) ?>
+            </div>
+        <?php } ?>
+
+        <?php if (is_object($this->itemsGrid)) { ?>
+            <?php echo $this->itemsGrid
+                ->addDomClass('col-md-9')
+                ->addDomClass('col-lg-10')
+                ->addDomClass('right') ?>
+        <?php } ?>
+    <?php } elseif ($this->itemsEmptyVariants) { ?>
+        <div class="col-md-9 col-lg-10 right items-empty-set">
+            <div class="items-empty-set-head">
+                <?php $this->noIndexOpen() ?>
+                Извините, предложения "<?php echo $this->h1 ?>" не найдены,<br/>
+                возможно Вас заинтересует:
+                <?php $this->noIndexClose() ?>
+            </div>
+            <div class="items-empty-set-body">
+                <?php foreach ($this->itemsEmptyVariants as $variant) { ?>
+                    <a href="<?php echo $variant->href ?>" class="btn btn-default btn-variant">
+                        <?php echo $variant->text ?> - <?php echo Helper::makeNiceNumber($variant->count) ?>
+                    </a>
+
+                    <?php echo $variant->grid ?>
+
+                    <?php if (false) { ?>
+                        <div class="clearfix">
+                            <div class="items" itemscope itemtype="http://schema.org/ItemList">
+                                <meta itemprop="name" content="<?php echo $variant->text ?>">
+                                <link itemprop="url" href="<?php echo $variant->href ?>">
+                                <meta itemprop="numberOfItems" content="<?php echo $variant->count ?>">
+                                <div class="row">
+                                    <?php foreach ($variant->items as $item) { ?>
+                                        <?php echo $item ?>
+                                    <?php } ?>
+                                </div>
+                            </div>
+                        </div>
+                    <?php } ?>
+                <?php } ?>
+            </div>
+        </div>
+    <?php } ?>
+
+    <?php if ($this->vkontakteLike || $this->facebookLike) { ?>
+        <div class="col-md-9 col-lg-10 right subscribe">
+            <?php echo $this->vkontakteLike ?>
+            <?php echo $this->facebookLike ?>
+        </div>
+    <?php } ?>
+
+    <?php if ($this->showAjaxPager) { ?>
+        <div class="col-md-9 col-lg-10 right items-ajax-loader">
+            <?php $this->noIndexOpen() ?>
+            <button type="button" class="btn btn-lg btn-primary btn-block">
+                <span class="fa fa-refresh"></span>
+                <span class="text">Показать еще</span>...
+            </button>
+            <?php $this->noIndexClose() ?>
+        </div>
+    <?php } ?>
+
+    <?php if (isset($this->itemsPager)) { ?>
+        <div class="col-md-9 col-lg-10 right pager">
+            <?php $this->noIndexOpen() ?>
+            <?php echo $this->itemsPager ?>
+            <?php $this->noIndexClose() ?>
+        </div>
+    <?php } ?>
+</div>

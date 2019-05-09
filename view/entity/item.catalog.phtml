@@ -1,0 +1,116 @@
+<?php
+
+use SNOWGIRL_CORE\View;
+use SNOWGIRL_SHOP\Entity\Item;
+use SNOWGIRL_CORE\Image;
+use SNOWGIRL_CORE\Helper;
+use SNOWGIRL_SHOP\Entity\Brand;
+use SNOWGIRL_SHOP\Entity\Vendor;
+
+$item = $this->entity;
+/** @var View $this */
+/** @var Item $item */
+/** @var Brand $brand */
+/** @var Vendor $vendor */
+
+$brand = $this->app->managers->items->getBrand($item);
+$vendor = $this->app->managers->items->getVendor($item);
+
+$buyLinkAttr = implode(' ', [
+    'href="' . $this->app->managers->items->getGoLink($item) . '"',
+    'target="_blank"',
+    'rel="nofollow"'
+]);
+
+//$isInStock = $item->isInStock();
+
+//do not show
+$isInStock = true;
+
+if ($isInStock) {
+    $linkAttr = $this->buyOnClick ? $buyLinkAttr : implode(' ', [
+        'href="' . $this->app->managers->items->getLink($item) . '"',
+        $brand->isNoIndex() ? 'rel="nofollow"' : ''
+    ]);
+} else {
+    $linkAttr = implode(' ', [
+        'href="' . $this->app->managers->items->getLink($item) . '"',
+        'target="_blank"',
+        $brand->isNoIndex() ? 'rel="nofollow"' : ''
+    ]);
+}
+
+$entityName = htmlspecialchars($this->app->managers->items->getEntityCustom($item));
+$brandName = htmlspecialchars($brand->getName());
+
+//do not show
+//$isInStock = true;
+?>
+<div class="col-xs-6 col-mb-4 col-sm-3 item item-<?php echo $item->getId() ?><?php echo $isInStock ? '' : ' out-of-stock' ?>"
+     itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem http://schema.org/Product">
+    <meta itemprop="position" content="<?php echo $this->position ?>">
+    <meta itemprop="name" content="<?php echo htmlspecialchars($item->getName()) ?>">
+    <meta itemprop="description" content="<?php echo trim(implode(' ', [$entityName, $brandName])) ?>">
+
+    <a <?php echo $linkAttr ?> itemprop="url" class="link-image">
+        <?php if ($vendorImage = $vendor->getImage()) { ?>
+            <?php echo $this->app->views->getImage($vendorImage, Image::FORMAT_HEIGHT, 25, [
+                'alt' => $vendor->getName(),
+                'title' => 'Предоставляет ' . $vendor->getName(),
+                'class' => 'll vendor'
+            ]) ?>
+        <?php } ?>
+
+        <?php if ($item->isNewly()) { ?>
+            <span class="lr newly"></span>
+        <?php } ?>
+
+        <?php if ($v = $item->getPercentageDiscount()) { ?>
+            <span class="lr discount"><?php echo $v ?></span>
+        <?php } ?>
+
+        <?php if (!$isInStock) { ?>
+            <span class="lr absent" title="Наличие не подтверждено, перейдите что-бы проверить"></span>
+        <?php } ?>
+
+        <div class="image">
+            <?php echo $this->app->views->getImage($item->getImage(), Image::FORMAT_WIDTH, 227, [
+                'alt' => 'Фото ' . $item->getName(),
+                'title' => 'Смотреть ' . $item->getName(),
+                'itemprop' => 'image'
+            ]) ?>
+        </div>
+    </a>
+
+    <div class="brand-n-entity">
+        <a class="brand" <?php echo $linkAttr ?>><?php echo $brandName ?></a>
+        <span class="entity">/ <?php echo $entityName ?></span>
+    </div>
+
+    <?php echo $this->app->views->getRating($item->getRating(), 5, 2) ?>
+
+    <div class="prices" itemprop="offers" itemscope itemtype="http://schema.org/Offer">
+        <meta itemprop="itemCondition" itemscope itemtype="http://schema.org/OfferItemCondition"
+              content="http://schema.org/NewCondition">
+        <link itemprop="availability" href="http://schema.org/<?php echo $isInStock ? 'In' : 'OutOf' ?>Stock">
+        <span class="text">Цена</span>
+
+        <?php if ($tmp = $item->getOldPrice()) { ?>
+            <span class="old-price">
+                <span class="val"><?php echo Helper::makeNiceNumber($tmp) ?></span>
+                <span class="unit"><?php echo $this->currency->text ?></span>
+            </span>
+        <?php } ?>
+
+        <span class="price">
+            <span class="val" itemprop="price" content="<?php echo $item->getPrice(true) ?>"><?php echo Helper::makeNiceNumber($item->getPrice()) ?></span>
+            <span class="unit" itemprop="priceCurrency" content="<?php echo $this->currency->iso ?>"><?php echo $this->currency->text ?></span>
+        </span>
+    </div>
+
+    <?php if ($isInStock) { ?>
+        <a <?php echo $linkAttr ?> class="btn btn-sm btn-default btn-buy">Купить</a>
+    <?php } else { ?>
+        <a <?php echo $buyLinkAttr ?> class="btn btn-sm btn-default btn-buy">Проверить</a>
+    <?php } ?>
+</div>

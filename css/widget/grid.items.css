@@ -1,0 +1,323 @@
+/*xs*/
+.widget-grid-items {
+    position: relative
+}
+
+.widget-grid-items .row {
+    margin-left: -3px;
+    margin-right: -3px
+}
+
+.widget-grid-items .row > div {
+    overflow: hidden
+}
+
+.widget-grid-items .item {
+    padding: 3px;
+    text-align: center
+}
+
+.widget-grid-items:after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    height: 1px;
+    background: #fff;
+    width: 100%;
+    left: 0;
+    right: 0;
+    z-index: 2
+}
+
+.widget-grid-items .item .image {
+    height: 210px;
+    width: 100% !important
+}
+
+.widget-grid-items .item {
+    overflow: hidden;
+    display: block;
+    position: relative;
+    z-index: 2;
+    border-style: solid;
+    border-color: #f0f0f04a;
+    border-width: 0 1px 1px 0;
+}
+
+.widget-grid-items .item .image {
+    display: block;
+    margin: 0 auto;
+    background: #fff url('../../snowgirl-core/img/pending.gif') center center no-repeat;
+    position: relative;
+    font-size: 0;
+    text-align: center;
+}
+
+.widget-grid-items .item .image:before {
+    content: '';
+    display: inline-block;
+    height: 100%;
+    vertical-align: middle;
+    width: 0;
+    overflow: hidden;
+}
+
+.widget-grid-items .item .image img {
+    display: inline-block;
+    max-width: 100%;
+    max-height: 100%;
+    vertical-align: middle
+}
+
+.widget-grid-items .item a {
+    text-decoration: none
+}
+
+.widget-grid-items .item .link-image {
+    display: block;
+    position: relative;
+    top: 0
+}
+
+.widget-grid-items .item .ll,
+.widget-grid-items .item .lr {
+    position: absolute;
+    top: 0;
+    line-height: 2;
+    width: 60px;
+    color: #fff;
+    text-align: center;
+    z-index: 99;
+    height: 25px
+
+}
+
+.widget-grid-items .item .ll {
+    left: 0
+}
+
+.widget-grid-items .item .lr {
+    right: 0
+}
+
+.widget-grid-items .item .ll.vendor {
+    padding: 0;
+    width: auto;
+    background-color: #fff
+}
+
+.widget-grid-items .item .absent {
+    background-color: gray
+}
+
+.widget-grid-items .item .absent:after {
+    content: '?'
+}
+
+.widget-grid-items .item .discount {
+    background-color: #f84837
+}
+
+.widget-grid-items .item .discount:before {
+    content: '\2013'
+}
+
+.widget-grid-items .item .discount:after {
+    content: '%'
+}
+
+.widget-grid-items .item .newly {
+    background-color: #52b7e3
+}
+
+.widget-grid-items .item .newly:after {
+    content: 'NEW';
+    margin-left: 2px
+}
+
+.widget-grid-items .item .btn-buy {
+    /*display: block;*/
+    display: none;
+    border-radius: 100px
+}
+
+.widget-grid-items .item .brand,
+.widget-grid-items .item .entity,
+.widget-grid-items .item .prices {
+    /*font-size: 14px*/
+    font-size: 13px
+}
+
+.widget-grid-items .item .prices .old-price {
+    /*display: block*/
+}
+
+.widget-grid-items .item .old-price {
+    text-decoration: line-through;
+    color: #9c9c9c;
+    margin-right: 4px
+}
+
+.widget-grid-items .item .price .val {
+    font-size: 16px
+}
+
+.widget-grid-items .item .old-price .val {
+    /*font-size: 14px*/
+    font-size: 16px
+}
+
+.widget-grid-items .item .prices .text {
+    display: none
+}
+
+.widget-grid-items .item .price span + span {
+    /*margin-left: 4px*/
+}
+
+.widget-grid-items .item .brand {
+    text-transform: capitalize;
+    font-weight: 700
+}
+
+.widget-grid-items .item .brand-n-entity,
+.widget-grid-items .item .prices {
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden
+}
+
+.pager {
+    display: none
+}
+
+.widget-grid-items-ajax-loader {
+    text-align: center
+}
+
+.widget-grid-items .item .link-image > .lr + .lr {
+    top: 26px
+}
+
+.widget-grid-items .item .link-image > .lr + .lr + .lr {
+    top: 52px
+}
+
+/*mb*/
+@media (min-width: 480px) {
+    .widget-grid-items .row > div {
+        height: 321px
+    }
+
+    .widget-grid-items .item .image {
+        height: 253px
+    }
+
+    .widget-grid-items .item .ll,
+    .widget-grid-items .item .lr {
+        line-height: 1.8
+    }
+}
+
+/*sm*/
+@media (min-width: 768px) {
+    .widget-grid-items .row > div {
+        height: 308px
+    }
+
+    .widget-grid-items .item .image {
+        height: 238px
+    }
+
+    .pager {
+        display: block
+    }
+}
+
+/*md*/
+@media (min-width: 992px) {
+    .widget-grid-items .row > div {
+        height: 325px
+    }
+
+    .widget-grid-items .item .ll,
+    .widget-grid-items .item .lr {
+        line-height: 1.6
+    }
+
+    .widget-grid-items .item .link-image > .lr + .lr {
+        top: 26px
+    }
+
+    .widget-grid-items .item .link-image > .lr + .lr + .lr {
+        top: 52px
+    }
+
+    .widget-grid-items .item .image {
+        height: 247px
+    }
+
+    .widget-grid-items .item .brand-n-entity {
+        padding-top: 4px
+    }
+
+    .widget-grid-items .item .rating {
+        font-size: 16px
+    }
+
+    .widget-grid-items .item .prices {
+        display: inline-block;
+        vertical-align: middle;
+        /*max-width: 122px*/
+    }
+
+    .widget-grid-items .item .price .val {
+        /*font-size: 24px*/
+        font-size: 16px
+    }
+
+    .widget-grid-items .item .old-price .val {
+        /*font-size: 20px*/
+        font-size: 14px
+    }
+
+    .widget-grid-items .item.out-of-stock .prices {
+        max-width: 80px
+    }
+
+    .widget-grid-items .item .prices .text {
+        display: none
+    }
+
+    .widget-grid-items .item .brand {
+        /*font-size: 16px*/
+        font-size: 14px
+    }
+
+    .widget-grid-items .item .rating span {
+        /*vertical-align: baseline*/
+    }
+
+    .widget-grid-items .item .btn-buy {
+        /*display: inline*/
+    }
+}
+
+/*lg*/
+@media (min-width: 1200px) {
+    .widget-grid-items .row > div {
+        height: 405px
+    }
+
+    .widget-grid-items .item .image {
+        height: 327px
+    }
+
+    .widget-grid-items .item .prices {
+        /*max-width: 169px*/
+    }
+
+    /*.widget-grid-items .item.out-of-stock .prices {*/
+    /*max-width: 125px*/
+    /*}*/
+}

@@ -1,0 +1,21 @@
+<?php
+
+use SNOWGIRL_CORE\View;
+use SNOWGIRL_SHOP\Catalog\URI;
+
+/** @var View $this */
+/** @var stdClass $price */
+?>
+
+<?php foreach ($this->prices as $price) { ?>
+    <a href="<?php echo (new URI($this->uriParams))
+        ->set(URI::PAGE_NUM, null)
+        ->set(URI::PRICE_FROM, $price->from)
+        ->set(URI::PRICE_TO, $price->to)
+        ->output(URI::OUTPUT_DEFINED, false, $isNoFollow) ?>"
+       class="price nav-item<?php echo $this->priceFrom == $price->from && $this->priceTo == $price->to ? ' active' : '' ?>"
+        <?php echo $isNoFollow ? 'rel="nofollow"' : '' ?>>
+        от <?php echo $price->from ?>
+        до <?php echo $price->to ?> <?php echo $this->currency->text ?>
+    </a>
+<?php } ?>

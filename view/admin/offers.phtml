@@ -1,0 +1,297 @@
+<?php
+use SNOWGIRL_CORE\View;
+use SNOWGIRL_CORE\Script\Css;
+use SNOWGIRL_CORE\Script\Js;
+use SNOWGIRL_SHOP\Entity\Vendor;
+use SNOWGIRL_SHOP\Entity\Import\Source as ImportSource;
+
+/** @var View $this */
+/** @var Vendor $vendor */
+/** @var ImportSource $importSource */
+$this->getLayout()
+    ->setTitle($title = 'Офферы')
+    ->addBreadcrumb($title)
+    ->setH1($title)
+    ->addHeadCss(new Css('@snowgirl-shop/admin/offers.css'))
+    ->addJs(new Js('@snowgirl-shop/admin/offers.js'));
+?>
+
+<div class="row">
+    <div class="col-md-6 vendors vs">
+        <h2>Поставщики (vendors)</h2>
+
+        <?php if (0 < count($this->vendors)) { ?>
+            <ul>
+                <?php foreach ($this->vendors as $vendor) { ?>
+                    <li>
+                        <form action="<?php echo L('admin', ['action' => 'row', 'table' => $vendor->getTable()]) ?>"
+                              method="post" class="form-inline form-vendor item">
+                            <input type="hidden" name="id" value="<?php echo $vendor->getId() ?>">
+                            <input type="hidden" name="is_active" value="0">
+
+                            <a href="<?php echo $this->app->managers->vendors->getLink($vendor) ?>" target="_blank"><span
+                                    class="fa fa-share"></span></a>
+
+                            <label><input name="is_active" value="1"
+                                          type="checkbox" <?php echo $vendor->isActive() ? 'checked' : '' ?>>
+                            </label>
+
+                            <label><select name="class_name" class="form-control" required>
+                                    <option value="">&mdash; Класс</option>
+                                    <?php foreach ($this->vendorClasses as $value => $label) { ?>
+                                        <option
+                                            value="<?php echo $value ?>" <?php echo $vendor->getClassName() == $value ? 'selected' : '' ?>>
+                                            <?php echo $label ?>
+                                        </option>
+                                    <?php } ?>
+                                </select></label>
+
+                            <?php echo $vendor->getName() ?>
+                        </form>
+                    </li>
+                <?php } ?>
+            </ul>
+        <?php } else { ?>
+            Список пуст
+        <?php } ?>
+
+        <form action="<?php echo L('admin', ['action' => 'row', 'table' => Vendor::getTable()]) ?>"
+              method="post" class="form-horizontal">
+            <div class="form-group">
+                <div class="col-lg-offset-2  col-lg-10 col-md-offset-2 col-md-10">
+                    <fieldset>
+                        <legend class="h3">
+                            <span class="glyphicon glyphicon-plus"></span>
+                            <span>Добавить</span>
+                        </legend>
+                    </fieldset>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="vendor-name" class="col-md-2 control-label">Имя*</label>
+
+                <div class="col-md-10">
+                    <input type="text" name="name" id="vendor-name" placeholder="Уникальное имя"
+                           class="form-control" required>
+                    <span class="help-block">Например: "lamoda.ru" или "gold.ua"</span>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="vendor-partner-link" class="col-md-2 control-label">Партнерская ссылка</label>
+
+                <div class="col-md-10">
+                    <input type="text" name="partner_link" id="vendor-partner-link" placeholder="Партнерская ссылка на основной каталог"
+                           class="form-control">
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="vendor-uri" class="col-md-2 control-label">URI-имя</label>
+
+                <div class="col-md-10">
+                    <input type="text" name="uri" id="vendor-uri" placeholder="Ссылка" class="form-control">
+                    <span class="help-block">Например: "lamoda" или "lamoda-shop"</span>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="<?php echo $tmp = 'class_name' ?>"
+                       class="col-md-2 control-label">Класс</label>
+
+                <div class="col-md-10">
+                    <label><select name="<?php echo $tmp ?>" id="<?php echo $tmp ?>" class="form-control">
+                            <option value="">&mdash; Выбрать</option>
+                            <?php foreach ($this->vendorClasses as $value => $label) { ?>
+                                <option value="<?php echo $value ?>">
+                                    <?php echo $label ?>
+                                </option>
+                            <?php } ?>
+                        </select></label>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-md-offset-2 col-md-10">
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" name="is_active" value="1"> Активный
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-lg-offset-2  col-lg-10 col-md-offset-2 col-md-10">
+                    <button type="submit" class="btn btn-default">Создать</button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <div class="col-md-6 import-sources vs">
+        <h2>Источники (import sources)</h2>
+
+        <?php if (0 < count($this->importSources)) { ?>
+            <ul>
+                <?php foreach ($this->importSources as $importSource) { ?>
+                    <li>
+                        <form action="<?php echo L('admin', ['action' => 'row', 'table' => $importSource->getTable()]) ?>"
+                              method="post" class="form-inline form-import-source item">
+                            <input type="hidden" name="id" value="<?php echo $importSource->getId() ?>">
+                            <input type="hidden" name="is_cron" value="0">
+
+                            <?php if ($importSource->getUri()) { ?>
+                                <a href="<?php echo $importSource->getUri() ?>" target="_blank"><span
+                                        class="fa fa-share"></span></a>
+                            <?php } ?>
+
+                            <label><input name="is_cron" value="1"
+                                          type="checkbox" <?php echo $importSource->isCron() ? 'checked' : '' ?>>
+                            </label>
+
+                            <label><select name="class_name" class="form-control" required>
+                                    <option value="">&mdash; Класс</option>
+                                    <?php foreach ($this->importClasses as $value => $label) { ?>
+                                        <option
+                                            value="<?php echo $value ?>" <?php echo $importSource->getClassName() == $value ? 'selected' : '' ?>>
+                                            <?php echo $label ?>
+                                        </option>
+                                    <?php } ?>
+                                </select></label>
+
+                            <a href="<?php echo $this->app->managers->sources->getLink($importSource) ?>"
+                               class="link"><?php echo $importSource->getName() ?></a>
+                        </form>
+                    </li>
+                <?php } ?>
+            </ul>
+        <?php } else { ?>
+            Список пуст
+        <?php } ?>
+
+        <form action="<?php echo L('admin', ['action' => 'row', 'table' => ImportSource::getTable()]) ?>"
+              method="post" class="form-horizontal">
+            <div class="form-group">
+                <div class="col-lg-offset-2  col-lg-10 col-md-offset-2 col-md-10">
+                    <fieldset>
+                        <legend class="h3">
+                            <span class="glyphicon glyphicon-plus"></span>
+                            <span>Добавить</span>
+                        </legend>
+                    </fieldset>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="import-source-name" class="col-md-2 control-label">Имя*</label>
+
+                <div class="col-md-10">
+                    <input type="text" name="name" id="import-source-name" placeholder="Уникальное имя"
+                           class="form-control" required>
+                        <span
+                            class="help-block">Например: "lamoda.admitad - Одежда" или "lamoda.admitad - Аксессуары"</span>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="file" class="col-md-2 control-label">Файл*</label>
+
+                <div class="col-md-10">
+                    <input type="text" name="file" id="file" placeholder="Путь к файлу (каталогу)"
+                           class="form-control" required>
+                    <span class="help-block">Например: "http://file.csv" или "/home/snowgirl/file.csv"</span>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="<?php echo $tmp = Vendor::getPk() ?>"
+                       class="col-md-2 control-label">Поставщик*</label>
+
+                <div class="col-md-10">
+                    <label><select name="<?php echo $tmp ?>" id="<?php echo $tmp ?>"
+                                   class="form-control" required>
+                            <option value="" disabled>&mdash; Выбрать</option>
+                            <?php foreach ($this->vendors as $vendor) { ?>
+                                <option value="<?php echo $vendor->getId() ?>">
+                                    <?php echo $vendor->getName() ?>
+                                </option>
+                            <?php } ?>
+                        </select></label>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="<?php echo $tmp = 'type' ?>"
+                       class="col-md-2 control-label">Тип*</label>
+
+                <div class="col-md-10">
+                    <label><select name="<?php echo $tmp ?>" id="<?php echo $tmp ?>"
+                                   class="form-control">
+                            <?php foreach ($this->sourceTypes as $label => $value) { ?>
+                                <option value="<?php echo $value ?>">
+                                    <?php echo $label ?>
+                                </option>
+                            <?php } ?>
+                        </select></label>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="<?php echo $tmp = 'class_name' ?>"
+                       class="col-md-2 control-label">Класс</label>
+
+                <div class="col-md-10">
+                    <label><select name="<?php echo $tmp ?>" id="<?php echo $tmp ?>"
+                                   class="form-control" required>
+                            <option value="">&mdash; Выбрать</option>
+                            <?php foreach ($this->importClasses as $value => $label) { ?>
+                                <option value="<?php echo $value ?>">
+                                    <?php echo $label ?>
+                                </option>
+                            <?php } ?>
+                        </select></label>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="import-source-uri" class="col-md-2 control-label">Ссылка</label>
+
+                <div class="col-md-10">
+                    <input type="text" name="uri" id="import-source-uri" placeholder="Ссылка" class="form-control">
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="<?php echo $tmp = 'delivery_notes' ?>" class="col-md-2 control-label">Доставка</label>
+
+                <div class="col-md-10">
+                    <textarea name="<?php echo $tmp ?>" id="<?php echo $tmp ?>" rows="3"
+                              placeholder="Особенности доставки (будут отображены на странице товара)"
+                              class="form-control"></textarea>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="<?php echo $tmp = 'sales_notes' ?>" class="col-md-2 control-label">Продажа</label>
+
+                <div class="col-md-10">
+                    <textarea name="<?php echo $tmp ?>" id="<?php echo $tmp ?>" rows="3"
+                              placeholder="Особенности продажи (будут отображены на странице товара)"
+                              class="form-control"></textarea>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="<?php echo $tmp = 'tech_notes' ?>" class="col-lg-2 col-md-2 control-label">Тех</label>
+
+                <div class="col-lg-10 col-md-10">
+                            <textarea name="<?php echo $tmp ?>" id="<?php echo $tmp ?>" rows="3"
+                                      placeholder="Особенности поставщика, настроек, импорта..."
+                                      class="form-control"></textarea>
+                    <span class="help-block">Например: Список категорий и их айдишников или "csv не всегда отдается"</span>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-lg-offset-2  col-lg-10 col-md-offset-2 col-md-10">
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" name="is_cron" value="1"> Крон Импорт
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-lg-offset-2  col-lg-10 col-md-offset-2 col-md-10">
+                    <button type="submit" class="btn btn-default">Создать</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>

@@ -1,0 +1,22 @@
+<?php
+
+use SNOWGIRL_CORE\View;
+use SNOWGIRL_SHOP\Catalog\URI;
+use SNOWGIRL_SHOP\Entity\Color;
+
+/** @var View $this */
+/** @var Color $color */
+?>
+
+<?php $pk = Color::getPk() ?>
+<?php foreach ($this->colors as $color) {
+    $v = $color->getHex(); ?>
+    <a href="<?php echo (new URI($this->uriParams))
+        ->set(URI::PAGE_NUM, null)
+        ->inverse($pk, $color->getId(), $isWas)
+        ->output(URI::OUTPUT_DEFINED, false, $isNoFollow) ?>"
+       title="<?php echo $color->getName() ?>"
+        <?php echo $isWas || ('multi' == $v) ? ('class="' . ($isWas ? 'active' : '') . ' ' . ('multi' == $v ? 'color-multi' : '') . '"') : '' ?>
+        <?php echo 'trans' == $v ? 'style="background-color:transparent"' : ('multi' == $v ? '' : ('style="background-color:#' . $v . '"')) ?>
+        <?php echo $isNoFollow ? 'rel="nofollow"' : '' ?>></a>
+<?php } ?>

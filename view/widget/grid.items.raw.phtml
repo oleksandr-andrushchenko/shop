@@ -1,0 +1,11 @@
+<?php
+use SNOWGIRL_SHOP\View\Widget\Grid\Items;
+use SNOWGIRL_SHOP\Entity\Item;
+
+/** @var Items $this */
+/** @var Item $item */
+?>
+
+<?php foreach (array_keys($this->items) as $k) { ?>
+    <?php $this->echoItem($k) ?>
+<?php } ?>

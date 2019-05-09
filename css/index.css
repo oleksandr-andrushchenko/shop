@@ -1,0 +1,214 @@
+/*xs*/
+h1, .h1, .about {
+    text-align: center
+}
+
+.section-title {
+    padding: 20px
+}
+
+.header {
+    border-bottom: 0
+}
+
+.index > :first-child, .footer {
+    margin-top: 0
+}
+
+.content > .container {
+    margin: 0;
+    padding: 0;
+    width: 100%
+}
+
+.vs .header + .content,
+.vs .mobile-header-nav + .top {
+    margin-top: 0
+}
+
+.mobile-header-nav {
+    /*border-top: 1px solid whitesmoke;*/
+    display: table;
+    width: 100%
+}
+
+.mobile-header-nav a.nav-item {
+    display: table-cell;
+    vertical-align: middle;
+    width: 1%;
+    text-align: center;
+    text-transform: uppercase;
+    /*color: #333;*/
+    /*color: #8e8d8d;*/
+    padding: 15px 0;
+    line-height: 1
+}
+
+.mobile-header-nav a:hover {
+    color: #000;
+    text-decoration: none
+}
+
+.mobile-catalog-nav a .icon {
+    background: url(img/index-mobile-catalog-nav.png) left top no-repeat;
+    background-size: 100% auto;
+    height: 33px;
+    width: 33px;
+    display: inline-block;
+    vertical-align: middle;
+    margin-right: 10px
+}
+
+.top .widget-carousel .item-caption,
+.top .widget-carousel .owl-dots {
+    display: none
+}
+
+.top .category {
+    position: relative
+}
+
+.top .container {
+    position: absolute
+}
+
+.subscribe {
+    text-align: center
+}
+
+.advantages {
+    display: none
+}
+
+.advantages .advantage {
+    padding-bottom: 5px
+}
+
+.advantage .advantage-inner {
+    background: #f6f6f6
+}
+
+.advantage .advantage-icon {
+    display: table-cell;
+    padding: 25px;
+    background-size: 65%;
+    background-repeat: no-repeat;
+    background-position: 50% 50%;
+}
+
+.advantage .advantage-text {
+    display: table-cell;
+    font-size: 14px;
+    vertical-align: middle;
+    padding: 5px 5px 5px 0
+}
+
+.widget-ad {
+    display: block !important;
+    margin-left: auto;
+    margin-right: auto
+}
+
+.categories {
+    background-color: #f6f6f6
+}
+
+.categories .category {
+    border: 1px solid #333
+}
+
+.categories .category.image {
+    border: 0
+}
+
+.widget-grid-items .row > div {
+    height: auto !important
+}
+
+.widget-grid-items .item {
+    border: 0 !important;
+}
+
+.widget-grid-items .row {
+    margin-left: -3px;
+    margin-right: -3px;
+}
+
+.widget-grid-items .item {
+    padding: 0 3px 3px 3px !important
+}
+
+.items .container {
+    margin-bottom: -3px
+}
+
+.widget-grid-items .item .image {
+    height: 130px !important
+}
+
+.widget-grid-items .item {
+    width: 33.33333333%
+}
+
+.link {
+    display: block;
+    text-align: center;
+    /*padding: 10px;*/
+    /*background-color: #f6f6f6;*/
+    /*font-size: 2.69231em;*/
+    /*line-height: 1.16em;*/
+}
+
+a.link {
+    color: #000
+}
+
+a.link:hover {
+    text-decoration: none;
+}
+
+.link .link-external {
+    font-size: 150%;
+    display: inline;
+    color: #134e98
+}
+
+.meta {
+    margin: 0 !important
+}
+
+/*mb*/
+@media (min-width: 480px) {
+    .widget-grid-items .item {
+        width: 16.66666667%
+    }
+}
+
+/*sm*/
+@media (min-width: 768px) {
+    .top .widget-carousel .item-caption,
+    .top .widget-carousel .owl-dots {
+        display: block
+    }
+
+    .advantages {
+        display: block
+    }
+}
+
+/*md*/
+@media (min-width: 992px) {
+    .widget-grid-items .item {
+        width: 8.33333333%
+    }
+
+    .mobile-header-nav,
+    .mobile-catalog-nav {
+        display: none
+    }
+}
+
+/*lg*/
+@media (min-width: 1200px) {
+
+}

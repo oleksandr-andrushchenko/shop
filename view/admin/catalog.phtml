@@ -1,0 +1,201 @@
+<!---->
+<?php
+
+use SNOWGIRL_CORE\View;
+use SNOWGIRL_CORE\Script\Css;
+use SNOWGIRL_CORE\Script\Js;
+use SNOWGIRL_SHOP\Entity\Page\Catalog as PageCatalog;
+use SNOWGIRL_SHOP\Entity\Page\Catalog\Custom as PageCatalogCustom;
+
+/** @var View $this */
+/** @var PageCatalog $pageCatalog */
+/** @var PageCatalogCustom $pageCatalogCustom */
+/** @var array $text */
+$this->getLayout()
+    ->setTitle($title = 'Страницы')
+    ->addBreadcrumb($title)
+    ->setH1($title)
+    ->addHeadCss(new Css('@snowgirl-shop/admin/catalog.css'))
+    ->addJs(new Js('@snowgirl-shop/admin/catalog.js'));
+?>
+<?php echo '<div class="vs">' ?>
+<?php if ($this->priorityLinks) { ?>
+    <div class="priority-links">
+        Приоритет:
+        <?php foreach ($this->priorityLinks as $priorityLink) { ?>
+            <a href="<?php echo $priorityLink->uri ?>" <?php echo $priorityLink->active ? 'class="active"' : '' ?>>
+                <?php echo $priorityLink->text ?>
+            </a>
+        <?php } ?>
+    </div>
+<?php } ?>
+
+<div class="control">
+    <form method="get" class="form-inline">
+        <div class="form-group">
+            <label for="search" class="control-label">Поиск</label>
+            <input id="search" class="form-control input-sm" type="text" name="search"
+                   placeholder="Страница"
+                   value="<?php echo $this->search ?>">
+        </div>
+        <button type="submit" class="btn btn-sm btn-primary"><span class="glyphicon glyphicon-search"></span> Искать
+        </button>
+    </form>
+
+    <div><?php echo $this->pager ?></div>
+</div>
+
+<table class="table">
+    <colgroup>
+        <col width="10%">
+        <col width="30%">
+        <col width="60%">
+    </colgroup>
+    <thead>
+    <tr>
+        <th>Страница <span class="glyphicon glyphicon-link"></span></th>
+        <th>SEO значения</th>
+        <th>SEO статьи</th>
+    </tr>
+    </thead>
+    <tbody>
+    <?php foreach ($this->pages as $pageCatalog) { ?>
+        <?php $pageCatalogCustom = $this->manager->getPageCatalogCustom($pageCatalog) ?>
+        <tr data-id="<?php echo $pageCatalog->getId() ?>"
+            data-custom-id="<?php echo $pageCatalogCustom ? $pageCatalogCustom->getId() : '' ?>"
+            data-params-hash="<?php echo $pageCatalog->getParamsHash() ?>">
+            <td>
+                <a href="<?php echo $this->manager->getLink($pageCatalog) ?>" target="_blank">
+                    <?php echo htmlspecialchars($pageCatalog->getName()) ?>
+                </a>
+            </td>
+            <td>
+                <?php foreach (['meta_title', 'meta_description', 'h1'] as $attr) { ?>
+                    <?php if ($this->managerCustom->isCanModifyAttrs($this->client)) { ?>
+                        <?php if ($pageCatalogCustom && $tmp = $pageCatalogCustom->get($attr)) { ?>
+                            <a class="btn btn-sm btn-success btn-modify-attr" title="<?php echo $tmp ?>"
+                               data-name="<?php echo $attr ?>" data-value="<?php echo $tmp ?>">
+                                <?php echo $attr ?>
+                            </a>
+                        <?php } else { ?>
+                            <a class="btn btn-sm btn-default btn-modify-attr" title="Добавить атрибут"
+                               data-name="<?php echo $attr ?>" data-value="">
+                                <?php echo $attr ?>
+                            </a>
+                        <?php } ?>
+                    <?php } else { ?>
+                        <?php if ($pageCatalogCustom && $tmp = $pageCatalogCustom->get($attr)) { ?>
+                            <span class="label label-success" title="<?php echo $tmp ?>"><?php echo $attr ?></span>
+                        <?php } else { ?>
+                            <span class="label label-default" title="Атрибут не установлен"><?php echo $attr ?></span>
+                        <?php } ?>
+                    <?php } ?>
+                <?php } ?>
+            </td>
+            <td>
+                <div class="seo-text-control" id="seo-text-control-<?php echo $pageCatalog->getId() ?>">
+                    <a class="btn btn-sm btn-default btn-add-seo-text" title="Добавить статью">
+                        <span class="glyphicon glyphicon-pencil"></span>
+                    </a>
+                </div>
+                <div class="seo-texts">
+                    <?php foreach (($pageCatalogCustom ? $pageCatalogCustom->getSeoTexts(true) : []) as $k => $text) { ?>
+                        <div class="seo-text"
+                             id="seo-text-<?php echo $k ?>"
+                             data-num="<?php echo $k ?>"
+                             data-active="<?php echo $text['active'] ?>">
+                            <?php if ($this->managerCustom->isCanActiveSeoTexts($this->client)) { ?>
+                                <a class="btn btn-sm btn-<?php echo $text['active'] ? 'success' : 'default' ?> btn-active-seo-text"
+                                   title="Опубликовано">
+                                    <span class="glyphicon glyphicon-ok"></span>
+                                </a>
+                            <?php } elseif ($text['active']) { ?>
+                                <span class="label label-success" title="Опубликовано"><span
+                                            class="glyphicon glyphicon-ok"></span></span>
+                            <?php } else { ?>
+                                <span class="label label-default" title="Не опубликовано"><span
+                                            class="glyphicon glyphicon-remove"></span></span>
+                            <?php } ?>
+                            <?php if ($this->managerCustom->isCanEditSeoText($text, $this->client)) { ?>
+                                <a class="btn btn-sm btn-default btn-edit-seo-text" title="Редактировать">
+                                    <span class="glyphicon glyphicon-edit"></span>
+                                </a>
+                            <?php } ?>
+                            <?php if ($this->managerCustom->isCanDeleteSeoText($text, $this->client)) { ?>
+                                <a class="btn btn-sm btn-default btn-delete-seo-text" title="Удалить">
+                                    <span class="glyphicon glyphicon-trash"></span>
+                                </a>
+                            <?php } ?>
+                            <?php if ($text['h1']) { ?>
+                                <span class="glyphicon glyphicon-minus"></span>
+                                <span class="h1"><?php echo $text['h1'] ?></span>
+                            <?php } ?>
+                            <span class="user">
+                                <span class="glyphicon glyphicon-user"></span>
+                                #<?php echo $text['user'] ?>
+                            </span>
+                            <span class="glyphicon glyphicon-minus" title="Статья"></span>
+                            <span class="body"><?php echo htmlspecialchars($text['body']) ?></span>
+                        </div>
+                    <?php } ?>
+                </div>
+            </td>
+        </tr>
+    <?php } ?>
+    </tbody>
+</table>
+
+<form action="<?php echo $this->makeLink('admin', 'page-catalog-custom-seo-text') ?>"
+      class="form-horizontal seo-text-form template" method="post">
+    <div class="form-group">
+        <div class="col-lg-10 col-lg-offset-2 col-md-10 col-md-offset-2">
+            <span class="h2">Статья</span>
+        </div>
+    </div>
+
+    <input type="hidden" name="id">
+    <input type="hidden" name="num">
+    <input type="hidden" name="active" value="0">
+
+    <div class="form-group">
+        <label for="h1" class="col-lg-2 col-md-2 control-label">Название *</label>
+
+        <div class="col-lg-10 col-md-10">
+            <input type="text" name="h1" id="h1" class="form-control" placeholder="Текст названия" required>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label for="body" class="col-lg-2 col-md-2 control-label">Текст *</label>
+
+        <div class="col-lg-10 col-md-10">
+        <textarea name="body" id="body" class="form-control" cols="30" rows="10" placeholder="Текст поста"
+                  minlength="<?php echo $this->maxArticleLength ?>"></textarea>
+        </div>
+    </div>
+    <?php if ($this->managerCustom->isCanActiveSeoTexts($this->client)) { ?>
+        <div class="form-group">
+            <div class="col-lg-offset-2  col-lg-10 col-md-offset-2 col-md-10">
+                <div class="checkbox">
+                    <label>
+                        <input type="checkbox" name="active" value="1"> Опубликовано
+                    </label>
+                </div>
+            </div>
+        </div>
+    <?php } ?>
+    <div class="form-group">
+        <div class="col-lg-2 col-lg-offset-2 col-md-2 col-md-offset-2">
+            <button type="submit" class="btn btn-success">
+                <span class="glyphicon glyphicon-save"></span>
+                Сохранить
+            </button>
+        </div>
+        <label for="body-length" class="col-lg-2 col-md-2 control-label">Длина =</label>
+
+        <div class="col-lg-2 col-md-2">
+            <input id="body-length" type="text" class="form-control" readonly>
+        </div>
+    </div>
+</form>
+<?php echo '</div>' ?>

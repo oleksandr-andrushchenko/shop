@@ -1,0 +1,194 @@
+<!---->
+<?php
+use SNOWGIRL_CORE\View;
+use SNOWGIRL_CORE\Script\Css;
+use SNOWGIRL_CORE\Script\Js;
+use SNOWGIRL_SHOP\Entity\Item;
+use SNOWGIRL_CORE\Image;
+use SNOWGIRL_CORE\Entity;
+use SNOWGIRL_CORE\View\Widget;
+use SNOWGIRL_CORE\View\Widget\Form\Input\Tag as TagInput;
+use SNOWGIRL_CORE\View\Widget\Form\Input\Value;
+
+/** @var View $this */
+/** @var Entity $entity */
+/** @var Entity $v */
+/** @var Widget|TagInput $widget */
+/** @var Item $item */
+$this->getLayout()
+    ->setTitle($title = 'Фиксы предложений')
+    ->addBreadcrumb($title)
+    ->setH1('Фиксы')
+    ->addHeadCss(new Css('@snowgirl-core/admin/database.css'))
+    ->addHeadCss(new Css('@snowgirl-shop/admin/item-fixes.css'))
+    ->addHeadCss(new Css('@snowgirl-core/jquery.easyzoom.css'))
+    ->addJs(new Js('@snowgirl-core/jquery.easyzoom.js'))
+    ->addJs(new Js('@snowgirl-shop/admin/item-fixes.js'));
+?>
+<ul class="list-inline">
+    <li>Предложения</li>
+    <li><a href="<?php echo $this->makeLink('admin', 'category-fixes') ?>">Категории</a></li>
+</ul>
+
+<?php echo '<div class="vs">' ?>
+
+<form action="<?php echo $this->makeLink('admin', 'item-fixes') ?>" class="form-inline form-search" method="get">
+    <div class="form-group">
+        <label for="search_by" class="control-label">Искать</label>
+        <select name="search_by" id="search_by" class="form-control">
+            <?php foreach ($this->columns as $column => $columnOptions) { ?>
+                <option
+                    value="<?php echo $column ?>" <?php echo $column == $this->searchBy ? 'selected' : '' ?>><?php echo $column ?></option>
+            <?php } ?>
+        </select>
+        <label for="search_value" class="control-label">по</label>
+        <input type="text" name="search_value" id="search_value" class="form-control"
+               value="<?php echo $this->searchValue ?>"
+               placeholder="Значение">
+
+        <label class="control-label">
+            <input type="checkbox" name="search_use_fulltext"
+                   value="1" <?php echo $this->searchUseFulltext ? 'checked' : '' ?>>
+            Полнотекстовый?
+        </label>
+    </div>
+
+    <div class="form-group">
+        <label for="order_by" class="control-label">Сортировать</label>
+        <select name="order_by" id="order_by" class="form-control">
+            <?php foreach ($this->columns as $column => $columnOptions) { ?>
+                <option
+                    value="<?php echo $column ?>" <?php echo $column == $this->orderBy ? 'selected' : '' ?>><?php echo $column ?></option>
+            <?php } ?>
+        </select>
+        <label for="order_value" class="control-label">по</label>
+        <select name="order_value" id="order_value" class="form-control">
+            <option value="asc">ASC</option>
+            <option value="desc" <?php echo 'desc' == $this->orderValue ? 'selected' : '' ?>>DESC</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <button type="submit" class="btn btn-primary">
+            <span class="glyphicon glyphicon-search"></span> Искать
+        </button>
+        <a href="<?php echo $this->makeLink('admin', 'fixes') ?>">
+            <span class="glyphicon glyphicon-refresh"></span> Сбросить
+        </a>
+    </div>
+</form>
+<?php echo $this->pager ?>
+<table class="table">
+    <thead>
+    <tr>
+        <th data-key="item_id">id</th>
+        <th data-key="image">image</th>
+        <th data-key="info">info</th>
+    </tr>
+    </thead>
+    <tbody>
+    <?php $selectMap = [
+        'category_id' => 'categories',
+        'color_id' => 'colors',
+        'country_id' => 'countries'
+    ] ?>
+    <?php foreach ($this->items as $item) { ?>
+        <tr data-id="<?php echo $item->getId() ?>">
+            <td data-key="item_id"><?php echo $item->get('item_id') ?></td>
+            <td data-key="image">
+                <div class="easyzoom easyzoom--adjacent">
+                    <a class="img-wrapper"
+                       href="<?php echo $tmp = $this->app->images->get($item->getImage())->getLink() ?>">
+                        <img src="<?php echo $tmp ?>">
+                    </a>
+                </div>
+            </td>
+            <td data-key="info">
+                <table class="table">
+                    <?php foreach ($this->columns as $column => $columnOptions) {
+                        if (in_array($column, ['item_id', 'image'])) continue; ?>
+                        <tr>
+                            <td><?php echo $column ?></td>
+                            <td>
+                                <?php if (isset($selectMap[$column]) && in_array($column, $this->editableColumns)) { ?>
+                                    <label>
+                                        <select data-id="<?php echo $item->getId() ?>"
+                                                data-name="<?php echo $column ?>">
+                                            <option value="0">- <?php echo $column ?> -</option>
+                                            <?php foreach ($this->{$selectMap[$column]} as $id => $v) { ?>
+                                                <option
+                                                    value="<?php echo $id ?>" <?php echo $id == $item->get($column) ? 'selected' : '' ?>>
+                                                    <?php echo $v->get('name') ?>
+                                                </option>
+                                            <?php } ?>
+                                        </select>
+                                    </label>
+                                <?php } elseif (in_array($column, ['is_in_stock', 'is_active']) && in_array($column, $this->editableColumns)) { ?>
+                                    <?php foreach ([0 => 'Нет', 1 => 'Да'] as $v => $k) { ?>
+                                        <label><input type="radio"
+                                                      name="<?php echo $column . '_' . $item->getId() ?>"
+                                                      data-id="<?php echo $item->getId() ?>"
+                                                      data-name="<?php echo $column ?>" value="<?php echo $v ?>"
+                                                <?php echo $v == $item->get($column) ? 'checked' : '' ?>> <?php echo $k ?>
+                                        </label>
+                                    <?php } ?>
+                                <?php } elseif ('brand_id' == $column) { ?>
+                                    <?php echo $this->brands[$item->getBrandId()]->get('name') ?>
+                                <?php } elseif ('vendor_id' == $column) { ?>
+                                    <?php echo $this->vendors[$item->getVendorId()]->get('name') ?>
+                                <?php } elseif (in_array($column, ['created_at', 'updated_at'])) { ?>
+                                    <?php echo date('d.m.Y в H:i') ?>
+                                <?php } else { ?>
+                                    <?php echo $item->get($column) ?>
+                                <?php } ?>
+                            </td>
+                        </tr>
+                    <?php } ?>
+                    <?php foreach ($this->mvaEntities as $entity) { ?>
+                        <tr data-attr-table="item_<?php echo $entity::getTable() ?>"
+                            data-attr-pk="<?php echo $entity::getPk() ?>">
+                            <?php
+                            $manager = $this->app->managers->getByEntityClass($entity);
+                            $table = $manager->getEntity()->getTable();
+                            $widget = $manager->makeTagPicker(null, false, [], $this);
+
+                            if (isset($this->mvaValues[$table][$item->getId()])) {
+                                foreach ($this->mvaValues[$table][$item->getId()] as $attrId) {
+                                    if (isset($this->mvaValuesNames[$table][$attrId])) {
+                                        $widget->addValue(new Value($attrId, $this->mvaValuesNames[$table][$attrId]));
+                                    }
+                                }
+                            }
+                            ?>
+                            <td><?php echo $table ?></td>
+                            <td><?php echo $widget->stringify() ?></td>
+                        </tr>
+                    <?php } ?>
+                    <tr>
+                        <td></td>
+                        <td>
+                            <a href="<?php echo $this->app->managers->items->getLink($item) ?>" target="_blank">
+                                <span class="fa fa-external-link"></span> Страница
+                            </a>
+                            <a href="<?php echo $this->makeLink('admin', [
+                                'action' => 'database',
+                                'table' => 'item',
+                                'search_by' => 'item_id',
+                                'search_value' => $item->getId()
+                            ]) ?>" target="_blank">
+                                <span class="fa fa-edit"></span> Запись
+                            </a>
+                            <!--                            <button class="btn btn-primary btn-copy" title="Скопировать"><span class="glyphicon glyphicon-copy"></span></button>-->
+                            <!--                            <button class="btn btn-danger btn-delete" title="Удалить"><span class="glyphicon glyphicon-trash"></span></button>-->
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    <?php } ?>
+    </tbody>
+</table>
+
+<?php echo $this->pager ?>
+
+<?php echo '</div>' ?>

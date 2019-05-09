@@ -1,0 +1,12 @@
+.title, .cart-empty {
+    text-align: center
+}
+
+.cart-items .item > * {
+    display: inline-block;
+    vertical-align: top
+}
+
+.cart-items .item .item-image {
+    max-width: 100px
+}

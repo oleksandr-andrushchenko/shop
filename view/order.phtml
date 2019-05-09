@@ -1,0 +1,88 @@
+<?php
+use SNOWGIRL_CORE\View;
+use SNOWGIRL_CORE\Script\Css;
+use SNOWGIRL_CORE\Script\Js;
+use SNOWGIRL_SHOP\Entity\Item;
+use SNOWGIRL_SHOP\Entity\Size;
+use SNOWGIRL_CORE\Image;
+
+/** @var View $this */
+/** @var Item $item */
+/** @var Size $size */
+/** @var Size[] $sizes */
+$this->getLayout()
+//    ->addBreadcrumb(T('catalog.catalog'), $this->makeLink('catalog'))
+    ->addBreadcrumb($this->h1)
+    ->addHeadCss(new Css('@snowgirl-shop/order.css'))
+    ->addJs(new Js('@snowgirl-shop/order.js'));
+?>
+
+<h1 class="title"><?php echo htmlspecialchars($this->h1) ?></h1>
+
+<?php if ($this->cart) { ?>
+    <?php echo '<div class="vs"><div class="row">' ?>
+    <div class="col-sm-6 vs cart-items">
+        <?php foreach ($this->cart as $item) { ?>
+            <?php
+            $sizes = $item->getRawVar('sizes');
+            $size = $sizes[$item->getRawVar('size')];
+            ?>
+            <div class="item">
+                <?php echo $this->app->views->image($item->getImage(), Image::FORMAT_NONE, 0, [
+                    'alt' => $item->getName(),
+                    'class' => 'item-image'
+                ]) ?>
+                <div class="item-info">
+                    <span class="fa fa-times"></span>
+                    <div class="item-name">
+                        <a href="<?php echo $this->app->managers->items->getLink($item) ?>" target="_blank">
+                            <span class="glyphicon glyphicon-new-window"></span>
+                            <?php echo $item->getName() ?>
+                        </a>
+                    </div>
+                    <div class="item-quantity">
+                        Количество
+                        <button type="button"
+                                class="btn btn-default btn-quantity-dec"<?php echo 1 == $item->getRawVar('quantity') ? ' disabled' : '' ?>>
+                            -
+                        </button>
+                        <span class="item-quantity-value"><?php echo $item->getRawVar('quantity') ?></span>
+                        <button type="button" class="btn btn-default btn-quantity-inc">+</button>
+                    </div>
+                    <div class="item-size">Размер: <?php echo $size->getName() ?></div>
+                    <label>
+                        <select class="item-sizes">
+                            <?php foreach ($sizes as $size2) { ?>
+                                <option value="<?php echo $size2->getId() ?>"
+                                        data-name="<?php echo $size2->getName() ?>" <?php echo $size->getId() == $size2->getId() ? 'selected' : '' ?>>
+                                    <?php echo $size2->getName() ?>
+                                </option>
+                            <?php } ?>
+                        </select>
+                    </label>
+                    <div class="item-upc">Артикул: <?php echo $item->getUpc() ?></div>
+                </div>
+            </div>
+        <?php } ?>
+    </div>
+    <div class="col-sm-6 vs cart-form">
+        <?php echo $this->form ?>
+    </div>
+    <?php echo '</div></div>' ?>
+<?php } else { ?>
+    <div class="cart-empty">
+        Ваша корзина пуста
+        <ul>
+            <li><a href="<?php echo $this->makeLink('catalog') ?>">Добавляйте</a> понравившиеся
+                товары в корзину
+            </li>
+            <?php if ($this->visited) { ?>
+                <li>Или выберите из просмотренных ранее</li>
+            <?php } ?>
+        </ul>
+    </div>
+<?php } ?>
+
+<?php if ($this->visited) { ?>
+    <h2 class="title">Просмотренные ранее</h2>
+<?php } ?>

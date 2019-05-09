@@ -1,0 +1,26 @@
+<?php
+
+use SNOWGIRL_CORE\View;
+use SNOWGIRL_SHOP\Entity\Brand;
+use SNOWGIRL_SHOP\Catalog\URI;
+use SNOWGIRL_CORE\Helper;
+
+/** @var View $this */
+/** @var Brand $brand */
+?>
+
+<?php $pk = Brand::getPk() ?>
+<?php foreach ($this->brands as $brand) { ?>
+    <a href="<?php echo (new URI($this->uriParams))
+        ->set(URI::PAGE_NUM, null)
+        ->inverse($pk, $brand->getId(), $isWas)
+        ->output(URI::OUTPUT_DEFINED, false, $isNoFollow) ?>"
+       class="nav-item<?php echo $isWas ? ' active' : '' ?>"
+        <?php echo $isNoFollow ? 'rel="nofollow"' : '' ?>>
+        <input type="checkbox"<?php echo $isWas ? ' checked' : '' ?>>
+        <?php echo $brand->getName() ?>
+        <?php if ($tmp = $brand->getRawVar('items_count')) { ?>
+            <span class="count"><?php echo Helper::makeNiceNumber($tmp) ?></span>
+        <?php } ?>
+    </a>
+<?php } ?>

@@ -1,0 +1,103 @@
+<?php
+/**
+ * Created by PhpStorm.
+ * User: snowgirl
+ * Date: 4/7/17
+ * Time: 2:04 AM
+ */
+namespace SNOWGIRL_SHOP\Entity;
+
+use SNOWGIRL_SHOP\Entity\Item\Attr;
+
+/**
+ * Class Material
+ * @package SNOWGIRL_SHOP\Entity
+ */
+class Material extends Attr
+{
+    protected static $table = 'material';
+    protected static $pk = 'material_id';
+
+    protected static $columns = [
+        'material_id' => ['type' => self::COLUMN_INT, self::AUTO_INCREMENT],
+        'name' => ['type' => self::COLUMN_TEXT, self::SEARCH_IN, self::SEARCH_DISPLAY, self::REQUIRED],
+        //@todo replace search by name with search by hash in all places..
+        'name_hash' => ['type' => self::COLUMN_TEXT, self::REQUIRED],
+        'uri' => ['type' => self::COLUMN_TEXT, self::REQUIRED],
+        'rating' => ['type' => self::COLUMN_INT, 'default' => 0],
+        'created_at' => ['type' => self::COLUMN_TIME, self::REQUIRED],
+        'updated_at' => ['type' => self::COLUMN_TIME, 'default' => null]
+    ];
+
+    public function setId($v)
+    {
+        return $this->setMaterialId($v);
+    }
+
+    public function getId($makeCompositeId = true)
+    {
+        return $this->getMaterialId();
+    }
+
+    public function setMaterialId($v)
+    {
+        return $this->setRequiredAttr('material_id', (int)$v);
+    }
+
+    public function getMaterialId()
+    {
+        return (int)$this->getRawAttr('material_id');
+    }
+
+    public function setName($v)
+    {
+        return $this->setRequiredAttr('name', $v);
+    }
+
+    public function getName()
+    {
+        return $this->getRawAttr('name');
+    }
+
+    public function setNameHash($v)
+    {
+        return $this->setRequiredAttr('name_hash', self::normalizeHash($v));
+    }
+
+    public function getNameHash()
+    {
+        return $this->getRawAttr('name_hash');
+    }
+
+    public function setRating($v)
+    {
+        return $this->setRawAttr('rating', (int)$v);
+    }
+
+    public function getRating()
+    {
+        return (int)$this->getRawAttr('rating');
+    }
+
+    public function setCreatedAt($v)
+    {
+        return $this->setRawAttr('created_at', self::normalizeTime($v));
+    }
+
+    public function getCreatedAt($datetime = false)
+    {
+        $v = $this->getRawAttr('created_at');
+        return $datetime ? self::timeToDatetime($v) : $v;
+    }
+
+    public function setUpdatedAt($v)
+    {
+        return $this->setRawAttr('updated_at', self::normalizeTime($v, true));
+    }
+
+    public function getUpdatedAt($datetime = false)
+    {
+        $v = $this->getRawAttr('updated_at');
+        return $datetime ? self::timeToDatetime($v) : $v;
+    }
+}

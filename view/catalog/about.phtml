@@ -1,0 +1,29 @@
+<?php
+use SNOWGIRL_CORE\View;
+
+/** @var View $this */
+$this->articles = array_values($this->articles);
+?>
+
+<section class="about">
+    <div class="container">
+        <div class="row">
+            <?php for ($i = count($this->articles) - 1; $i > -1; $i--) { ?>
+                <article class="col-md-9 col-lg-10 vs right" itemscope itemtype="http://schema.org/Article" oncopy="return false;">
+                    <meta itemprop="inLanguage" content="ru">
+                    <link itemprop="mainEntityOfPage" href="<?php echo $this->uri ?>">
+
+                    <header>
+                        <h2 class="h1" itemprop="headline name"><?php echo htmlspecialchars($this->articles[$i]['h1']) ?></h2>
+                    </header>
+
+                    <div class="body" itemprop="articleBody description"><?php echo $this->articles[$i]['body'] ?></div>
+
+                    <footer>
+                        <?php echo $this->sharer ?>
+                    </footer>
+                </article>
+            <?php } ?>
+        </div>
+    </div>
+</section>

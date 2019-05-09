@@ -1,0 +1,53 @@
+.table .table {
+    margin: 0
+}
+
+.table .table td {
+    padding: 0
+}
+
+.table .table tr:first-child td {
+    border-top: 0;
+}
+
+.img-wrapper {
+    display: table-cell;
+    vertical-align: middle;
+    height: 500px
+}
+
+.img-wrapper img {
+    max-height: 100%;
+    max-width: 100%
+}
+
+table label {
+    margin: 0
+}
+
+table select {
+    max-width: 400px
+}
+
+/*table table td {*/
+/*padding: 3px;*/
+/*border: 1px solid gray*/
+/*}*/
+
+.message-ok,
+.message-fail {
+    margin-left: 4px
+}
+
+.message-ok {
+    color: green
+}
+
+.message-fail {
+    color: darkred
+}
+
+.easyzoom-flyout {
+    height: 500px !important;
+    width: 500px !important;
+}

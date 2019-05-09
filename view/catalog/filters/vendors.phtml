@@ -1,0 +1,26 @@
+<?php
+
+use SNOWGIRL_CORE\View;
+use SNOWGIRL_SHOP\Entity\Vendor;
+use SNOWGIRL_SHOP\Catalog\URI;
+use SNOWGIRL_CORE\Helper;
+
+/** @var View $this */
+/** @var Vendor $vendor */
+?>
+
+<?php $pk = Vendor::getPk() ?>
+<?php foreach ($this->vendors as $vendor) { ?>
+    <a href="<?php echo (new URI($this->uriParams))
+        ->set(URI::PAGE_NUM, null)
+        ->inverse($pk, $vendor->getId(), $isWas)
+        ->output(URI::OUTPUT_DEFINED, false, $isNoFollow) ?>"
+       class="nav-item<?php echo $isWas ? ' active' : '' ?>"
+        <?php echo $isNoFollow ? 'rel="nofollow"' : '' ?>>
+        <input type="checkbox"<?php echo $isWas ? ' checked' : '' ?>>
+        <?php echo $vendor->getName() ?>
+        <?php if ($tmp = $vendor->getRawVar('items_count')) { ?>
+            <span class="count"><?php echo Helper::makeNiceNumber($tmp) ?></span>
+        <?php } ?>
+    </a>
+<?php } ?>

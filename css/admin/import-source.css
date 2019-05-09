@@ -1,0 +1,141 @@
+.container {
+    width: 100% !important;
+}
+
+.import-status {
+    font-size: 14px;
+    font-weight: 400
+}
+
+.control > * {
+    display: inline-block
+}
+
+.control .form-inline label {
+    margin: 0
+}
+
+.comment #comment {
+    height: auto
+}
+
+.filter .filter-item label {
+    max-width: 150px
+}
+
+.map .map-item-value {
+    display: inline-block
+}
+
+.map .map-item-value .widget-tag {
+    display: inline-block;
+    width: 300px
+}
+
+.map .map-item-modify > * {
+    margin: 0;
+    display: inline-block;
+    vertical-align: middle
+}
+
+.map .map-item-modify > * + * {
+    margin-left: 2px
+}
+
+.map .map-item + .map-item, .filter .filter-item + .filter-item {
+    margin-top: 4px
+}
+
+.map .map-item > *, .filter .filter-item > * {
+    vertical-align: middle;
+    margin: 0
+}
+
+.map .map-item .btn-add-map-item-modify,
+.map .map-item .btn-load-all-possible-modify,
+.map .map-item .modify-only {
+    display: none
+}
+
+.filter .filter-item, .map .map-item {
+    opacity: .3
+}
+
+.filter .filter-item.selected,
+.map .map-item.value,
+.map .map-item.column {
+    opacity: 1
+}
+
+.map .map-item.column .btn-add-map-item-modify,
+.map .map-item.column .btn-load-all-possible-modify,
+.map .map-item.column.modify .modify-only {
+    display: inline-block
+}
+
+.map .map-item-modify {
+    margin: 2px 2px 0 0 !important
+}
+
+.map .map-item-modify label:first-child input {
+    min-width: 500px;
+    direction: rtl
+}
+
+.map .map-item-modify .from select {
+    max-width: 450px
+}
+
+.map .map-item-modify .to select {
+    max-width: 125px
+}
+
+.map .modify-not-less-than {
+    display: inline
+}
+
+.map .modify-not-less-than input {
+    display: inline;
+    max-width: 60px
+}
+
+#data .page > * {
+    display: inline-block;
+    vertical-align: middle;
+    width: 100px
+}
+
+.map-item-modify .from-items {
+    max-width: 180px
+}
+
+.map-item-modify .raw-tags {
+    width: 80px
+}
+
+.map-item-modify .from-items div {
+    float: left
+}
+
+.map-item-modify .from-items div + div {
+    margin-left: 5px
+}
+
+.map-item-modify .from-items a {
+    display: block;
+    height: 30px
+}
+
+.map-item-modify .from-items a img {
+    height: 100%
+}
+
+.easyzoom-flyout {
+    height: 500px !important;
+    width: 500px !important
+}
+
+.map-item-modify .auto-changed {
+    color: green;
+    font-weight: 700
+}

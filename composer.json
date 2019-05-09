@@ -1,0 +1,23 @@
+{
+  "name": "snowgirl/shop",
+  "authors": [
+    {
+      "name": "Oleksandr Andrushchenko",
+      "email": "alex.snowgirl@gmail.com"
+    }
+  ],
+  "require": {
+    "php": "^7.2",
+    "snowgirl/core": "dev-master",
+    "geoip2/geoip2": "~2.0",
+    "lox/xhprof": "dev-master",
+    "phpmailer/phpmailer": "^5.2",
+    "google/recaptcha": "~1.1",
+    "tburry/pquery": "^1.1",
+    "mobiledetect/mobiledetectlib": "^2.8",
+    "kzykhys/php-csv-parser": ">1.4",
+    "mongodb/mongodb": "^1.4",
+    "elasticsearch/elasticsearch": "~6.0",
+    "monolog/monolog": "^1.24"
+  }
+}

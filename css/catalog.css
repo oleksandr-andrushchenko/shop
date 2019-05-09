@@ -1,0 +1,386 @@
+/*xs*/
+.catalog {
+    position: relative
+}
+
+.title,
+.about + .meta,
+.about + .footer,
+.filters {
+    margin-top: 0 !important
+}
+
+.about {
+    border-bottom: 1px solid #f5f5f5
+}
+
+.mobile-control {
+    display: table;
+    width: 100%
+}
+
+.mobile-control .btn {
+    background-color: #ddd;
+    width: 100%;
+    color: #000
+}
+
+.btn-views.btn-toggle-mobile > span,
+.btn-filters.btn-toggle-mobile > span {
+    width: auto
+}
+
+.applied {
+    margin-bottom: -3px;
+    display: none
+}
+
+.catalog.has-applied .applied {
+    display: block
+}
+
+.mobile-views a {
+    text-align: center
+}
+
+.filters .section-title span {
+    display: inline-block;
+    vertical-align: middle
+}
+
+.filters .scroll input[type="checkbox"] {
+    margin: 0
+}
+
+.filters .scroll a > * {
+    vertical-align: middle
+}
+
+.filters .scroll {
+    margin: 0 5px 0 0;
+    padding: 0 5px;
+    max-height: 200px;
+    overflow-y: auto;
+    overflow-x: hidden
+}
+
+.filters .section-body > * + .scroll {
+    margin-top: 10px
+}
+
+.filters .other-filters.vs > * {
+    margin-top: 0
+}
+
+.filters .other-filters .section-body {
+    display: none;
+    border-top: 1px solid #eaeaea
+}
+
+.filters .section-body {
+    padding: 10px 0
+}
+
+.filters .other-filters .types .section-body,
+.filters .other-filters .section-body.toggle-mobile-visible {
+    display: block
+}
+
+.filters .brands li,
+.filters .prices li,
+.filters .seasons li,
+.filters .countries li,
+.filters .vendors li {
+    line-height: 24px;
+    margin-bottom: 0
+}
+
+.filters .nav-item:first-child {
+    border-top: 0
+}
+
+.filters .categories .mobile-back.nav-item {
+    border-bottom: 0
+}
+
+.filters .categories .mobile-show-all.nav-item {
+    border-bottom: 1px solid #e8e8e8
+}
+
+.mobile-screen #category-tree,
+.mobile-screen .other-filters,
+.mobile-screen .mobile-views {
+    overflow: hidden;
+}
+
+.mobile-screen .other-filters > * {
+    margin-top: 0
+}
+
+.mobile-screen #category-tree > li:not(.mobile-hidden),
+.mobile-screen .other-filters > :first-child,
+.mobile-screen .mobile-views > :first-child {
+    margin-top: -1px
+}
+
+.filters .prices .price.active {
+    color: #000;
+    text-decoration: underline
+}
+
+.filters .types .section-title,
+.filters .categories .section-title {
+    display: none
+}
+
+.filters .categories ul {
+    list-style: none
+}
+
+.filters .count {
+    color: rgba(0, 0, 0, 0.45);
+    font-size: 11px
+}
+
+.applied-group {
+    display: inline-block;
+    margin-bottom: 3px
+}
+
+.applied-group + .applied-group {
+    margin-left: 10px;
+}
+
+.applied-filter-group {
+    background: #f5f5f5;
+    -webkit-border-radius: 2px;
+    -moz-border-radius: 2px;
+    border-radius: 2px;
+    padding: 3px;
+    margin-right: 4px;
+    display: inline-block;
+}
+
+.colors a {
+    display: inline-block;
+    height: 31px;
+    width: 31px;
+    float: left;
+    margin: 0 1px 1px 0;
+    border: 3px solid #f3f3f3
+}
+
+.colors a.active {
+    border-color: #ddd
+}
+
+.about article {
+    word-wrap: break-word
+}
+
+.about ul, .about ol {
+    margin: 16px 0;
+    padding-left: 40px;
+    list-style: initial
+}
+
+.about .social {
+    display: table
+}
+
+.about .social > * {
+    display: table-cell;
+    vertical-align: middle
+}
+
+.about .social > * + * {
+    padding-left: 10px
+}
+
+.views select {
+    display: inline;
+    width: auto
+}
+
+.views label {
+    margin: 0;
+    vertical-align: middle
+}
+
+.applied,
+.views {
+    text-align: center
+}
+
+.items-empty-set {
+    text-align: center
+}
+
+.items-empty-set .btn-variant {
+    text-align: center;
+    display: block;
+    padding: 10px;
+    margin: 10px 0
+}
+
+article p {
+    text-indent: 30px
+}
+
+.categories-grid,
+.brands-grid {
+    display: none;
+}
+
+.subscribe {
+    text-align: center
+}
+
+/*mb*/
+@media (min-width: 480px) {
+    .applied * + .new-group,
+    .views * + .new-group {
+        margin-left: 10px
+    }
+}
+
+/*sm*/
+@media (min-width: 768px) {
+    .categories-grid,
+    .brands-grid {
+        display: block;
+    }
+}
+
+/*md*/
+@media (min-width: 992px) {
+    a.nav-item,
+    .count {
+        display: initial
+    }
+
+    .catalog .filters {
+        width: 20%
+    }
+
+    .filters .categories .item {
+        color: #134e98
+    }
+
+    .filters .categories .active > .item-wrap > .item {
+        color: #000;
+        text-decoration: underline
+    }
+
+    .filters .scroll {
+        margin-right: 0;
+        padding: 0
+    }
+
+    .filters .other-filters.vs > * + * {
+        margin-top: inherit
+    }
+
+    .filters .categories .item-wrap,
+    .filters .other-filters li {
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        overflow: hidden
+    }
+
+    .filters .categories ul ul {
+        padding-left: 20px
+    }
+
+    .about .right,
+    .catalog .right {
+        width: 80%;
+        float: right
+    }
+
+    .section {
+        border: 0
+    }
+
+    .filters .section-title {
+        display: block !important;
+        font-size: 16px;
+        height: auto;
+        cursor: default;
+        padding: 6px 12px;
+        text-transform: none
+    }
+
+    .filters .scroll > * {
+        display: block
+    }
+
+    .filters .section-body {
+        display: block;
+        padding: 6px 12px
+    }
+
+    .filters .other-filters .types .section-body {
+        padding-left: 20px;
+        padding-right: 20px
+    }
+
+    .filters .other-filters .section-body {
+        display: block;
+        border-top: 0
+    }
+
+    .filters .categories .item {
+        display: inline
+    }
+
+    .filters .brands li,
+    .filters .prices li,
+    .filters .seasons li,
+    .filters .countries li,
+    .filters .vendors li {
+        display: block;
+        font-size: 14px;
+        line-height: 20px
+    }
+
+    .applied {
+        display: block
+    }
+
+    .applied,
+    .views {
+        /*font-size: .875em;*/
+        text-align: left
+    }
+
+    .views .inner {
+        padding: 5px 10px
+    }
+
+    .filters .section-title,
+    .views .inner {
+        background-color: #f5f5f5
+    }
+
+    .items-empty-set {
+        text-align: left
+    }
+
+    .items-empty-set-head {
+        font-size: 16px
+    }
+
+    #category-tree li {
+        display: none
+    }
+
+    #category-tree .active-group {
+        display: block
+    }
+}
+
+/*lg*/
+@media (min-width: 1200px) {
+
+}

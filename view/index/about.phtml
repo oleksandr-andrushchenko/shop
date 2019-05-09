@@ -1,0 +1,38 @@
+<?php
+use SNOWGIRL_CORE\View;
+use SNOWGIRL_CORE\Image;
+
+/** @var View $this */
+$date = date('Y-m-d', 1481734539);
+?>
+<article class="about" itemscope itemtype="http://schema.org/Article">
+    <meta itemprop="inLanguage" content="ru">
+    <link itemprop="mainEntityOfPage" href="<?php echo $this->uri ?>">
+    <?php if ($this->image) { ?>
+        <meta itemprop="image" content="<?php echo $this->image ?>">
+    <?php } ?>
+    <div class="container vs">
+        <header><h1 itemprop="headline name"><?php echo htmlspecialchars($this->h1) ?></h1></header>
+        <?php if ($this->content) { ?>
+            <p class="body" itemprop="articleBody description"><?php echo htmlspecialchars($this->content) ?></p>
+        <?php } ?>
+        <footer style="display: none;">
+            <span class="fa fa-external-link"></span>
+            <a href="<?php echo $this->uri ?>" rel="bookmark" itemprop="url"><?php echo $this->site ?></a>
+            &checkmark;
+            Опубликовано -
+            <time itemprop="datePublished dateModified" content="<?php echo $date ?>" datetime="<?php echo $date ?>">
+                <?php echo $date ?>
+            </time>
+            &checkmark;
+            Автор - <span itemprop="author" itemscope itemtype="http://schema.org/Organization">
+                    <a href="<?php echo $this->uri ?>" rel="author">
+                        <span itemprop="name"><?php echo $this->site ?></span>
+                    </a>
+                </span> / <span itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+                    <span itemprop="name"><?php echo $this->site ?></span>
+                    <meta itemprop="logo" content="<?php echo $this->app->images->get('css/app/img/logo.svg') ?>">
+                </span>
+        </footer>
+    </div>
+</article>

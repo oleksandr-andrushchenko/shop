@@ -1,0 +1,27 @@
+<?php
+use SNOWGIRL_SHOP\View\Widget\Grid\Items;
+use SNOWGIRL_SHOP\Entity\Item;
+
+/** @var Items $this */
+/** @var Item $item */
+?>
+
+<div class="<?php echo $this->getDomClass() ?>" id="<?php echo $this->getDomId() ?>" itemscope itemtype="http://schema.org/ItemList">
+    <?php if ($this->h21) { ?>
+        <h2 class="h1"><?php echo $this->h21 ?></h2>
+    <?php } ?>
+    <div class="row">
+        <?php foreach (array_keys($this->items) as $k) { ?>
+            <?php $this->echoItem($k) ?>
+        <?php } ?>
+    </div>
+    <?php if ($this->propName) { ?>
+        <meta itemprop="name" content="<?php echo $this->propName ?>">
+    <?php } ?>
+    <?php if ($this->propUrl) { ?>
+        <link itemprop="url" href="<?php echo $this->propUrl ?>">
+    <?php } ?>
+    <?php if ($this->propTotal) { ?>
+        <meta itemprop="numberOfItems" content="<?php echo $this->propTotal ?>">
+    <?php } ?>
+</div>

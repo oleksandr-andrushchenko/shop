@@ -1,0 +1,48 @@
+/*xs*/
+.section-title {
+    padding-top: 10px;
+    padding-bottom: 10px;
+    background: #fafafa;
+    line-height: 20px
+}
+
+.section-title .sign,
+.section-title .list {
+    text-align: center
+}
+
+.char {
+    text-transform: uppercase;
+    font-size: 100px;
+    text-align: center;
+    line-height: 1
+}
+
+.items {
+    padding-top: 50px;
+    padding-bottom: 50px;
+    text-align: center
+}
+
+/*mb*/
+@media (min-width: 480px) {
+    .items, .section-title .list {
+        text-align: left
+    }
+}
+
+/*sm*/
+@media (min-width: 768px) {
+
+}
+
+/*md*/
+@media (min-width: 992px) {
+
+}
+
+/*lg*/
+@media (min-width: 1200px) {
+
+}
+

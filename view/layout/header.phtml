@@ -1,0 +1,98 @@
+<!--header-->
+<?php
+
+use SNOWGIRL_SHOP\View\Layout\OpenDoor;
+
+/** @var OpenDoor $this */
+?>
+<header class="header custom">
+    <div class="header-core container">
+        <div class="row">
+            <div class="header-col col-xs-12 col-md-4 header-logo">
+                <div class="header-inner">
+                    <?php if ($this->mobileBackBtn) { ?>
+                        <button type="button" class="btn-back btn-toggle-mobile" aria-label="Вернутся назад">
+                            <span class="fa fa-angle-left"></span>
+                        </button>
+                    <?php } ?>
+
+                    <?php if ('/' == $this->currentUri) { ?>
+                        <span class="header-logo-link"><?php echo $this->site ?></span>
+                    <?php } else { ?>
+                        <a class="header-logo-link" href="/"><?php echo $this->site ?></a>
+                    <?php } ?>
+
+                    <?php if ($this->headerSearch || $this->headerMenu) { ?>
+                        <button type="button"
+                                class="btn header-toggle btn-toggle-mobile"
+                                aria-controls="nav"
+                                aria-label="<?php echo T('layout.toggle-nav') ?>"
+                                aria-expanded="false"
+                                data-icon-toggle="glyphicon glyphicon-remove">
+                            <span class="glyphicon glyphicon-option-vertical"></span>
+                        </button>
+                    <?php } ?>
+                </div>
+            </div>
+
+            <?php if ($this->headerSearch || $this->headerButtons) { ?>
+                <div class="header-col col-xs-12 col-md-4 header-search toggle-mobile-nav" itemscope
+                     itemtype="http://schema.org/WebSite">
+                    <link itemprop="url" href="<?php echo $this->makeLink('default') ?>">
+                    <div class="header-inner">
+                        <?php if ($this->headerSearch && $view = $this->app->views->searchForm($this)) { ?>
+                            <?php echo $view
+                                ->addNodeAttr('itemprop', 'potentialAction')
+                                ->addDomClass('header-search-form')
+                                ->setParam('action', $this->app->router->makeLink('default', 'catalog'))
+                                ->setParam('suggestions', true)
+                                ->setParam('suggestionsLimit', 5)
+                                ->setParam('microdata', true)
+                                ->setParam('events', true)
+                                ->setParam('eventCategory', 'header search')
+                                ->setParam('submitButtonText', false)
+                            ?>
+                        <?php } ?>
+
+                        <?php if ($this->headerButtons) { ?>
+                            <div class="header-buttons">
+                                <a href="<?php echo $this->makeLink('default', ['action' => 'order']) ?>"
+                                   class="btn btn-sm btn-default header-cart-btn"
+                                   title="<?php echo T('layout.show-cart') ?>"
+                                   aria-label="<?php echo T('layout.show-cart') ?>">
+                                    <span class="glyphicon glyphicon-shopping-cart"></span>
+                                </a>
+                                <button class="btn btn-sm btn-default btn-bookmark"
+                                        title="<?php echo T('layout.add-to-bookmarks') ?>"
+                                        aria-label="<?php echo T('layout.add-to-bookmarks') ?>"
+                                        type="button">
+                                    <span class="fa fa-plus"></span>
+                                </button>
+                            </div>
+                        <?php } ?>
+                    </div>
+                </div>
+            <?php } ?>
+
+            <?php if ($this->headerMenu) { ?>
+                <div class="header-col col-xs-12 col-md-4 header-info toggle-mobile-nav">
+                    <nav id="nav" class="header-inner" aria-label="Navigation" itemscope
+                         itemtype="http://schema.org/SiteNavigationElement">
+                        <?php foreach ($this->headerMenu as $text => $href) { ?>
+                            <?php if ($this->currentUri == $href) { ?>
+                                <span class="item nav-item active">
+                                <span class="active" itemprop="name"><?php echo $text ?></span>
+                                <link itemprop="url" href="<?php echo $href ?>">
+                            </span>
+                            <?php } else { ?>
+                                <a class="item nav-item" href="<?php echo $href ?>" itemprop="url">
+                                    <span itemprop="name"><?php echo $text ?></span>
+                                </a>
+                            <?php } ?>
+                        <?php } ?>
+                    </nav>
+                </div>
+            <?php } ?>
+        </div>
+    </div>
+</header>

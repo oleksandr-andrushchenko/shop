@@ -1,0 +1,56 @@
+.container {
+    width: 100% !important;
+}
+
+.priority-links a + a {
+    margin-left: 15px
+}
+
+.priority-links a.active {
+    text-decoration: underline
+}
+
+table {
+    table-layout: fixed;
+    width: 100%
+}
+
+.template {
+    display: none
+}
+
+.seo-texts .h1 {
+    font-size: 14px
+}
+
+.seo-text {
+    width: 100%;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis
+}
+
+.seo-text > * {
+    vertical-align: middle
+}
+
+.seo-texts, .seo-text + .seo-text {
+    margin-top: 1px
+}
+
+.seo-text-form .help-block {
+    margin-bottom: 0
+}
+
+.control {
+    display: table
+}
+
+.control > * {
+    display: table-cell;
+    vertical-align: middle
+}
+
+.control > * + * {
+    padding-left: 15px
+}

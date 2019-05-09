@@ -1,0 +1,86 @@
+/*xs*/
+.widget-grid-brands.p3 {
+    margin: -3px
+}
+
+.widget-grid-brands.p3 > * {
+    padding: 3px
+}
+
+.widget-grid-brands,
+.widget-grid-brands.p5 {
+    margin: -5px
+}
+
+.widget-grid-brands > *,
+.widget-grid-brands.p5 > * {
+    padding: 5px
+}
+
+.widget-grid-brands .brand {
+    color: #333;
+    background-color: #f5f5f5;
+    display: block;
+    position: relative;
+    height: 60px
+}
+
+.widget-grid-brands .brand.image .brand-cover,
+.widget-grid-brands .brand-caption {
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+}
+
+.widget-grid-brands a.brand:hover {
+    text-decoration: none
+}
+
+.widget-grid-brands .brand-caption {
+    text-align: center;
+    text-shadow: 1px 1px 0 rgba(0, 0, 0, .18);
+    padding: 15px 0
+}
+
+.widget-grid-brands .brand-title {
+    font-size: 1em;
+    line-height: 1.9em;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+    display: block;
+    padding: 0 5px
+}
+
+.widget-grid-brands .brand.image .brand-cover {
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: center center
+}
+
+/*mb*/
+@media (min-width: 480px) {
+
+}
+
+/*sm*/
+@media (min-width: 768px) {
+}
+
+/*md*/
+@media (min-width: 992px) {
+
+}
+
+/*lg*/
+@media (min-width: 1200px) {
+    .widget-grid-brands {
+        margin: -15px
+    }
+
+    .widget-grid-brands > * {
+        padding: 15px
+    }
+}

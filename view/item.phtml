@@ -1,0 +1,309 @@
+<?php
+
+use SNOWGIRL_CORE\View;
+use SNOWGIRL_CORE\Script\Css;
+use SNOWGIRL_CORE\Script\Js;
+use SNOWGIRL_SHOP\Entity\Item;
+use SNOWGIRL_CORE\Image;
+use SNOWGIRL_CORE\Helper;
+use SNOWGIRL_SHOP\Catalog\URI;
+use SNOWGIRL_SHOP\Catalog\SEO;
+use SNOWGIRL_CORE\Entity;
+use SNOWGIRL_SHOP\Entity\Vendor;
+use SNOWGIRL_SHOP\Entity\Category;
+use SNOWGIRL_SHOP\Entity\Brand;
+use SNOWGIRL_SHOP\Entity\Size;
+
+/** @var View $this */
+/** @var Item $item */
+/** @var Image $image */
+/** @var Item $related */
+/** @var Vendor $vendor */
+/** @var URI $tag */
+/** @var Category $category */
+/** @var Brand $brand */
+/** @var Size $size */
+$item = $this->item;
+
+$vendor = $this->app->managers->items->getVendor($item);
+
+$vendorName = ucfirst($vendor->getName());
+
+$this->getLayout()
+    ->addHeadCss(new Css('@snowgirl-shop/item.css'))
+    ->addHeadCss(new Css('@snowgirl-core/jquery.easyzoom.css'))
+    ->addJs(new Js('@snowgirl-core/jquery.easyzoom.js'))
+    ->addJsConfig('filterParams', $this->relatedUriFilterParams)
+    ->addJsConfig('viewParams', $this->relatedUriViewParams)
+    ->addJsConfig('itemId', $item->getId())
+    ->addJsConfig('vendorId', $vendor->getId())
+    ->addJsConfig('vendorName', $vendorName)
+    ->addJsConfig('deviceDesktop', $this->deviceDesktop)
+    ->addJsConfig('typeOwn', $this->typeOwn)
+    ->addJs(new Js('@snowgirl-shop/item.js'));
+
+$attrToName = [
+    'category_id' => 'Категория',
+    'tag_id' => 'Теги',
+    'brand_id' => 'Бренд',
+    'color_id' => 'Цвет',
+    'material_id' => 'Материал',
+    'size_id' => 'Размер',
+    'season_id' => 'Сезон',
+    'country_id' => 'Производитель'
+];
+
+if ((!$item->get('archive')) && $item->isInStock()) {
+    $attrToName['vendor_id'] = 'Магазин';
+}
+?>
+<div class="row vs<?php echo $this->typeOwn ? ' type-own' : '' ?>" itemscope itemtype="http://schema.org/Product">
+    <div class="col-md-6 vs title right">
+        <h1 class="item-name" itemprop="name">
+            <?php echo htmlspecialchars($this->h1) ?>
+            <?php echo $id = $item->getUpc() ?>
+            <?php echo $this->app->views->getRating($item->getRating(), 5, 2) ?>
+        </h1>
+        <meta itemprop="description" content="<?php echo htmlspecialchars(trim(implode(' ', [
+            htmlspecialchars($this->app->managers->items->getEntityCustom($item)),
+            htmlspecialchars($this->app->managers->items->getBrand($item)->getName())
+//            $item->getColorId() ? $item->getColor()->getName() : ''
+        ]))) ?>">
+    </div>
+    <div class="col-md-6 images">
+        <div class="item-images-wrapper">
+            <ul class="item-thumbnails">
+                <?php foreach ($this->images as $image) { ?>
+                    <li>
+                        <a href="<?php echo $image->getLink() ?>" data-standard="<?php echo $image->getLink() ?>">
+                            <?php echo $this->app->views->image($image, Image::FORMAT_NONE, 0, [
+                                'alt' => 'Фото ' . $item->getName(),
+//                                'title' => 'Купить ' . $item->getName(),
+                                'itemprop' => 'image'
+                            ]) ?>
+                        </a>
+                    </li>
+                <?php } ?>
+            </ul>
+
+            <?php if ($item->isNewly()) { ?>
+                <span class="lab item-newly"></span>
+            <?php } ?>
+
+            <?php if ($v = $item->getPercentageDiscount()) { ?>
+                <span class="lab item-discount"><?php echo $v ?></span>
+            <?php } ?>
+
+            <?php if ($item->get('archive')) { ?>
+                <span class="lab item-inactive"></span>
+            <?php } ?>
+
+            <div class="item-image-zoom easyzoom easyzoom--overlay">
+                <a href="<?php echo $this->app->images->get($item->getImage())->getLink() ?>">
+                    <?php echo $this->app->views->image($item->getImage(), Image::FORMAT_NONE, 0, [
+                        'alt' => 'Фото ' . $item->getName(),
+//                        'title' => 'Купить ' . $item->getName(),
+                        'class' => 'item-image'
+                    ]) ?>
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 details right">
+        <div class="item-meta clearfix">
+            <div class="item-prices">
+                <span class="price">
+                    <span class="text">Цена</span>
+                    <span class="val"><?php echo Helper::makeNiceNumber($item->getPrice()) ?></span>
+                    <span class="unit"><?php echo $this->currency->text ?></span>
+                </span>
+                <?php if ($tmp = $item->getOldPrice()) { ?>
+                    <span class="old-price">
+                        <span class="val"><?php echo Helper::makeNiceNumber($tmp) ?></span>
+                        <span class="unit"><?php echo $this->currency->text ?></span>
+                    </span>
+                <?php } ?>
+            </div>
+
+            <div class="item-buttons">
+                <?php if ($item->get('archive')) { ?>
+                    <span class="btn btn-lg btn-inactive"></span>
+                    <button type="button" class="btn btn-lg btn-primary btn-related">
+                        <span class="fa fa-random"></span> Похожие
+                    </button>
+                <?php } else { ?>
+                    <?php if ($this->typeOwn) { ?>
+                        <?php if (isset($this->attrs['size_id']) && $this->attrs['size_id']) { ?>
+                            <span class="item-cart-sizes">
+                                <?php echo $this->noIndexOpen() ?>Размер<?php echo $this->noIndexClose() ?>
+                                <?php foreach ($this->attrs['size_id'] as $i => $size) { ?>
+                                    <button type="button" class="btn btn-default btn-size" data-id="<?php echo $size->getId() ?>">
+                                        <?php echo $size->getName() ?>
+                                    </button>
+                                <?php } ?>
+                            </span>
+                        <?php } ?>
+
+                        <span class="item-cart-quantity">
+                            <?php echo $this->noIndexOpen() ?>Количество<?php echo $this->noIndexClose() ?>
+                            <button type="button" class="btn btn-default btn-quantity-dec" disabled>-</button>
+                            <?php echo $this->noIndexOpen() ?>
+                            <span class="inp-quantity-value">1</span>
+                            <?php echo $this->noIndexClose() ?>
+                            <button type="button" class="btn btn-default btn-quantity-inc">+</button>
+                            </span>
+
+                            <span class="item-cart-buttons">
+                                <button type="button" class="btn btn-lg btn-primary btn-add-to-cart">
+                                    В корзину
+                                </button>
+                            </span>
+                    <?php } else { ?>
+                        <a href="<?php echo $tmp = $this->app->managers->items->getGoLink($item) ?>"
+                           class="btn btn-lg btn-info btn-details" target="_blank" rel="nofollow">
+                            Еще детали
+                        </a>
+                        <a href="<?php echo $tmp ?>" class="btn btn-lg btn-primary btn-buy" target="_blank" rel="nofollow">
+                            Купить товар
+                        </a>
+                    <?php } ?>
+                <?php } ?>
+            </div>
+
+            <?php if ($vendor->isActive() && !$this->typeOwn) { ?>
+                <div class="item-vendor">
+                    Товар продает &mdash;
+                    <a href="<?php echo $this->app->managers->vendors->getGoLink($vendor) ?>"
+                       rel="nofollow" target="_blank">
+                        <?php if ($vendorImage = $vendor->getImage()) { ?>
+                            <?php echo $this->app->views->getImage($vendorImage, Image::FORMAT_HEIGHT, 50, [
+                                'alt' => $vendor->getName(),
+                                'title' => 'Предоставляет ' . $vendor->getName()
+                            ]) ?>
+                        <?php } else { ?>
+                            <?php echo $vendorName ?>
+                        <?php } ?>
+                    </a>
+                </div>
+            <?php } ?>
+        </div>
+        <div class="item-description">
+            <?php if ($description = $item->getDescription()) { ?>
+                <h3 class="item-description-title">Описание</h3>
+
+                <p class="item-description-body"><?php echo nl2br(htmlspecialchars($item->getDescription())) ?></p>
+            <?php } ?>
+
+            <h4 class="item-attrs-title">Характеристики</h4>
+            <table>
+                <tr>
+                    <td>Артикул</td>
+                    <td><?php echo $id ?></td>
+                </tr>
+                <?php if (is_array($this->types) && 0 < count($this->types)) { ?>
+                    <tr>
+                        <td>Разделы</td>
+                        <?php $texts = SEO::getTypesToTexts(true); ?>
+                        <td><?php echo implode(', ', array_map(function ($type) use ($item, $texts) {
+                                $uri = new URI([
+                                    'category_id' => $item->getCategoryId(),
+                                    $type => 1
+                                ]);
+
+                                return '<a class="label label-default" href="' . $uri->output() . '">' . $texts[$type] . '</a>';
+                            }, $this->types)) ?></td>
+                    </tr>
+                <?php } ?>
+
+                <?php if (isset($this->attrs) && is_array($this->attrs) && $this->attrs) { ?>
+                    <?php foreach ($attrToName as $attr => $name) { ?>
+                        <?php if (isset($this->attrs[$attr])) { ?>
+                            <?php $attrs = is_array($this->attrs[$attr]) ? $this->attrs[$attr] : [$this->attrs[$attr]] ?>
+                            <tr>
+                                <td><?php echo $name ?></td>
+                                <td><?php echo implode(', ', array_map(function ($entity) use ($attr, $item) {
+                                        /** @var Entity $entity */
+                                        $uri = new URI([
+                                            $entity->getPk() => $entity->getId(),
+                                            'category_id' => $item->getCategoryId()
+                                        ]);
+
+                                        return '<a class="label label-default" href="' . $uri->output() . '">' . $entity->get('name') . '</a>';
+                                    }, $attrs)) ?></td>
+                            </tr>
+                        <?php } ?>
+                    <?php } ?>
+                <?php } ?>
+            </table>
+        </div>
+        <div class="item-terms">
+            <?php $this->noIndexOpen() ?>
+            <p class="header">Условия покупки и доставка</p>
+            <?php $this->noIndexClose() ?>
+
+            <h3 class="item-terms-title">Доставка по <?php echo 'UAH' == $this->currency->iso ? 'Украине' : 'РФ' ?></h3>
+
+            <?php $this->noIndexOpen() ?>
+            <p>Мы доставим ваш заказ в любую
+                точку <?php echo 'UAH' == $this->currency->iso ? 'Украины' : 'России' ?></p>
+
+            <h3 class="item-terms-title">Оплата и возврат</h3>
+
+            <p>Срок возврата товара - 14 дней</p>
+            <?php $this->noIndexClose() ?>
+        </div>
+        <?php if (isset($this->tags) && is_array($this->tags) && $this->tags) { ?>
+            <div class="item-tags clearfix">
+                <div class="item-tags-title">Смотрите также</div>
+                <p class="item-tags-body">
+                    <?php foreach ($this->tags as $tag) { ?>
+                        <a href="<?php echo $tag->output(URI::OUTPUT_DEFINED, false, $isNoFollow) ?>"
+                           class="btn btn-sm btn-default"
+                           rel="noopener noreferrer<?php echo $isNoFollow ? ' nofollow' : '' ?>"
+                           target="_blank"><?php echo $tag->getSEO()->getParam('h1', [
+                                'category' => ($tmp = $tag->get(Category::getPk()))
+                                    ? $this->app->managers->categories->find($tmp)->getName()
+                                    : $this->makeText('catalog.catalog')
+                            ]) ?></a>
+                    <?php } ?>
+                </p>
+            </div>
+        <?php } ?>
+    </div>
+
+    <?php if ($this->sharer) { ?>
+        <div class="col-md-6 sharer">
+            <?php echo $this->sharer ?>
+        </div>
+    <?php } ?>
+
+    <?php if ($this->hasRelatedItems) { ?>
+        <style type="text/css">
+            .item-<?php echo $item->getId() ?> {
+                -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=10)";
+                filter: alpha(opacity=10);
+                -moz-opacity: 0.1;
+                -khtml-opacity: 0.1;
+                opacity: 0.1;
+            }
+        </style>
+
+        <?php echo $this->relatedItemsGrid
+            ->addDomClass('col-xs-12')
+            ->addDomClass('vs')
+            ->addDomClass('related-items') ?>
+
+        <?php if ($this->relatedItemsPager) { ?>
+            <div class="col-xs-12 related-items-ajax-loader items-ajax-loader">
+                <?php $this->noIndexOpen() ?>
+                <button type="button" class="btn btn-lg btn-primary btn-block">
+                    <span class="fa fa-refresh"></span>
+                    <span class="text">Показать еще</span>...
+                </button>
+                <?php $this->noIndexClose() ?>
+            </div>
+        <?php } ?>
+    <?php } ?>
+
+    <link itemprop="url" href="<?php echo $this->app->managers->items->getLink($item) ?>">
+</div>

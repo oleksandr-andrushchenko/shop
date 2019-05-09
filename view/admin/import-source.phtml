@@ -1,0 +1,491 @@
+<!---->
+<?php
+
+use SNOWGIRL_CORE\View;
+use SNOWGIRL_CORE\Entity;
+use SNOWGIRL_SHOP\Entity\Vendor;
+use SNOWGIRL_CORE\Script\Css;
+use SNOWGIRL_CORE\Script\Js;
+use SNOWGIRL_CORE\View\Widget\Form\Input\Value;
+use SNOWGIRL_SHOP\Entity\Import\Source as ImportSource;
+
+/** @var View $this */
+/** @var ImportSource $source */
+/** @var Vendor $vendor */
+$source = $this->source;
+
+$filter = $source->getFileFilter(true);
+$mapping = $source->getFileMapping(true);
+
+$data = is_array($this->data);
+
+$this->getLayout()
+    ->setTitle($title = 'Источник ' . $source->getName())
+    ->addBreadcrumb('Офферы', $this->makeLink('admin', 'offers'))
+    ->addBreadcrumb($source->getName())
+    ->setH1($title)
+    ->addHeadCss(new Css('@snowgirl-shop/admin/import-source.css'))
+    ->addHeadCss(new Css('@snowgirl-core/jquery.easyzoom.css'))
+    ->addJs(new Js('@snowgirl-core/jquery.easyzoom.js'))
+    ->addJsConfig('importSourceId', $source->getId())
+    ->addJsConfig('svaValues', $this->svaValues)
+    ->addJsConfig('isShowModifiersItems', $this->isShowModifiersItems)
+    ->addJsConfig('mappingModifyTags', $this->mappingModifyTags)
+    ->addJs(new Js('@snowgirl-shop/admin/import-source.js'));
+?>
+
+<?php echo '<div class="vs">' ?>
+
+<?php if (null !== $this->isOkLastImport) { ?>
+    <div>
+        Импорт:
+        <span class="import-status label label-<?php echo $this->isOkLastImport ? 'success' : 'danger' ?>">
+            <?php if ($this->isOkLastImport) { ?>
+                Недавно
+            <?php } else { ?>
+                Давно
+            <?php } ?>
+        </span>
+    </div>
+<?php } ?>
+
+<div class="row">
+    <div class="col-xs-12 control">
+        <a class="btn btn-info btn-data <?php echo $data ? 'active' : '' ?>"
+           href="<?php echo $this->makeLink('admin', ['action' => 'import-source', 'id' => $source->getId(), 'data' => $data ? 0 : 1]) ?>"
+           title="Вывести содержимое файла данных (ресурсоемкая операция)">
+            <span class="glyphicon glyphicon-file"></span> Данные
+        </a>
+
+        <form action="<?php echo $this->makeLink('admin', 'import-source-import') ?>"
+              class="form-inline form-import" method="get">
+            <input type="hidden" name="id" value="<?php echo $source->getId() ?>">
+
+            <div class="form-group">
+                <label><input type="text" class="form-control" name="import-length"
+                              value="<?php echo $this->importLimit ?>" size="4" placeholder="Лимит"></label>
+            </div>
+            <button type="submit" class="btn btn-success">
+                <span class="glyphicon glyphicon-play"></span> Импорт
+            </button>
+        </form>
+        <a href="<?php echo $this->makeLink('admin', ['action' => 'import-source-refresh', 'id' => $source->getId()]) ?>"
+           class="btn btn-warning btn-refresh">
+            <span class="glyphicon glyphicon-refresh"></span> Обновить кэш
+        </a>
+        <a class="btn btn-primary btn-copy"><span class="glyphicon glyphicon-copy"></span> Копировать</a>
+        <a class="btn btn-danger btn-delete"><span class="glyphicon glyphicon-trash"></span> Удалить</a>
+        <?php if (false) { ?>
+            <a class="btn btn-default btn-delete-items" title="Удалить предложения"><span
+                        class="glyphicon glyphicon-trash"></span> Предложения</a>
+            <a class="btn btn-default btn-delete-duplicate-items" title="Удалить дубликаты предложений"><span
+                        class="glyphicon glyphicon-trash"></span> Дубликаты Предложений</a>
+        <?php } ?>
+    </div>
+    <div class="col-xs-6">
+        <form
+                action="<?php echo $this->makeLink('admin', ['action' => 'import-source-save-main', 'id' => $source->getId()]) ?>"
+                method="post"
+                class="form-horizontal">
+
+            <fieldset class="row main">
+                <legend class="col-lg-offset-2 col-lg-10 col-md-offset-2 col-md-10 h2">Основное</legend>
+                <div class="col-lg-12 col-md-12">
+                    <div class="form-group">
+                        <label for="<?php echo $tmp = 'name' ?>" class="col-lg-2 col-md-2 control-label">Имя*</label>
+
+                        <div class="col-lg-10 col-md-10">
+                            <input type="text" name="<?php echo $tmp ?>" id="<?php echo $tmp ?>"
+                                   value="<?php echo $this->name ?>"
+                                   placeholder="Уникальное имя" class="form-control" required>
+                            <span class="help-block">Например: "lamoda" или "lamoda.admitad"</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="<?php echo $tmp = 'file' ?>" class="col-lg-2 col-md-2 control-label">Файл*</label>
+
+                        <div class="col-lg-10 col-md-10">
+                            <input type="text" name="<?php echo $tmp ?>" id="<?php echo $tmp ?>"
+                                   value="<?php echo $this->file ?>"
+                                   placeholder="Ссылка на скачивание каталога" class="form-control" required>
+                            <span class="help-block">Например: "http://file.csv" или "/home/snowgirl/file.csv"</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="<?php echo $tmp = Vendor::getPk() ?>"
+                               class="col-lg-2 col-md-2 control-label">Поставщик*</label>
+
+                        <div class="col-lg-10 col-md-10">
+                            <label><select name="<?php echo $tmp ?>" id="<?php echo $tmp ?>" class="form-control"
+                                           required>
+                                    <option value="" disabled>&mdash; Выбрать</option>
+                                    <?php foreach ($this->vendors as $vendor) { ?>
+                                        <option
+                                                value="<?php echo $vendor->getId() ?>"<?php echo $vendor->getId() == $this->vendorId ? ' selected' : '' ?>>
+                                            <?php echo $vendor->getName() ?>
+                                        </option>
+                                    <?php } ?>
+                                </select></label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="<?php echo $tmp = 'type' ?>"
+                               class="col-md-2 control-label">Тип*</label>
+
+                        <div class="col-md-10">
+                            <label><select name="<?php echo $tmp ?>" id="<?php echo $tmp ?>"
+                                           class="form-control">
+                                    <?php foreach ($this->sourceTypes as $label => $value) { ?>
+                                        <option value="<?php echo $value ?>">
+                                            <?php echo $label ?>
+                                        </option>
+                                    <?php } ?>
+                                </select></label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="<?php echo $tmp = 'class_name' ?>"
+                               class="col-lg-2 col-md-2 control-label">Класс</label>
+
+                        <div class="col-lg-10 col-md-10">
+                            <label><select name="<?php echo $tmp ?>" id="<?php echo $tmp ?>" class="form-control">
+                                    <option value="">&mdash; Выбрать</option>
+                                    <?php foreach ($this->importClasses as $importClass) { ?>
+                                        <option
+                                                value="<?php echo $importClass ?>"<?php echo $importClass == $this->importClass ? ' selected' : '' ?>>
+                                            <?php echo $importClass ?>
+                                        </option>
+                                    <?php } ?>
+                                </select></label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="<?php echo $tmp = 'uri' ?>" class="col-lg-2 col-md-2 control-label">Адрес</label>
+
+                        <div class="col-lg-10 col-md-10">
+                            <input type="text" name="<?php echo $tmp ?>" id="<?php echo $tmp ?>"
+                                   value="<?php echo $this->uri ?>"
+                                   placeholder="Ссылка" class="form-control">
+                            <?php if ($this->uri) { ?>
+                                <span class="help-block"><a href="<?php echo $this->uri ?>" target="_blank"><span
+                                                class="glyphicon glyphicon-link"></span> Перейти</a></span>
+                            <?php } ?>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-lg-offset-2  col-lg-10 col-md-offset-2 col-md-10">
+                            <div class="checkbox">
+                                <label>
+                                    <input type="checkbox" name="is_cron"
+                                           value="1"<?php echo 1 == $this->cronImport ? ' checked' : '' ?>>
+                                    Крон Импорт
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </fieldset>
+            <fieldset class="row notes">
+                <legend class="col-lg-offset-2 col-lg-10 col-md-offset-2 col-md-10 h2">Детали</legend>
+                <div class="col-lg-12 col-md-12">
+                    <div class="form-group">
+                        <label for="<?php echo $tmp = 'delivery_notes' ?>"
+                               class="col-md-2 control-label">Доставка</label>
+
+                        <div class="col-md-10">
+                    <textarea name="<?php echo $tmp ?>" id="<?php echo $tmp ?>" rows="3"
+                              placeholder="Особенности доставки (будут отображены на странице товара)"
+                              class="form-control"><?php echo $this->deliveryNotes ?></textarea>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="<?php echo $tmp = 'sales_notes' ?>" class="col-md-2 control-label">Продажа</label>
+
+                        <div class="col-md-10">
+                    <textarea name="<?php echo $tmp ?>" id="<?php echo $tmp ?>" rows="3"
+                              placeholder="Особенности продажи (будут отображены на странице товара)"
+                              class="form-control"><?php echo $this->salesNotes ?></textarea>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="<?php echo $tmp = 'tech_notes' ?>"
+                               class="col-lg-2 col-md-2 control-label">Тех</label>
+
+                        <div class="col-lg-10 col-md-10">
+                            <textarea name="<?php echo $tmp ?>" id="<?php echo $tmp ?>" rows="3"
+                                      placeholder="Особенности поставщика, настроек, импорта..."
+                                      class="form-control"><?php echo $this->techNotes ?></textarea>
+                            <span class="help-block">Например: Список категорий и их айдишников или "csv не всегда отдается"</span>
+                        </div>
+                    </div>
+                </div>
+            </fieldset>
+
+            <button type="submit" class="btn btn-primary"><span class="glyphicon glyphicon-floppy-save"></span>
+                Сохранить
+            </button>
+        </form>
+    </div>
+    <div class="col-xs-6">
+        <form
+                action="<?php echo $this->makeLink('admin', ['action' => 'import-source-save-filter', 'id' => $source->getId()]) ?>"
+                method="post"
+                class="form-horizontal">
+
+            <fieldset class="row filter">
+                <?php
+                $tooltip = implode('&#10;-----------------&#10;', array_filter([
+                    'Фильтры - это правила, исходя из которых принимается решение импортировать (поле слева) или не импортировать (поле справа) товар',
+                    'Фильтры разделяются с помощью запятых, при этои, при импорте, это будет означать - логичесеое \'или\'',
+                    'Можно использовать здездочку (*) в начале фильтра или в конце, например: *аксессуары или Одежда*',
+                    'Можно использовать тильду (~) в начале фильтра, например: ~одежда',
+                ], function ($i) {
+                    return !!$i;
+                }));
+                ?>
+                <legend class="col-lg-offset-2 col-lg-10 col-md-offset-2 col-md-10 h2">Фильтры <span
+                            class="glyphicon glyphicon-question-sign"
+                            title="<?php echo $tooltip ?>"></span>
+                </legend>
+                <div class="col-lg-12 col-md-12">
+                    <?php foreach ($this->fileColumns as $column) { ?>
+                        <?php
+                        $isEqual = array_key_exists($column, $filter) && array_key_exists('equal', $filter[$column]) && $filter[$column]['equal'];
+                        $isNotEqual = array_key_exists($column, $filter) && array_key_exists('not_equal', $filter[$column]) && $filter[$column]['not_equal'];
+                        ?>
+                        <div class="filter-item<?php echo $isEqual || $isNotEqual ? ' selected' : '' ?>"
+                             data-column="<?php echo $column ?>">
+                            <?php echo $column ?>=
+                            <label>
+                                <input type="text" name="filter[<?php echo $column ?>][equal]"
+                                       value="<?php echo implode(', ', $isEqual ? $filter[$column]['equal'] : []) ?>"
+                                       class="form-control"
+                                       placeholder="Пропускать">
+                            </label>
+                            !=
+                            <label>
+                                <input type="text" name="filter[<?php echo $column ?>][not_equal]"
+                                       value="<?php echo implode(', ', $isNotEqual ? $filter[$column]['not_equal'] : []) ?>"
+                                       class="form-control"
+                                       placeholder="Не пропускать">
+                            </label>
+                        </div>
+                    <?php } ?>
+                </div>
+            </fieldset>
+
+            <button type="submit" class="btn btn-primary"><span class="glyphicon glyphicon-floppy-save"></span>
+                Сохранить
+            </button>
+        </form>
+    </div>
+    <div class="col-xs-12">
+        <form
+                action="<?php echo $this->makeLink('admin', ['action' => 'import-source-save-mapping', 'id' => $source->getId()]) ?>"
+                method="post" class="form-horizontal form-map">
+
+            <fieldset class="row map">
+                <legend class="col-lg-offset-2 col-lg-10 col-md-offset-2 col-md-10 h2">Преобразования</legend>
+                <div class="col-lg-12 col-md-12">
+                    <?php foreach ($this->dbColumns as $dbColumn) { ?>
+                        <?php
+                        $isRequired = in_array($dbColumn, $this->dbRequiredColumns);
+                        $isMap = array_key_exists($dbColumn, $mapping);
+                        $isMapColumn = $isMap && array_key_exists('column', $mapping[$dbColumn]) && $mapping[$dbColumn]['column'];
+                        $isForeignKey = isset($this->svaValues[$dbColumn]);
+
+                        $isSvaValue = false;
+
+                        if ($isSva = in_array($dbColumn, $this->sva)) {
+                            $manager = $this->app->managers->getByEntityPk($dbColumn);
+                            $picker = $manager->makeTagPicker('map[' . $dbColumn . '][value]', false, ['placeholder' => 'id'], $this);
+
+                            if ($isMap && array_key_exists('value', $mapping[$dbColumn])) {
+                                $id = $mapping[$dbColumn]['value'];
+
+                                if ($entity = $manager->find($id)) {
+                                    $isSvaValue = true;
+                                    $picker->addValue(new Value($id, $entity->get($manager->findColumns(Entity::SEARCH_DISPLAY)[0])));
+                                }
+                            }
+                        }
+
+                        $isMapModify = $isMap && array_key_exists('modify', $mapping[$dbColumn]);
+                        $isMapModifyOnly = !array_key_exists($dbColumn, $mapping) || in_array('modify_only', $mapping[$dbColumn]);
+                        ?>
+                        <div class="map-item
+                        <?php echo $isMapColumn ? 'column' : '' ?>
+                        <?php echo $isForeignKey ? 'foreign-key' : '' ?>
+                        <?php echo $isSvaValue ? 'value' : '' ?>
+                        <?php echo $isMapModify ? 'modify' : '' ?>"
+                             data-column="<?php echo $dbColumn ?>">
+                            <?php echo $dbColumn ?><?php echo $isRequired ? '*' : '' ?> =
+
+                            <?php if ($isSva) { ?>
+                                <div class="map-item-value">
+                                    <?php echo $picker->stringify() ?>
+                                </div>
+                                или
+                            <?php } ?>
+
+                            <label>
+                                <select name="map[<?php echo $dbColumn ?>][column]"
+                                        class="form-control map-item-column"<?php echo $isRequired ? ' required' : '' ?>>
+                                    <option value="">Поле файла</option>
+                                    <?php foreach ($this->fileColumns as $column) { ?>
+                                        <option
+                                                value="<?php echo $column ?>"<?php echo $isMapColumn && $mapping[$dbColumn]['column'] == $column ? ' selected' : '' ?>><?php echo $column ?></option>
+                                    <?php } ?>
+                                </select>
+                            </label>
+
+                            <a class="btn btn-default btn-add-map-item-modify" title="Добавить модификатор"><span
+                                        class="glyphicon glyphicon-plus"></span></a>
+
+                            <a class="btn btn-default btn-load-all-possible-modify"
+                               title="Загрузить все возможные модификаторы"><span
+                                        class="glyphicon glyphicon-search"></span></a>
+                            <label class="modify-not-less-than">> <input type="number" class="form-control"
+                                                                         name="modify-not-less-than"
+                                                                         value="<?php echo $this->modifyNotLessThan ?>"></label>
+
+                            <?php if ($isForeignKey && in_array($dbColumn, $this->mappingAutoFuncFor)) { ?>
+                                <a class="btn btn-default btn-auto-map-item-modify"
+                                   title="Автоматическое определение"><span
+                                            class="glyphicon glyphicon-sort"></span></a>
+                            <?php } ?>
+
+                            <a class="btn btn-default btn-clear-empty-map-item-modify"
+                               title="Удалить несуществующие модификаторы"><span
+                                        class="glyphicon glyphicon-trash"></span></a>
+
+                            <label class="modify-only"><input type="checkbox"
+                                                              name="map[<?php echo $dbColumn ?>][modify_only]"
+                                                              value="1"<?php echo $isMapModifyOnly ? ' checked' : '' ?>>
+                                Только с модификаторами</label>
+
+                            <?php if ($isMapModify) { ?>
+                                <?php foreach ($mapping[$dbColumn]['modify'] as $fileValue => $modifySettings) { ?>
+                                    <div class="map-item-modify">
+                                        <label class="from"><input type="text" title="<?php echo $fileValue ?>"
+                                                                   name="map[<?php echo $dbColumn ?>][modify_from][]"
+                                                                   value="<?php echo $fileValue ?>"
+                                                                   class="form-control"
+                                                                   placeholder="Что" readonly
+                                                                   aria-readonly="true"></label>
+                                        <?php if (isset($this->mappingFileColumnsValuesInfo[$mapping[$dbColumn]['column']][$fileValue])) { ?>
+                                            <span
+                                                    class="from-total"><?php echo $this->mappingFileColumnsValuesInfo[$mapping[$dbColumn]['column']][$fileValue]['total'] ?></span>
+                                            <?php if ($this->isShowModifiersItems && $tmp = $this->mappingFileColumnsValuesInfo[$mapping[$dbColumn]['column']][$fileValue]['items']) { ?>
+                                                <span
+                                                        class="from-items"><?php foreach ($tmp as $item) {
+                                                        if ($item['image']) {
+                                                            $image = explode(',', $item['image'])[0]; ?>
+                                                            <img src="<?php echo ('//' == substr($image, 0, 2) ? 'http:' : '') . $image ?>"
+                                                                 title="<?php echo $item['name'] ?>">
+                                                        <?php }
+                                                    } ?></span>
+                                            <?php } ?>
+                                        <?php } ?>
+                                        <span>=</span><label class="to">
+                                            <?php if ($isForeignKey) { ?>
+                                                <select name="map[<?php echo $dbColumn ?>][modify_to][]"
+                                                        class="form-control">
+                                                    <option value="">-- Нет значения --</option>
+                                                    <?php foreach ($this->svaValues[$dbColumn] as $value => $title) { ?>
+                                                        <option
+                                                                value="<?php echo $value ?>"<?php echo $value == $modifySettings['value'] ? ' selected' : '' ?>><?php echo $title ?></option>
+                                                    <?php } ?>
+                                                </select>
+                                            <?php } else { ?>
+                                                <input type="text" name="map[<?php echo $dbColumn ?>][modify_to][]"
+                                                       value="<?php echo $modifySettings['value'] ?>"
+                                                       class="form-control"
+                                                       placeholder="Во что">
+                                            <?php } ?>
+                                        </label>
+                                        <label><input type="checkbox"
+                                                      name="map[<?php echo $dbColumn ?>][is_sport][<?php echo $fileValue ?>]"
+                                                      value="1" <?php echo in_array('is_sport', $modifySettings) ? 'checked' : '' ?>>
+                                            Спорт</label>
+                                        <label><input type="checkbox"
+                                                      name="map[<?php echo $dbColumn ?>][is_size_plus][<?php echo $fileValue ?>]"
+                                                      value="1" <?php echo in_array('is_size_plus', $modifySettings) ? 'checked' : '' ?>>
+                                            Размер+</label>
+                                        <?php
+                                        $tagValues = array_filter($modifySettings['tags'], function ($tagId) {
+                                            return isset($this->mappingModifyTags[$tagId]);
+                                        });
+
+                                        if ($tagValues) {
+                                            echo $this->app->managers->tags
+                                                ->makeTagPicker('map[' . $dbColumn . '][tags][' . $fileValue . ']', true, ['placeholder' => 'tags'], $this)
+                                                ->addValues(array_map(function ($tagId) {
+                                                    return new Value($tagId, $this->mappingModifyTags[$tagId]);
+                                                }, $tagValues))
+                                                ->stringify();
+                                        } else { ?>
+                                            <input type="text" class="form-control raw-tags" placeholder="tags">
+                                        <?php } ?>
+                                        <a class="btn btn-default btn-delete-map-item-modify"
+                                           title="Удалить модификатор"><span
+                                                    class="glyphicon glyphicon-minus"></span></a>
+                                    </div>
+                                <?php } ?>
+                            <?php } ?>
+                        </div>
+                    <?php } ?>
+                </div>
+            </fieldset>
+
+            <button type="submit" class="btn btn-primary"><span class="glyphicon glyphicon-floppy-save"></span>
+                Сохранить
+            </button>
+        </form>
+    </div>
+</div>
+
+<?php if ($data && (0 < count($this->data))) { ?>
+    <form class="form-horizontal">
+        <fieldset id="data">
+            <legend class="col-lg-offset-1 col-lg-11 col-md-offset-1 col-md-11 h2">Файл <span
+                        class="glyphicon glyphicon-question-sign"
+                        title="Отфлильтрованные данные&#10;Без учета  фильтров модификаторов"></span>
+            </legend>
+            <div><?php echo $this->fileName ?></div>
+            <label class="page">
+                <span>Страница</span>
+                <select name="page" class="form-control">
+                    <?php foreach (range(1, $this->totalPages) as $page) { ?>
+                        <option
+                                value="<?php echo $page ?>"<?php echo $this->page == $page ? ' selected' : '' ?>><?php echo $page ?></option>
+                    <?php } ?>
+                </select>
+            </label>
+
+            <div class="file-wrapper">
+                <table class="table col-lg-12 col-md-12">
+                    <thead>
+                    <tr>
+                        <?php foreach ($this->fileColumns as $column) { ?>
+                            <th><?php echo $column ?></th>
+                        <?php } ?>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <?php foreach ($this->data as $row) { ?>
+                        <tr>
+                            <?php foreach ($row as $value) { ?>
+                                <td title="<?php echo $value ?>"><?php echo mb_strlen($value) > 50 ? (mb_substr($value, 0, 50) . '...') : $value ?></td>
+                            <?php } ?>
+                        </tr>
+                    <?php } ?>
+                    </tbody>
+                    <tfoot></tfoot>
+                </table>
+            </div>
+        </fieldset>
+    </form>
+<?php } ?>
+
+<?php echo '</div>' ?>

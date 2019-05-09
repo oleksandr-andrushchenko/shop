@@ -1,0 +1,19 @@
+<?php
+use SNOWGIRL_CORE\View;
+use SNOWGIRL_SHOP\Entity\Page\Catalog as PageCatalog;
+
+$page = $this->entity;
+/** @var View $this */
+/** @var PageCatalog $page */
+?>
+
+<div class="page-catalog">
+    <div class="inner-table">
+        <div class="inner-cell">
+            <?php echo $page->getName() ?>
+        </div>
+        <div class="inner-cell">
+            <?php echo $page->getMetaKey('count') ?>
+        </div>
+    </div>
+</div>

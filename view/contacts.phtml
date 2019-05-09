@@ -1,0 +1,51 @@
+<?php
+use SNOWGIRL_CORE\View;
+use SNOWGIRL_CORE\Script\Css;
+
+/** @var View $this */
+$this->getLayout()
+    ->addBreadcrumb($this->h1)
+    ->addHeadCss(new Css('@snowgirl-shop/contacts.css'));
+
+$map = [
+    'phone' => 'Позвоните нам',
+    'email' => 'Напишите нам',
+    'time' => 'Время работы',
+    'address' => 'Адрес',
+];
+?>
+
+<div class="row">
+    <h1 class="col-sm-offset-4 col-sm-8 title"><?php echo htmlspecialchars($this->h1) ?></h1>
+</div>
+
+<div class="vs">
+    <div class="row">
+        <div class="col-sm-<?php echo $this->map ? 4 : 12 ?> vs">
+            <?php foreach ($this->contacts as $key => $body) { ?>
+                <?php if ($body) { ?>
+                    <div>
+                        <h3 class="h3 section-title">
+                            <?php echo htmlspecialchars($map[$key]) ?>
+                        </h3>
+
+                        <div class="section-body">
+                            <?php if ('email' == $key) { ?>
+                                <a href="mailto:<?php echo htmlspecialchars($body) ?>"><?php echo htmlspecialchars($body) ?></a>
+                            <?php } else { ?>
+                                <?php echo nl2br(htmlspecialchars($body)) ?>
+                            <?php } ?>
+                        </div>
+                    </div>
+                <?php } ?>
+            <?php } ?>
+        </div>
+        <?php if ($this->map) { ?>
+            <div class="col-sm-8">
+                <?php echo $this->map ?>
+            </div>
+        <?php } ?>
+    </div>
+
+    <?php echo $this->form ?>
+</div>

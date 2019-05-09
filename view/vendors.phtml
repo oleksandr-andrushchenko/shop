@@ -1,0 +1,63 @@
+<?php
+use SNOWGIRL_CORE\View;
+use SNOWGIRL_CORE\Script\Css;
+use SNOWGIRL_SHOP\Entity\Vendor;
+
+/** @var View $this */
+/** @var Vendor $item */
+$this->getLayout()
+    ->addBreadcrumb($this->h1)
+    ->addHeadCss(new Css('@snowgirl-shop/vendors.css'));
+?>
+
+<div class="row">
+    <h1 class="col-md-offset-3 col-md-9 title"><?php echo htmlspecialchars($this->h1) ?></h1>
+</div>
+
+<div class="vs">
+    <?php if (is_object($this->popularItemsGrid)) { ?>
+        <div class="section-title">
+            <div class="row">
+                <div class="col-mb-4 col-sm-3 col-md-3 sign">Популярные магазины</div>
+            </div>
+        </div>
+
+        <div class="section-body">
+            <?php echo $this->popularItemsGrid ?>
+        </div>
+    <?php } ?>
+
+    <?php if (is_array($this->chars) && 0 < count($this->chars)) { ?>
+        <div class="section-title">
+            <div class="row">
+                <div class="col-mb-4 col-sm-3 sign">Магазины по алфавиту:</div>
+                <div class="col-mb-8 col-sm-9">
+                    <div class="list">
+                        <?php foreach ($this->chars as $char) { ?>
+                            <a href="<?php echo $this->makeLink('default', 'vendors') ?>#search-<?php echo $char ?>"><?php echo $char ?></a>
+                        <?php } ?>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-body">
+            <?php foreach ($this->items as $char => $items) { ?>
+                <div class="row char-items" id="search-<?php echo $char ?>">
+                    <div class="col-mb-4 col-sm-3 char"><?php echo $char ?></div>
+                    <div class="col-mb-8 col-sm-9">
+                        <div class="row items">
+                            <?php foreach ($items as $item) { ?>
+                                <div class="col-mb-6 col-sm-4 item">
+                                    <a href="<?php echo $this->app->managers->vendors->getLink($item) ?>">
+                                        <?php echo $item->getName() ?>
+                                    </a>
+                                </div>
+                            <?php } ?>
+                        </div>
+                    </div>
+                </div>
+            <?php } ?>
+        </div>
+    <?php } ?>
+</div>

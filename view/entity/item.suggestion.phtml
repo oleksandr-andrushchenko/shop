@@ -1,0 +1,29 @@
+<?php
+use SNOWGIRL_CORE\View;
+use SNOWGIRL_SHOP\Entity\Item;
+use SNOWGIRL_CORE\Helper;
+use SNOWGIRL_CORE\Image;
+
+$item = $this->entity;
+/** @var View $this */
+/** @var Item $item */
+?>
+
+<div class="item">
+    <div class="inner-table">
+        <div class="inner-cell" style="width:40%">
+            <?php echo $this->app->views->getImage($item->getImage(), Image::FORMAT_NONE, 0, [
+                'alt' => $item->getName()
+            ]) ?>
+        </div>
+        <div class="inner-cell">
+            <?php echo $item->getName() ?>
+            <?php echo $this->app->views->getRating($item->getRating(), 5, 2) ?>
+            <div class="price">
+                <span class="text" style="display:none">Цена</span>
+                <span class="val"><?php echo Helper::makeNiceNumber($item->getPrice()) ?></span>
+                <span class="unit"><?php echo $this->makeText('catalog.currency_' . $this->app->config->catalog->currency('RUB')) ?></span>
+            </div>
+        </div>
+    </div>
+</div>

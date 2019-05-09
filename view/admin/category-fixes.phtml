@@ -1,0 +1,233 @@
+<!---->
+<?php
+use SNOWGIRL_CORE\View;
+use SNOWGIRL_CORE\Script\Css;
+use SNOWGIRL_CORE\Script\Js;
+use SNOWGIRL_CORE\Entity;
+use SNOWGIRL_SHOP\Entity\Category;
+use SNOWGIRL_CORE\Image;
+use SNOWGIRL_SHOP\Entity\Item;
+use SNOWGIRL_SHOP\Entity\Category\Entity as CategoryEntity;
+
+/** @var View $this */
+/** @var Category $item */
+/** @var Image $image */
+/** @var Item $itemItem */
+/** @var CategoryEntity $itemEntity */
+/** @var Entity $v */
+$this->getLayout()
+    ->setTitle($title = 'Фиксы категорий')
+    ->addBreadcrumb($title)
+    ->setH1('Фиксы')
+    ->addHeadCss(new Css('@snowgirl-core/admin/database.css'))
+    ->addHeadCss(new Css('@snowgirl-shop/admin/item-fixes.css'))
+    ->addHeadCss(new Css('@snowgirl-shop/admin/category-fixes.css'))
+    ->addHeadCss(new Css('@snowgirl-core/jquery.easyzoom.css'))
+    ->addJs(new Js('@snowgirl-core/jquery.easyzoom.js'))
+    ->addJs(new Js('@snowgirl-shop/admin/category-fixes.js'));
+
+$manager = $this->app->managers->categories;
+?>
+<ul class="list-inline">
+    <li><a href="<?php echo $this->makeLink('admin', 'item-fixes') ?>">Предложения</a></li>
+    <li>Категории</li>
+</ul>
+
+<?php echo '<div class="vs">' ?>
+
+<form action="<?php echo $this->makeLink('admin', 'category-fixes') ?>" class="form-inline form-search"
+      method="get">
+    <div class="form-group">
+        <label for="search_by" class="control-label">Искать</label>
+        <select name="search_by" id="search_by" class="form-control">
+            <?php foreach ($this->columns as $column) { ?>
+                <option
+                    value="<?php echo $column ?>" <?php echo $column == $this->searchBy ? 'selected' : '' ?>><?php echo $column ?></option>
+            <?php } ?>
+        </select>
+        <label for="search_value" class="control-label">по</label>
+        <input type="text" name="search_value" id="search_value" class="form-control"
+               value="<?php echo $this->searchValue ?>"
+               placeholder="Значение">
+
+        <label class="control-label">
+            <input type="checkbox" name="search_use_fulltext"
+                   value="1" <?php echo $this->searchUseFulltext ? 'checked' : '' ?>>
+            Полнотекстовый
+        </label>
+    </div>
+
+    <div class="form-group">
+        <label for="order_by" class="control-label">Сортировать</label>
+        <select name="order_by" id="order_by" class="form-control">
+            <?php foreach ($this->columns as $column) { ?>
+                <option
+                    value="<?php echo $column ?>" <?php echo $column == $this->orderBy ? 'selected' : '' ?>><?php echo $column ?></option>
+            <?php } ?>
+        </select>
+        <label for="order_value" class="control-label">по</label>
+        <select name="order_value" id="order_value" class="form-control">
+            <option value="asc">ASC</option>
+            <option value="desc" <?php echo 'desc' == $this->orderValue ? 'selected' : '' ?>>DESC</option>
+        </select>
+    </div>
+
+    <div class="clearfix"></div>
+
+    <div class="form-group">
+        <label class="control-label">
+            <input type="checkbox" name="search_entities"
+                   value="1" <?php echo $this->searchWithEntities ? 'checked' : '' ?>>
+            C entities
+        </label>
+    </div>
+
+    <div class="form-group">
+        <label class="control-label">
+            <input type="checkbox" name="search_non_active_entities"
+                   value="1" <?php echo $this->searchWithNonActiveEntities ? 'checked' : '' ?>>
+            Без активных entities
+        </label>
+    </div>
+
+    <div class="form-group">
+        <button type="submit" class="btn btn-primary">
+            <span class="glyphicon glyphicon-search"></span> Искать
+        </button>
+        <a href="<?php echo $this->makeLink('admin', 'category-fixes') ?>">
+            <span class="glyphicon glyphicon-refresh"></span> Сбросить
+        </a>
+    </div>
+</form>
+<?php echo $this->pager ?>
+<table class="table">
+    <colgroup>
+        <col width="5%">
+        <col width="45%">
+        <col width="50%">
+    </colgroup>
+    <thead>
+    <tr>
+        <th data-key="category_id">id</th>
+        <th data-key="images">images</th>
+        <th data-key="info">info</th>
+    </tr>
+    </thead>
+    <tbody>
+    <?php $selectMap = ['parent_category_id' => 'categories'] ?>
+    <?php foreach ($this->items as $item) { ?>
+        <tr data-id="<?php echo $item->getId() ?>">
+            <td data-key="category_id"><?php echo $item->get('category_id') ?></td>
+            <td data-key="images" class="images">
+                <?php if (isset($this->itemItems[$item->getId()])) { ?>
+                    <?php foreach ($this->itemItems[$item->getId()] as $itemItem) { ?>
+                        <div class="easyzoom easyzoom--adjacent">
+                            <a class="img-wrapper"
+                               href="<?php echo $tmp = $this->app->images->get($itemItem->getImage())->getLink() ?>"
+                               title="<?php echo $itemItem->getName() ?>">
+                                <img src="<?php echo $tmp ?>">
+                            </a>
+                        </div>
+                    <?php } ?>
+                <?php } ?>
+            </td>
+            <td data-key="info">
+                <table class="table">
+                    <?php $columns = array_diff($this->columns, ['category_id']);
+                    array_splice($columns, array_search('title', $columns), 0, 'entities');
+                    array_splice($columns, array_search('title', $columns) + 1, 0, 'is_leaf');
+                    foreach ($columns as $column) { ?>
+                        <tr>
+                            <td>
+                                <?php if ('entities' == $column) { ?>
+                                    <?php echo $column ?>
+                                    <span class="fa fa-info-circle" title="<?php echo implode(' ', [
+                                        'Все предложения родительских категорий',
+                                        'с отмеченными значениями будут отнесены к категории'
+                                    ]) ?>"></span>
+                                <?php } elseif ('name' == $column) { ?>
+                                    <b><?php echo $column ?></b>
+                                <?php } else { ?>
+                                    <?php echo $column ?>
+                                <?php } ?>
+                            </td>
+                            <td>
+                                <?php if (isset($selectMap[$column]) && in_array($column, $this->editableColumns)) { ?>
+                                    <label>
+                                        <select data-id="<?php echo $item->getId() ?>"
+                                                data-name="<?php echo $column ?>">
+                                            <option value="0">- <?php echo $column ?> -</option>
+                                            <?php foreach ($this->{$selectMap[$column]} as $id => $v) { ?>
+                                                <option
+                                                    value="<?php echo $id ?>" <?php echo $id == $item->get($column) ? 'selected' : '' ?>>
+                                                    <?php echo $v->get('name') ?>
+                                                </option>
+                                            <?php } ?>
+                                        </select>
+                                    </label>
+                                <?php } elseif (in_array($column, ['created_at', 'updated_at'])) { ?>
+                                    <?php echo date('d.m.Y в H:i') ?>
+                                <?php } elseif ('entities' == $column) { ?>
+                                    <?php if (isset($this->itemEntities[$item->getId()])) { ?>
+                                        <?php foreach ($this->itemEntities[$item->getId()] as $itemEntity) { ?>
+                                            <label><input type="checkbox"
+                                                          name="is_active"
+                                                          data-table="<?php echo CategoryEntity::getTable() ?>"
+                                                          data-id="<?php echo $itemEntity->getId() ?>"
+                                                          data-name="is_active"
+                                                          value="<?php echo $itemEntity->isActive() ? 0 : 1 ?>"
+                                                    <?php echo $itemEntity->isActive() ? 'checked' : '' ?>> <?php echo $itemEntity->getValue() ?>
+                                                [
+                                                <small><?php echo $itemEntity->getCount() ?></small>
+                                                ]
+                                            </label>
+                                        <?php } ?>
+                                    <?php } ?>
+                                <?php } elseif ('is_leaf' == $column) { ?>
+                                    <span
+                                        class="flag flag-<?php echo $manager->isLeaf($item) ? 'true' : 'false' ?>"></span>
+                                <?php } elseif ('name' == $column) { ?>
+                                    <b><?php echo $item->get($column) ?></b>
+                                <?php } else { ?>
+                                    <?php echo $item->get($column) ?>
+                                <?php } ?>
+                            </td>
+                        </tr>
+                    <?php } ?>
+                    <tr class="transfer">
+                        <td>Перенести в <span class="fa fa-info-circle"
+                                              title="Функционал не стабилен - нужна доработка"></span></td>
+                        <td>
+                            <?php echo clone $this->categoryPicker ?>
+                            <?php echo clone $this->tagsPicker ?>
+                            <button type="button" class="btn btn-default btn-transfer disabled" disabled>ОК</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Ссылки</td>
+                        <td>
+                            <a href="<?php echo $manager->getLink($item) ?>" target="_blank">
+                                <span class="fa fa-external-link"></span> Страница
+                            </a>
+                            <a href="<?php echo $this->makeLink('admin', [
+                                'action' => 'database',
+                                'table' => 'category',
+                                'search_by' => 'category_id',
+                                'search_value' => $item->getId()
+                            ]) ?>" target="_blank">
+                                <span class="fa fa-edit"></span> Запись
+                            </a>
+                            <!--                            <button class="btn btn-primary btn-copy" title="Скопировать"><span class="glyphicon glyphicon-copy"></span></button>-->
+                            <!--                            <button class="btn btn-danger btn-delete" title="Удалить"><span class="glyphicon glyphicon-trash"></span></button>-->
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    <?php } ?>
+    </tbody>
+</table>
+
+<?php echo $this->pager ?>
+
+<?php echo '</div>' ?>

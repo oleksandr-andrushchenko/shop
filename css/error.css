@@ -1,0 +1,28 @@
+h1 {
+    text-align: center
+}
+
+.text {
+    font-size: 15px;
+    text-align: center
+}
+
+.text .back {
+    margin: 10px 0 0;
+    font-size: 13px
+}
+
+.text .suggestions {
+    margin-top: 20px
+}
+
+.text .suggestions div {
+    display: inline-block;
+    text-align: left;
+    line-height: 20px
+}
+
+.text .back a,
+.uri {
+    color: #0066A4
+}

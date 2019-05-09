@@ -1,0 +1,29 @@
+.title, .content {
+    text-align: center
+}
+
+.in-process {
+    color: green;
+    font-weight: 700
+}
+
+.content .item + .item {
+    margin-top: 15px
+}
+
+.content .item img {
+    max-width: 100%
+}
+
+.content .item > a {
+    display: block
+}
+
+.subscribe {
+    text-align: center
+}
+
+.item .item-title {
+    text-align: center;
+    margin-bottom: 10px;
+}
