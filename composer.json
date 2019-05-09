@@ -6,6 +6,13 @@
       "email": "alex.snowgirl@gmail.com"
     }
   ],
+  "autoload": {
+    "psr-4": {
+      "SNOWGIRL_SHOP\\": "core"
+    }
+  },
+  "prefer-stable": true,
+  "minimum-stability": "dev",
   "require": {
     "php": "^7.2",
     "snowgirl/core": "dev-master",
