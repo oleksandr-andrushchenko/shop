@@ -1,0 +1,37 @@
+<?php
+/**
+ * Created by PhpStorm.
+ * User: snowgirl
+ * Date: 5/14/19
+ * Time: 10:50 PM
+ */
+
+namespace SNOWGIRL_SHOP\Controller\Console;
+
+use SNOWGIRL_CORE\Controller\Console\PrepareServicesTrait;
+use SNOWGIRL_CORE\Exception\HTTP\BadRequest;
+use SNOWGIRL_SHOP\App\Console as App;
+
+class FixItemsDuplicatesAction
+{
+    use PrepareServicesTrait;
+
+    /**
+     * @param App $app
+     *
+     * @throws \SNOWGIRL_CORE\Exception\HTTP\NotFound
+     */
+    public function __invoke(App $app)
+    {
+        $this->prepareServices($app);
+
+        if (!$importSourceId = $app->request->get('param_1')) {
+            throw (new BadRequest)->setInvalidParam('import_source_id');
+        }
+
+        $app->response->setBody(implode("\r\n", [
+            __CLASS__,
+            $app->utils->items->doFixDuplicates($importSourceId) ? 'DONE' : 'FAILED'
+        ]));
+    }
+}
