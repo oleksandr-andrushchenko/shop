@@ -16,7 +16,7 @@ use SNOWGIRL_CORE\Script\Js;
  * Class OpenDoor
  * @package SNOWGIRL_SHOP\View\Layout
  */
-class OpenDoor extends \SNOWGIRL_CORE\View\Layout\OpenDoor
+class Outer extends \SNOWGIRL_CORE\View\Layout\Outer
 {
     protected $headerSearch = true;
     protected $sign = 'Лучший женский интернет-каталог';
@@ -28,8 +28,8 @@ class OpenDoor extends \SNOWGIRL_CORE\View\Layout\OpenDoor
     protected function addCssNodes()
     {
         return parent::addCssNodes()
-            ->addHeadCss(new Css('@snowgirl-shop/core.css'))
-            ->addLazyCss(new Css('@snowgirl-core/rating.css'))
+            ->addHeadCss(new Css('@shop/core.css'))
+            ->addLazyCss(new Css('@core/rating.css'))
             ->addLazyCss(new Css('https://fonts.googleapis.com/css?family=Chonburi'))
             ->addLazyCss(new Css('.price .val,.old-price .val{font-family: \'Chonburi\', cursive;}', true));
     }
@@ -37,27 +37,27 @@ class OpenDoor extends \SNOWGIRL_CORE\View\Layout\OpenDoor
     protected function addJsNodes()
     {
         return $this->addJs(new Js('//ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js'))
-            ->addJs(new Js('@snowgirl-core/core.js'))
-            ->addJs(new Js('@snowgirl-shop/core.js'));
+            ->addJs(new Js('@core/core.js'))
+            ->addJs(new Js('@shop/core.js'));
     }
 
     protected function makeHeader()
     {
-        return $this->stringifyContent('@snowgirl-core/layout/header.phtml');
+        return $this->stringifyContent('@core/layout/header.phtml');
     }
 
     protected function makeBreadcrumbs()
     {
-        return $this->stringifyContent('@snowgirl-core/layout/breadcrumbs.phtml');
+        return $this->stringifyContent('@core/layout/breadcrumbs.phtml');
     }
 
     protected function makeContent()
     {
-        return $this->stringifyContent('@snowgirl-shop/layout/content.phtml');
+        return $this->stringifyContent('@shop/layout/content.phtml');
     }
 
     protected function makeFooter()
     {
-        return $this->stringifyContent('@snowgirl-core/layout/footer.phtml');
+        return $this->stringifyContent('@core/layout/footer.phtml');
     }
 }

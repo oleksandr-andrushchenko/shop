@@ -14,7 +14,7 @@ $brandsBlocks = array_chunk($this->brands, $this->brandsPerBlock);
 $itemsBlocks = array_chunk($this->items, $this->itemsPerBlock);
 
 $this->getLayout()
-    ->addHeadCss(new Css('@snowgirl-shop/index.css'));
+    ->addHeadCss(new Css('@shop/index.css'));
 ?>
 
 <div class="index vs">
@@ -93,19 +93,19 @@ $this->getLayout()
             </div>
         <?php } ?>
 
-        <?php echo isset($itemsBlocks[$i]) ? $this->app->views->get('@snowgirl-shop/index/items.phtml', [
+        <?php echo isset($itemsBlocks[$i]) ? $this->app->views->get('@shop/index/items.phtml', [
             'items' => $itemsBlocks[$i],
             'currency' => $this->currency
         ], $this) : null ?>
 
-        <?php echo isset($categoriesBlocks[$i]) ? $this->app->views->get('@snowgirl-shop/index/categories.phtml', [
+        <?php echo isset($categoriesBlocks[$i]) ? $this->app->views->get('@shop/index/categories.phtml', [
             'grid' => $this->app->views->categories([
                 'items' => $categoriesBlocks[$i],
                 'right' => 1 == $i % 2
             ], $this)
         ], $this) : null ?>
 
-        <?php echo isset($brandsBlocks[$i]) ? $this->app->views->get('@snowgirl-shop/index/brands.phtml', [
+        <?php echo isset($brandsBlocks[$i]) ? $this->app->views->get('@shop/index/brands.phtml', [
             'grid' => $this->app->views->brands([
                 'items' => $brandsBlocks[$i],
                 'padding' => 5

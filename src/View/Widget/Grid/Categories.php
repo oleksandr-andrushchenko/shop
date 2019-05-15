@@ -41,7 +41,7 @@ class Categories extends Widget
 
     protected function addScripts()
     {
-        return $this->addCssScript('@snowgirl-shop/widget/grid.categories.css');
+        return $this->addCssScript('@shop/widget/grid.categories.css');
     }
 
     protected function getLink($category)

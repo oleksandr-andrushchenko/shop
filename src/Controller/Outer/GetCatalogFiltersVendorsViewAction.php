@@ -40,7 +40,7 @@ class GetCatalogFiltersVendorsViewAction
         }
 
         if ($vendors) {
-            $view = $app->views->get('@snowgirl-shop/catalog/filters/vendors.phtml', [
+            $view = $app->views->get('@shop/catalog/filters/vendors.phtml', [
                 'uriParams' => $uri->getParams(),
                 'vendors' => $vendors
             ]);

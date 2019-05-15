@@ -39,7 +39,7 @@ class CategoryFixesAction
 
         $view = $app->views->getLayout(true);
 
-        $content = $view->setContentByTemplate('@snowgirl-shop/admin/category-fixes.phtml', [
+        $content = $view->setContentByTemplate('@shop/admin/category-fixes.phtml', [
             'columns' => array_diff(array_keys(Category::getColumns()), []),
             'editableColumns' => array_diff(array_keys(Category::getColumns()), []),
             'categories' => $app->managers->categories->clear()->setOrders(['name' => SORT_ASC])->getObjects(true),

@@ -28,13 +28,13 @@ use SNOWGIRL_SHOP\Entity\Season;
 /** @var Season $season */
 
 $this->getLayout()
-    ->addHeadCss(new Css('@snowgirl-shop/catalog.css'))
+    ->addHeadCss(new Css('@shop/catalog.css'))
     ->addJsConfig('filterParams', $this->uriFilterParams)
     ->addJsConfig('viewParams', $this->uriViewParams)
     ->addJsConfig('showTags', $this->showTags)
     ->addJsConfig('hasItems', $this->hasItems)
     ->addJsConfig('asyncFilters', $this->asyncFilters)
-    ->addJs(new Js('@snowgirl-shop/catalog.js'));
+    ->addJs(new Js('@shop/catalog.js'));
 
 $typeColors = [
 //    URI::SPORT => 'default',

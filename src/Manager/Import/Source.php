@@ -9,7 +9,7 @@
 namespace SNOWGIRL_SHOP\Manager\Import;
 
 use SNOWGIRL_CORE\Service\Storage\Query;
-use SNOWGIRL_SHOP\App;
+use SNOWGIRL_CORE\App;
 use SNOWGIRL_CORE\Entity;
 use SNOWGIRL_CORE\Service\Rdbms;
 use SNOWGIRL_SHOP\Entity\Item;
@@ -245,6 +245,6 @@ class Source extends Manager
 
     public function getImportClasses($withAliases = false, $whole = false)
     {
-        return Classes::getInDir($this->app, 'Import', ['@snowgirl-shop', '@app'], $withAliases, $whole);
+        return Classes::getInDir($this->app, 'Import', ['@shop', '@app'], $withAliases, $whole);
     }
 }

@@ -8,7 +8,7 @@
 
 namespace SNOWGIRL_SHOP\Item;
 
-use SNOWGIRL_SHOP\App;
+use SNOWGIRL_CORE\App;
 use SNOWGIRL_SHOP\Entity\Item;
 use SNOWGIRL_SHOP\Manager\Builder as Managers;
 

@@ -9,7 +9,7 @@
 namespace SNOWGIRL_SHOP\Util;
 
 use SNOWGIRL_CORE\Service\Storage\Query\Expr;
-use SNOWGIRL_SHOP\App;
+use SNOWGIRL_CORE\App;
 use SNOWGIRL_CORE\Image as ImageObject;
 
 /**

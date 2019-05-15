@@ -40,7 +40,7 @@ class GetCatalogFiltersSeasonsViewAction
         }
 
         if ($seasons) {
-            $view = $app->views->get('@snowgirl-shop/catalog/filters/seasons.phtml', [
+            $view = $app->views->get('@shop/catalog/filters/seasons.phtml', [
                 'uriParams' => $uri->getParams(),
                 'seasons' => $seasons
             ]);

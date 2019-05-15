@@ -10,7 +10,7 @@ namespace SNOWGIRL_SHOP\Catalog;
 
 use SNOWGIRL_SHOP\Catalog\SRC\DataProvider;
 
-use SNOWGIRL_SHOP\App;
+use SNOWGIRL_CORE\App;
 use SNOWGIRL_CORE\Helper\Arrays;
 use SNOWGIRL_CORE\Entity;
 use SNOWGIRL_CORE\Manager;

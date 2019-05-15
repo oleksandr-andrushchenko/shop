@@ -41,7 +41,7 @@ class ItemFixesAction
 
         $view = $app->views->getLayout(true);
 
-        $content = $view->setContentByTemplate('@snowgirl-shop/admin/item-fixes.phtml', [
+        $content = $view->setContentByTemplate('@shop/admin/item-fixes.phtml', [
             'columns' => Arrays::removeKeys(Item::getColumns(), ['upc', 'price', 'old_price', 'rating', 'uri']),
             'editableColumns' => Import::getPostImportEditableColumns(),
             'categories' => $app->managers->categories->clear()->setOrders(['name' => SORT_ASC])->getObjects(true),

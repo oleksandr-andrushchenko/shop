@@ -40,7 +40,7 @@ class GetCatalogFiltersPricesViewAction
         }
 
         if ($prices) {
-            $view = $app->views->get('@snowgirl-shop/catalog/filters/prices.phtml', [
+            $view = $app->views->get('@shop/catalog/filters/prices.phtml', [
                 'uriParams' => $uri->getParams(),
                 'priceFrom' => $uri->get(URI::PRICE_FROM),
                 'priceTo' => $uri->get(URI::PRICE_TO),

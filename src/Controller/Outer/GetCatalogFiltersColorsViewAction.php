@@ -40,7 +40,7 @@ class GetCatalogFiltersColorsViewAction
         }
 
         if ($colors) {
-            $view = $app->views->get('@snowgirl-shop/catalog/filters/colors.phtml', [
+            $view = $app->views->get('@shop/catalog/filters/colors.phtml', [
                 'uriParams' => $uri->getParams(),
                 'colors' => $colors
             ]);

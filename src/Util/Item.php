@@ -19,7 +19,7 @@ use SNOWGIRL_CORE\Service\Nosql\Mongo;
 use SNOWGIRL_CORE\Service\Rdbms\Mysql;
 use SNOWGIRL_CORE\Service\Storage\Query;
 use SNOWGIRL_CORE\Util;
-use SNOWGIRL_SHOP\App;
+use SNOWGIRL_CORE\App;
 use SNOWGIRL_SHOP\Catalog\SRC;
 use SNOWGIRL_SHOP\Catalog\URI;
 use SNOWGIRL_SHOP\Entity\Category;

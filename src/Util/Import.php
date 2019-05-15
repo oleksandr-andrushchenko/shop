@@ -12,7 +12,7 @@ use SNOWGIRL_CORE\Helper\WalkChunk;
 use SNOWGIRL_CORE\Service\Storage\Query\Expr;
 use SNOWGIRL_CORE\Service\Storage\Query;
 use SNOWGIRL_CORE\Util;
-use SNOWGIRL_SHOP\App;
+use SNOWGIRL_CORE\App;
 use SNOWGIRL_SHOP\Entity\Item;
 use SNOWGIRL_SHOP\Entity\Import\Source as ImportSource;
 

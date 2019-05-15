@@ -31,13 +31,13 @@ trait AppTrait
     {
         parent::addMaps($root);
 
-        $this->dirs['@snowgirl-shop'] = dirname(__DIR__);
-        $this->namespaces['@snowgirl-shop'] = 'SNOWGIRL_SHOP';
+        $this->dirs['@shop'] = dirname(__DIR__);
+        $this->namespaces['@shop'] = 'SNOWGIRL_SHOP';
 
         $this->namespaces = Arrays::sortByKeysArray($this->namespaces, [
             '@app',
-            '@snowgirl-shop',
-            '@snowgirl-core'
+            '@shop',
+            '@core'
         ]);
 
         return $this;
@@ -46,7 +46,7 @@ trait AppTrait
     protected function addRoutes(Router $router)
     {
         $router->addRoute('item', new Route((URI::addUriPrefix() ? (URI::CATALOG . '/') : '') . ':uri', [
-            'controller' => 'openDoor',
+            'controller' => 'outer',
             'action' => 'item'
         ], [
             'uri' => '.*-[0-9]+'
@@ -59,7 +59,7 @@ trait AppTrait
     {
         $route = ':uri';
         $defaults = [
-            'controller' => 'openDoor',
+            'controller' => 'outer',
             'action' => URI::CATALOG
         ];
 

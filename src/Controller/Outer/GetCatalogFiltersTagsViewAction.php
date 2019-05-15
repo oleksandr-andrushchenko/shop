@@ -40,7 +40,7 @@ class GetCatalogFiltersTagsViewAction
         }
 
         if ($tags) {
-            $view = $app->views->get('@snowgirl-shop/catalog/filters/tags.phtml', [
+            $view = $app->views->get('@shop/catalog/filters/tags.phtml', [
                 'uriParams' => $uri->getParams(),
                 'tags' => $tags
             ]);

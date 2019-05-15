@@ -40,7 +40,7 @@ class GetCatalogFiltersTypesViewAction
         }
 
         if ($types) {
-            $view = $app->views->get('@snowgirl-shop/catalog/filters/types.phtml', [
+            $view = $app->views->get('@shop/catalog/filters/types.phtml', [
                 'uriParams' => $uri->getParams(),
                 'typesNames' => SEO::getTypesToTexts(true),
                 'types' => $types

@@ -8,7 +8,7 @@
 
 namespace SNOWGIRL_SHOP\Item;
 
-use SNOWGIRL_SHOP\App;
+use SNOWGIRL_CORE\App;
 use SNOWGIRL_CORE\Helper;
 use SNOWGIRL_CORE\View\Layout;
 use SNOWGIRL_CORE\Entity\Page\Regular as PageRegular;

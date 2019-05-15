@@ -14,7 +14,7 @@ use SNOWGIRL_CORE\Request;
 use SNOWGIRL_CORE\Service\Logger;
 use SNOWGIRL_CORE\Service\Rdbms as DB;
 use SNOWGIRL_CORE\Service\Storage\Query;
-use SNOWGIRL_SHOP\App;
+use SNOWGIRL_CORE\App;
 use SNOWGIRL_SHOP\Catalog\URI;
 use SNOWGIRL_SHOP\Manager\Builder as Managers;
 use SNOWGIRL_SHOP\Entity\Page\Catalog as PageCatalog;

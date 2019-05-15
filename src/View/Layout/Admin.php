@@ -20,14 +20,14 @@ class Admin extends \SNOWGIRL_CORE\View\Layout\Admin
     protected function addCssNodes()
     {
         return parent::addCssNodes()
-            ->addHeadCss(new Css('@snowgirl-shop/core.css'));
+            ->addHeadCss(new Css('@shop/core.css'));
     }
 
     protected function addJsNodes()
     {
         return parent::addJsNodes()
-            ->addJs(new Js('@snowgirl-shop/core.js'))
-            ->addJs(new Js('@snowgirl-shop/admin/core.js'));
+            ->addJs(new Js('@shop/core.js'))
+            ->addJs(new Js('@shop/admin/core.js'));
     }
 
     protected function addMenuNodes()

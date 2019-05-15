@@ -34,7 +34,7 @@ class OffersAction
 
         $view = $app->views->getLayout(true);
 
-        $content = $view->setContentByTemplate('@snowgirl-shop/admin/offers.phtml', [
+        $content = $view->setContentByTemplate('@shop/admin/offers.phtml', [
             'vendors' => $app->managers->vendors->clear()->getObjects(),
             'vendorClasses' => $app->managers->vendors->getAdapterClasses(true),
             'importClasses' => $app->managers->sources->getImportClasses(true),

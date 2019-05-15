@@ -40,7 +40,7 @@ class GetCatalogFiltersMaterialsViewAction
         }
 
         if ($materials) {
-            $view = $app->views->get('@snowgirl-shop/catalog/filters/materials.phtml', [
+            $view = $app->views->get('@shop/catalog/filters/materials.phtml', [
                 'uriParams' => $uri->getParams(),
                 'materials' => $materials
             ]);

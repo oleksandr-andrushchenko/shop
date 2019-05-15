@@ -176,11 +176,11 @@ snowgirlApp.prototype.tinymceOptions = function ($form) {
         selector: '#' + $form.find('[name=body]').attr('id'),
 //            block_formats: 'Подзаголовок=h3',
         language: 'ru',
-        language_url: '/js/snowgirl-core/tinymce.ru.js',
+        language_url: '/js/core/tinymce.ru.js',
         content_css: [
-            '/css/snowgirl-core/bootstrap.css',
-            '/css/snowgirl-shop/catalog.css',
-            '/css/snowgirl-core/tinymce.css'
+            '/css/core/bootstrap.css',
+            '/css/shop/catalog.css',
+            '/css/core/tinymce.css'
         ],
         //entity_encoding: 'raw',
         invalid_elements: 'script',
@@ -253,7 +253,7 @@ snowgirlApp.prototype.validatorOptions = function ($form) {
 snowgirlApp.prototype.prepareContentForm = function ($form) {
     this.core.getScriptLoader().get([
         '//cdn.tinymce.com/4/tinymce.min.js',
-        '/js/snowgirl-core/bootstrap-validator.min.js'
+        '/js/core/bootstrap-validator.min.js'
     ], $.proxy(function () {
         $form.find('textarea').attr('id', (new Date).getTime());
 

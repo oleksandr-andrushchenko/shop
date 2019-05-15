@@ -10,9 +10,9 @@ $this->getLayout()
     ->setTitle($title = 'Дерево категорий')
     ->addBreadcrumb($title)
     ->setH1($title)
-    ->addHeadCss(new Css('@snowgirl-shop/admin/categories.css'))
-    ->addJs(new Js('@snowgirl-core/jquery.nestable.js'))
-    ->addJs(new Js('@snowgirl-shop/admin/categories.js'));
+    ->addHeadCss(new Css('@shop/admin/categories.css'))
+    ->addJs(new Js('@core/jquery.nestable.js'))
+    ->addJs(new Js('@shop/admin/categories.js'));
 ?>
 <a class="btn btn-primary btn-toggle-collapse-all"><span class="glyphicon glyphicon-chevron-up"></span> Свернуть</a>
 <a class="btn btn-success btn-build-tree"

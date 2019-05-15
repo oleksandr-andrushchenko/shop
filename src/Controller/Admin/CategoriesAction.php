@@ -31,7 +31,7 @@ class CategoriesAction
         }
 
         $view = $app->views->getLayout(true);
-        $view->setContentByTemplate('@snowgirl-shop/admin/categories.phtml', [
+        $view->setContentByTemplate('@shop/admin/categories.phtml', [
             'tree' => $app->managers->categories->makeTreeHtml()
         ]);
 

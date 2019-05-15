@@ -694,3 +694,6 @@ CREATE TABLE `vendor` (
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
 -- Dump completed on 2019-05-14 21:40:05
+
+
+insert into page_regular(`key`,meta_title,meta_description,meta_keywords,menu_title,h1,description,is_menu,rating,created_at) values('catalog','Каталог мета заголовок','Каталог мета описание','{site},каталог','каталог','Каталог','Описание каталога',1,99,NOW());

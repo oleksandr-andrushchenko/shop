@@ -7,7 +7,7 @@
  */
 namespace SNOWGIRL_SHOP\Manager\Category;
 
-use SNOWGIRL_SHOP\App;
+use SNOWGIRL_CORE\App;
 use SNOWGIRL_CORE\Manager;
 use SNOWGIRL_SHOP\Entity\Category as CategoryEntity;
 use SNOWGIRL_SHOP\Manager\Category as CategoryManager;

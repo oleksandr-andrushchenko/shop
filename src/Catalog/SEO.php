@@ -9,7 +9,7 @@
 namespace SNOWGIRL_SHOP\Catalog;
 
 use SNOWGIRL_CORE\Service\Logger;
-use SNOWGIRL_SHOP\App;
+use SNOWGIRL_CORE\App;
 
 use SNOWGIRL_CORE\View\Layout;
 use SNOWGIRL_CORE\View\Widget\Pager;
@@ -734,7 +734,7 @@ class SEO
             });
 
             if (0 < count($articles)) {
-                $view->about = (string)$this->app->views->get('@snowgirl-shop/catalog/about.phtml', [
+                $view->about = (string)$this->app->views->get('@shop/catalog/about.phtml', [
                     'articles' => $articles,
                     'site' => $this->app->getSite(),
                     'uri' => isset($canUri) ? $canUri : $this->uri->output(URI::OUTPUT_DEFINED, true),

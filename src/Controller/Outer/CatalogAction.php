@@ -8,7 +8,7 @@
 
 namespace SNOWGIRL_SHOP\Controller\Outer;
 
-use SNOWGIRL_CORE\Controller\Admin\PrepareServicesTrait;
+use SNOWGIRL_CORE\Controller\Outer\PrepareServicesTrait;
 use SNOWGIRL_CORE\Helper\Arrays;
 use SNOWGIRL_SHOP\App\Web as App;
 use SNOWGIRL_SHOP\Catalog\SEO;
@@ -80,7 +80,7 @@ class CatalogAction
 
         $items = $uri->getSRC()->getItems($total);
 
-        $content = $view->setContentByTemplate('@snowgirl-shop/catalog.phtml', [
+        $content = $view->setContentByTemplate('@shop/catalog.phtml', [
             'uri' => $uri->output(),
             'uriParams' => $uriParams = $uri->getParamsArray(),
             'h1' => $view->getH1(),

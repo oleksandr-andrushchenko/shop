@@ -45,7 +45,7 @@ class Brands extends Widget
 
     protected function addScripts()
     {
-        return $this->addCssScript('@snowgirl-shop/widget/grid.brands.css');
+        return $this->addCssScript('@shop/widget/grid.brands.css');
     }
 
     protected function getLink($brand)

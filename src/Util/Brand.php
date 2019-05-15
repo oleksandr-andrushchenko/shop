@@ -10,7 +10,7 @@ namespace SNOWGIRL_SHOP\Util;
 use SNOWGIRL_CORE\Exception;
 use SNOWGIRL_CORE\Helper\WalkChunk;
 use SNOWGIRL_CORE\Util;
-use SNOWGIRL_SHOP\App;
+use SNOWGIRL_CORE\App;
 use SNOWGIRL_SHOP\Catalog\URI;
 use SNOWGIRL_SHOP\Entity\Brand as BrandEntity;
 use SNOWGIRL_SHOP\Manager\Page\Catalog as PageCatalogManager;

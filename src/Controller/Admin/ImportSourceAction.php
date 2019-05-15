@@ -47,7 +47,7 @@ class ImportSourceAction
         }
 
         $view = $app->views->getLayout(true);
-        $content = $view->setContentByTemplate('@snowgirl-shop/admin/import-source.phtml');
+        $content = $view->setContentByTemplate('@shop/admin/import-source.phtml');
 
         $import = $app->managers->sources->getImport($source);
 

@@ -74,7 +74,7 @@ class ItemAction
 
         $app->managers->items->clear();
 
-        $content = $view->setContentByTemplate('@snowgirl-shop/item.phtml', [
+        $content = $view->setContentByTemplate('@shop/item.phtml', [
             'item' => $item,
             'images' => $app->managers->items->getImages($item),
             'h1' => $uri->getSEO()->getParam('h1'),

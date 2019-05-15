@@ -13,8 +13,8 @@ use SNOWGIRL_CORE\Image;
 $this->getLayout()
 //    ->addBreadcrumb(T('catalog.catalog'), $this->makeLink('catalog'))
     ->addBreadcrumb($this->h1)
-    ->addHeadCss(new Css('@snowgirl-shop/order.css'))
-    ->addJs(new Js('@snowgirl-shop/order.js'));
+    ->addHeadCss(new Css('@shop/order.css'))
+    ->addJs(new Js('@shop/order.js'));
 ?>
 
 <h1 class="title"><?php echo htmlspecialchars($this->h1) ?></h1>

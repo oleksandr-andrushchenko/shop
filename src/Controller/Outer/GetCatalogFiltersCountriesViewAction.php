@@ -40,7 +40,7 @@ class GetCatalogFiltersCountriesViewAction
         }
 
         if ($countries) {
-            $view = $app->views->get('@snowgirl-shop/catalog/filters/countries.phtml', [
+            $view = $app->views->get('@shop/catalog/filters/countries.phtml', [
                 'uriParams' => $uri->getParams(),
                 'countries' => $countries
             ]);

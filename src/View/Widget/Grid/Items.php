@@ -43,7 +43,7 @@ class Items extends Widget
     protected function addScripts()
     {
         return parent::addScripts()
-            ->addCssScript('@snowgirl-shop/widget/grid.items.css');
+            ->addCssScript('@shop/widget/grid.items.css');
     }
 
     public static function getBannerCellsCount()

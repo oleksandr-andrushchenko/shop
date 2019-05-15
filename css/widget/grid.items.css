@@ -47,7 +47,7 @@
 .widget-grid-items .item .image {
     display: block;
     margin: 0 auto;
-    background: #fff url('../../snowgirl-core/img/pending.gif') center center no-repeat;
+    background: #fff url('../../core/img/pending.gif') center center no-repeat;
     position: relative;
     font-size: 0;
     text-align: center;

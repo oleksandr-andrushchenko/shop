@@ -40,7 +40,7 @@ class GetCatalogFiltersSizesViewAction
         }
 
         if ($sizes) {
-            $view = $app->views->get('@snowgirl-shop/catalog/filters/sizes.phtml', [
+            $view = $app->views->get('@shop/catalog/filters/sizes.phtml', [
                 'uriParams' => $uri->getParams(),
                 'sizes' => $sizes
             ]);

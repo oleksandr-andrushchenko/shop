@@ -13,7 +13,7 @@ use SNOWGIRL_CORE\Entity\Contact;
 use SNOWGIRL_CORE\Entity\Subscribe;
 use SNOWGIRL_CORE\Entity\User;
 use SNOWGIRL_CORE\Util;
-use SNOWGIRL_SHOP\App;
+use SNOWGIRL_CORE\App;
 use SNOWGIRL_SHOP\Entity\Stock;
 use SNOWGIRL_CORE\Entity\Page\Regular as PageRegular;
 

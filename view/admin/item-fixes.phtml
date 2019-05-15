@@ -19,11 +19,11 @@ $this->getLayout()
     ->setTitle($title = 'Фиксы предложений')
     ->addBreadcrumb($title)
     ->setH1('Фиксы')
-    ->addHeadCss(new Css('@snowgirl-core/admin/database.css'))
-    ->addHeadCss(new Css('@snowgirl-shop/admin/item-fixes.css'))
-    ->addHeadCss(new Css('@snowgirl-core/jquery.easyzoom.css'))
-    ->addJs(new Js('@snowgirl-core/jquery.easyzoom.js'))
-    ->addJs(new Js('@snowgirl-shop/admin/item-fixes.js'));
+    ->addHeadCss(new Css('@core/admin/database.css'))
+    ->addHeadCss(new Css('@shop/admin/item-fixes.css'))
+    ->addHeadCss(new Css('@core/jquery.easyzoom.css'))
+    ->addJs(new Js('@core/jquery.easyzoom.js'))
+    ->addJs(new Js('@shop/admin/item-fixes.js'));
 ?>
 <ul class="list-inline">
     <li>Предложения</li>

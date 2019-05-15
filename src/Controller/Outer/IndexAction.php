@@ -55,7 +55,7 @@ class IndexAction
 
         $content = $view->getContent();
 
-        $view->about = (string)$app->views->get('@snowgirl-shop/index/about.phtml', [
+        $view->about = (string)$app->views->get('@shop/index/about.phtml', [
             'h1' => $content->title,
             'content' => $content->description,
             'site' => $site,

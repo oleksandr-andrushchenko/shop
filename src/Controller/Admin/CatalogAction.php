@@ -34,7 +34,7 @@ class CatalogAction
 
         $view = $app->views->getLayout(true);
 
-        $content = $view->setContentByTemplate('@snowgirl-shop/admin/catalog.phtml', [
+        $content = $view->setContentByTemplate('@shop/admin/catalog.phtml', [
             'search' => $app->request->get('search'),
             'maxArticleLength' => $app->config->catalog->seo_text_body_length(2500),
             'client' => $app->request->getClient()->getUser(),

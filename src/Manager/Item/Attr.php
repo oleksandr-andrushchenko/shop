@@ -11,7 +11,7 @@ namespace SNOWGIRL_SHOP\Manager\Item;
 use SNOWGIRL_CORE\Entity;
 use SNOWGIRL_CORE\Manager;
 use SNOWGIRL_CORE\Exception;
-use SNOWGIRL_SHOP\App;
+use SNOWGIRL_CORE\App;
 use SNOWGIRL_SHOP\Catalog\URI;
 use SNOWGIRL_SHOP\Entity\Item\Attr as ItemAttrEntity;
 use SNOWGIRL_SHOP\Manager\Item\Attr\DataProvider;

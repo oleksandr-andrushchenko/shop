@@ -133,7 +133,7 @@ class Vendor extends Attr implements GoLinkBuilderInterface
 
     public function getAdapterClasses($withAliases = false, $whole = false)
     {
-        return Classes::getInDir($this->app, 'Vendor', ['@snowgirl-shop'], $withAliases, $whole);
+        return Classes::getInDir($this->app, 'Vendor', ['@shop'], $withAliases, $whole);
     }
 
     public function getGoLink(Entity $entity, $source = null)

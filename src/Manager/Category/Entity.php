@@ -9,7 +9,7 @@
 namespace SNOWGIRL_SHOP\Manager\Category;
 
 use SNOWGIRL_CORE\Service\Storage\Query;
-use SNOWGIRL_SHOP\App;
+use SNOWGIRL_CORE\App;
 use SNOWGIRL_CORE\Helper\Arrays;
 use SNOWGIRL_CORE\Manager;
 use SNOWGIRL_CORE\Service\Storage\Query\Expr;

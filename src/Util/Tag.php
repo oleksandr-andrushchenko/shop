@@ -9,7 +9,7 @@ namespace SNOWGIRL_SHOP\Util;
 
 use SNOWGIRL_CORE\Exception;
 use SNOWGIRL_CORE\Util;
-use SNOWGIRL_SHOP\App;
+use SNOWGIRL_CORE\App;
 use SNOWGIRL_SHOP\Manager\Tag as TagManager;
 use SNOWGIRL_SHOP\Entity\Tag as TagEntity;
 use SNOWGIRL_SHOP\Entity\Category;
