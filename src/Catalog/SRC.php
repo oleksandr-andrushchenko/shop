@@ -21,8 +21,6 @@ use SNOWGIRL_CORE\Entity\Page\Regular as PageRegular;
 use SNOWGIRL_SHOP\Entity\Page\Catalog as PageCatalog;
 use SNOWGIRL_SHOP\Entity\Page\Catalog\Custom as PageCatalogCustom;
 
-use SNOWGIRL_SHOP\Entity\Item\Attr\Alias as ItemAttrAlias;
-
 /**
  * @todo    !!! create separate Strategies (classes implemented from common interface) instead of raw mods
  *
@@ -461,7 +459,8 @@ class SRC
     /**
      * @param bool $retrieve
      *
-     * @return bool|null|PageCatalog
+     * @return bool|mixed|null|PageCatalog
+     * @throws \Exception
      */
     public function getCatalogPage($retrieve = false)
     {
@@ -494,7 +493,8 @@ class SRC
     /**
      * @param bool $retrieve
      *
-     * @return bool|null|PageCatalogCustom
+     * @return bool|PageCatalogCustom
+     * @throws \Exception
      */
     public function getCatalogCustomPage($retrieve = false)
     {
@@ -529,7 +529,7 @@ class SRC
     /**
      * @param $k
      *
-     * @return bool|ItemAttrAlias
+     * @return bool
      * @throws \Exception
      */
     public function getAliasObject($k)

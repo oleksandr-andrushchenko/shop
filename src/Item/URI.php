@@ -27,7 +27,7 @@ class URI
     //prev + all extra dynamic
     public const OUTPUT_FULL = 2;
 
-    /** @var \SNOWGIRL_SHOP\App */
+    /** @var App */
     protected static $app;
 
     protected $normalizedParams;

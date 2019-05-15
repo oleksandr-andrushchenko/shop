@@ -77,6 +77,11 @@ echo "" > ./var/log/web-outer.log
 echo "" > ./var/log/web-admin.log
 echo "" > ./var/log/console.log
 echo "" > ./var/log/hit.page.log
+echo "" > ./var/log/hit.buy.log
+echo "" > ./var/log/hit.catalog.log
+echo "" > ./var/log/hit.item.log
+echo "" > ./var/log/hit.stock.log
+echo "" > ./var/log/uri.log
 
 mkdir public
 cp ./vendor/snowgirl/core/dist/index.php ./public/index.php

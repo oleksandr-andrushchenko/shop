@@ -12,6 +12,7 @@ use SNOWGIRL_CORE\App;
 use SNOWGIRL_CORE\Helper\Arrays;
 use SNOWGIRL_CORE\Service\Storage\Query\Expr;
 use SNOWGIRL_CORE\Entity;
+use SNOWGIRL_SHOP\Catalog\SRC;
 use SNOWGIRL_SHOP\Catalog\URI;
 use SNOWGIRL_SHOP\Entity\Import\Source;
 use SNOWGIRL_SHOP\Item\URI as ItemURI;
@@ -381,13 +382,15 @@ class Item extends Manager implements GoLinkBuilderInterface
     {
         $output = [];
 
+        $typesToColumns = SRC::getTypesToColumns();
+
         foreach (URI::TYPE_PARAMS as $type) {
             if (URI::SALES == $type) {
                 if (0 < $item->getOldPrice()) {
                     $output[] = $type;
                 }
             } else {
-                if (1 == $item->get($type)) {
+                if (1 == $item->get($typesToColumns[$type])) {
                     $output[] = $type;
                 }
             }

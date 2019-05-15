@@ -103,6 +103,10 @@ class SEO
 
     protected $params;
 
+    /**
+     * @return array
+     * @throws \Exception
+     */
     public function getParams()
     {
         if (null === $this->params) {
@@ -136,6 +140,14 @@ class SEO
         return $this;
     }
 
+    /**
+     * @param       $attr
+     * @param null  $default
+     * @param array $params
+     *
+     * @return int|mixed|null|\SNOWGIRL_CORE\DateTime|string
+     * @throws \Exception
+     */
     protected function makeAttrValue($attr, $default = null, array $params = [])
     {
         if ($page = $this->uri->getSRC()->getCatalogPage()) {
@@ -181,6 +193,10 @@ class SEO
         return $this->app->config->catalog->default_category('Каталог');
     }
 
+    /**
+     * @return $this
+     * @throws \Exception
+     */
     protected function addCategoryParams()
     {
         $pk = Category::getPk();
@@ -646,6 +662,14 @@ class SEO
         return $this;
     }
 
+    /**
+     * @param       $key
+     * @param array $params
+     * @param bool  $nice
+     *
+     * @return int|mixed|null|\SNOWGIRL_CORE\DateTime|string|string[]
+     * @throws \Exception
+     */
     public function getParam($key, array $params = [], $nice = true)
     {
         $params = array_merge($this->getParams(), $params);
@@ -659,10 +683,13 @@ class SEO
     }
 
     /**
-     * @param Layout $view
-     * @param array $params
-     * @return $this
      * @see https://developers.facebook.com/docs/reference/opengraph/object-type/product.group/
+     *
+     * @param Layout $view
+     * @param array  $params
+     *
+     * @return $this
+     * @throws \Exception
      */
     public function managePage(Layout $view, array $params = [])
     {
@@ -747,9 +774,11 @@ class SEO
     }
 
     /**
-     * @param Pager $pager
+     * @param Pager  $pager
      * @param Layout $view
-     * @return SEO
+     *
+     * @return $this
+     * @throws \Exception
      */
     public function managePager(Pager $pager, Layout $view)
     {
@@ -775,6 +804,13 @@ class SEO
         return $this;
     }
 
+    /**
+     * @param        $h1ParamsSize
+     * @param Layout $view
+     *
+     * @throws \SNOWGIRL_CORE\Exception
+     * @throws \Exception
+     */
     public function manageBreadcrumbs($h1ParamsSize, Layout $view)
     {
         $categoryId = $this->uri->get(Category::getPk());

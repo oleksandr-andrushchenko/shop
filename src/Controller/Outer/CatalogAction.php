@@ -24,6 +24,7 @@ class CatalogAction
 {
     use PrepareServicesTrait;
     use GetCurrencyObjectTrait;
+    use GetFiltersCountsObjectTrait;
 
     /**
      * @param App $app
@@ -185,18 +186,20 @@ class CatalogAction
         ]);
 
         if ($content->hasItems) {
+            $brands = null;
+
             $content->addParams([
-                'filtersCounts' => $this->getFiltersCountsObject(),
-                'filtersTypesView' => $this->actionGetCatalogFiltersTypesView($uri, $content->asyncFilters),
-                'filtersTagsView' => $content->showTags ? $this->actionGetCatalogFiltersTagsView($uri, $content->asyncFilters) : null,
-                'filtersBrandsView' => $this->actionGetCatalogFiltersBrandsView($uri, $content->asyncFilters, $brands),
-                'filtersCountriesView' => $this->actionGetCatalogFiltersCountriesView($uri, $content->asyncFilters),
-                'filtersVendorsView' => $this->actionGetCatalogFiltersVendorsView($uri, $content->asyncFilters),
-                'filtersPricesView' => $this->actionGetCatalogFiltersPricesView($uri, $content->asyncFilters),
-                'filtersColorsView' => $this->actionGetCatalogFiltersColorsView($uri, $content->asyncFilters),
-                'filtersSeasonsView' => $this->actionGetCatalogFiltersSeasonsView($uri, $content->asyncFilters),
-                'filtersMaterialsView' => $this->actionGetCatalogFiltersMaterialsView($uri, $content->asyncFilters),
-                'filtersSizesView' => $this->actionGetCatalogFiltersSizesView($uri, $content->asyncFilters),
+                'filtersCounts' => $this->getFiltersCountsObject($app),
+                'filtersTypesView' => (new GetCatalogFiltersTypesView)($app, $uri, $content->asyncFilters),
+                'filtersTagsView' => $content->showTags ? (new GetCatalogFiltersTagsView)($app, $uri, $content->asyncFilters) : null,
+                'filtersBrandsView' => (new GetCatalogFiltersBrandsView)($app, $uri, $content->asyncFilters, $brands),
+                'filtersCountriesView' => (new GetCatalogFiltersCountriesView)($app, $uri, $content->asyncFilters),
+                'filtersVendorsView' => (new GetCatalogFiltersVendorsView)($app, $uri, $content->asyncFilters),
+                'filtersPricesView' => (new GetCatalogFiltersPricesView)($app, $uri, $content->asyncFilters),
+                'filtersColorsView' => (new GetCatalogFiltersColorsView)($app, $uri, $content->asyncFilters),
+                'filtersSeasonsView' => (new GetCatalogFiltersSeasonsView)($app, $uri, $content->asyncFilters),
+                'filtersMaterialsView' => (new GetCatalogFiltersMaterialsView)($app, $uri, $content->asyncFilters),
+                'filtersSizesView' => (new GetCatalogFiltersSizesView)($app, $uri, $content->asyncFilters),
             ]);
 
             if (!$mobile) {

@@ -50,7 +50,7 @@ class URI
     //prev + all extra dynamic
     const OUTPUT_FULL = 2;
 
-    /** @var \SNOWGIRL_SHOP\App */
+    /** @var App */
     protected static $app;
 
     protected $normalizedParams;
@@ -95,7 +95,7 @@ class URI
 
     public static function setApp(App $app)
     {
-        /** @var \SNOWGIRL_SHOP\App $app */
+        /** @var App $app */
         self::$app = $app;
 
         $components = $app->managers->catalog->getComponentsOrderByRdbmsKey();
@@ -262,9 +262,11 @@ class URI
 
     /**
      * @param array $params
-     * @param bool $aliases
-     * @param int $mode
+     * @param bool  $aliases
+     * @param int   $mode
+     *
      * @return array|mixed|string
+     * @throws \Exception
      */
     public function getPathByParams(array &$params, $aliases = false, $mode = self::OUTPUT_DEFINED)
     {
@@ -566,10 +568,12 @@ class URI
     protected $output;
 
     /**
-     * @param int $mode
+     * @param int  $mode
      * @param bool $aliases
      * @param bool $isNoFollow
+     *
      * @return mixed
+     * @throws \Exception
      */
     public function output($mode = self::OUTPUT_DEFINED, $aliases = false, &$isNoFollow = false)
     {
@@ -586,13 +590,17 @@ class URI
     }
 
     /**
-     * @return \SNOWGIRL_SHOP\App
+     * @return App
      */
     public function getApp()
     {
         return self::$app;
     }
 
+    /**
+     * @return mixed
+     * @throws \Exception
+     */
     public function __toString()
     {
         return $this->output();
