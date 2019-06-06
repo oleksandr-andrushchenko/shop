@@ -28,7 +28,7 @@ snowgirlApp.prototype.initArgs = function () {
         this.btnCartAddSelector = this.typeOwnSelector + ' .item-cart-buttons .btn-add-to-cart';
     }
 
-    this.core.addVisitedItem(this.core.getConfig('itemId'));
+//     this.core.addVisitedItem(this.core.getConfig('itemId'));
 };
 snowgirlApp.prototype.initCallbacks = function () {
 //     var img = $(this.easyZoomSelector).find('img')[0];
