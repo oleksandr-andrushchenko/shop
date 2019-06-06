@@ -136,7 +136,7 @@ class GoAction
 HTML;
 
         $app->response
-//            ->setHttpResponseCode(200)
+//            ->setCode(200)
 //            ->setRawHeader('200 OK')
             ->setBody($tmp)//            ->send(true)
         ;

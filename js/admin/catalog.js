@@ -96,7 +96,8 @@ snowgirlApp.prototype.onActiveSeoTextClick = function (ev) {
 snowgirlApp.prototype.onModifyAttrClick = function (ev) {
     var $btn = $(ev.target).closestUp('.btn');
     var $tr = $btn.parents('tr');
-    var pageCatalogCustomId = $tr.data('custom-id');
+    var pageCatalogCustomId = $tr.attr('data-custom-id');
+
     var name = $.trim($btn.data('name'));
     var value = $.trim($btn.data('value'));
 
@@ -142,7 +143,7 @@ snowgirlApp.prototype.onModifyAttrClick = function (ev) {
 
                 this.core.insertRow('page_catalog_custom', row)
                     .then(function (body) {
-                        $tr.data('custom-id', body['id']);
+                        $tr.attr('data-custom-id', body['id']);
                         pageCatalogCustomId = body['id'];
                         callback();
                     });
