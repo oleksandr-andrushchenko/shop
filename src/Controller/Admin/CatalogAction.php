@@ -48,9 +48,17 @@ class CatalogAction
             ->setLimit($size)
             ->calcTotal(true);
 
-        $objects = $manager->getObjectsByQuery($content->search ?: '');
+//        if ($content->search) {
+//            $objects = $manager->getObjectsByQuery($content->search);
+//        } else {
+//            $objects = $manager->getObjects();
+//        }
+//
+//        $total = $manager->getTotal();
 
-        $total = $manager->getTotal();
+        $objects = $manager->getObjectsByQuery($content->search ?: '');
+        $total = $manager->getCountByQuery($content->search ?: '');
+
         $manager->addLinkedObjects($objects, ['params_hash' => PageCatalogCustom::class]);
 
         $content->addParams([
