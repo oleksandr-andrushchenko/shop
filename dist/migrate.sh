@@ -25,6 +25,8 @@ echo '{
 }
 ' >> ./composer.json
 
+#@todo run composer install
+
 mv -v ./app/* ./
 rm -rf ./app
 mv ./core ./src
