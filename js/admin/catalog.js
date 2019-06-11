@@ -173,7 +173,7 @@ snowgirlApp.prototype.tinymceOptions = function ($form) {
         forced_root_block: false,
         force_br_newlines: true,
         force_p_newlines: false,
-        plugins: ['autoresize', 'contextmenu', 'lists', 'link', 'autolink', 'anchor', 'charmap', 'preview', 'searchreplace', 'table', 'code', 'fullscreen', 'wordcount', 'paste'].join(' '),
+        plugins: ['autoresize', 'contextmenu', 'lists', 'link', 'autolink', 'anchor', 'charmap', 'preview', 'searchreplace', 'table', 'code', 'fullscreen', 'wordcount'].join(' '),
         toolbar: ['undo', 'redo', 'heading', 'bold', 'bullist', 'numlist', 'link', 'unlink', 'table', 'searchreplace', 'removeformat', 'code', 'spellchecker', 'fullscreen', 'preview'].join(' '),
         menubar: false,
         toolbar_items_size: 'small',
@@ -186,20 +186,6 @@ snowgirlApp.prototype.tinymceOptions = function ($form) {
         images_upload_url: this.core.getUriByRoute('image'),
         images_upload_base_path: false,
         images_upload_credentials: true,
-        paste_as_text: true,
-        paste_enable_default_filters: false,
-        paste_webkit_styles: '',
-        paste_convert_word_fake_lists: false,
-        paste_remove_styles_if_webkit: true,
-        paste_retain_style_properties: "",
-        paste_preprocess: function (plugin, args) {
-            args.content = args.content.replace(/\s{2,}/g, ' ');
-            args.content = $.trim(args.content);
-
-//             var d = document.createElement("div");
-//             d.innerHTML = args.content;
-//             args.content = d.textContent || d.innerText || "";
-        },
         setup: function (editor) {
             editor.ui.registry.addButton('heading', {
                 text: "Заголовок",
