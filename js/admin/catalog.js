@@ -2,7 +2,6 @@ var snowgirlApp = function (snowgirlCore) {
     this.core = snowgirlCore;
 
     this.initArgs();
-//    this.initDOM();
     this.initCallbacks();
 };
 snowgirlApp.prototype.initArgs = function () {
@@ -155,35 +154,17 @@ snowgirlApp.prototype.onModifyAttrClick = function (ev) {
 };
 
 snowgirlApp.prototype.tinymceOptions = function ($form) {
-    tinymce.PluginManager.add('stylebuttons', function (editor) {
-        editor.addButton('heading', {
-            tooltip: "Заголовок",
-            text: "Заг",
-            onClick: function () {
-                editor.execCommand('mceToggleFormat', false, 'h3');
-            },
-            onPostRender: function () {
-                var self = this, setup = function () {
-                    editor.formatter.formatChanged('h3', function (state) {
-                        self.active(state);
-                    });
-                };
-                editor.formatter ? setup() : editor.on('init', setup);
-            }
-        });
-    });
-
     return {
         selector: '#' + $form.find('[name=body]').attr('id'),
-//            block_formats: 'Подзаголовок=h3',
         language: 'ru',
-        language_url: '/js/core/tinymce.ru.js',
+        language_url: '/js/core/tinymce/langs/ru.js',
         content_css: [
-            '/css/core/bootstrap.css',
+            '//maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css',
+            'https://fonts.googleapis.com/css?family=Montserrat',
+            '/css/core/core.fonts.css?counter=43',
             '/css/shop/catalog.css',
             '/css/core/tinymce.css'
         ],
-        //entity_encoding: 'raw',
         invalid_elements: 'script',
         relative_urls: false,
         remove_script_host: false,
@@ -192,11 +173,7 @@ snowgirlApp.prototype.tinymceOptions = function ($form) {
         forced_root_block: false,
         force_br_newlines: true,
         force_p_newlines: false,
-        //https://www.tinymce.com/docs/configure/file-image-upload/
-        //images_upload_url: 'postAcceptor.php',
-//            plugins: ['autoresize', 'contextmenu', 'lists', 'link', 'autolink', 'anchor', 'charmap', 'media', 'image', 'preview', 'searchreplace', 'table', 'code', 'fullscreen', 'wordcount', 'spellchecker'].join(' '),
-        plugins: ['autoresize', 'contextmenu', 'lists', 'link', 'autolink', 'anchor', 'charmap', 'preview', 'searchreplace', 'table', 'code', 'fullscreen', 'wordcount', 'stylebuttons'].join(' '),
-//            toolbar: ['undo', 'redo', 'bold', 'italic', 'underline', 'strikethrough', 'charmap', 'bullist', 'numlist', 'link', 'unlink', 'anchor', 'media', 'image', 'table', 'searchreplace', 'removeformat', 'code', 'fullscreen', 'preview'].join(' '),
+        plugins: ['autoresize', 'contextmenu', 'lists', 'link', 'autolink', 'anchor', 'charmap', 'preview', 'searchreplace', 'table', 'code', 'fullscreen', 'wordcount', 'paste'].join(' '),
         toolbar: ['undo', 'redo', 'heading', 'bold', 'bullist', 'numlist', 'link', 'unlink', 'table', 'searchreplace', 'removeformat', 'code', 'spellchecker', 'fullscreen', 'preview'].join(' '),
         menubar: false,
         toolbar_items_size: 'small',
@@ -209,7 +186,27 @@ snowgirlApp.prototype.tinymceOptions = function ($form) {
         images_upload_url: this.core.getUriByRoute('image'),
         images_upload_base_path: false,
         images_upload_credentials: true,
+        paste_as_text: true,
+        paste_enable_default_filters: false,
+        paste_webkit_styles: '',
+        paste_convert_word_fake_lists: false,
+        paste_remove_styles_if_webkit: true,
+        paste_retain_style_properties: "",
+        paste_preprocess: function (plugin, args) {
+            args.content = args.content.replace(/\s{2,}/g, ' ');
+            args.content = $.trim(args.content);
+
+//             var d = document.createElement("div");
+//             d.innerHTML = args.content;
+//             args.content = d.textContent || d.innerText || "";
+        },
         setup: function (editor) {
+            editor.ui.registry.addButton('heading', {
+                text: "Заголовок",
+                onAction: function () {
+                    editor.execCommand('mceToggleFormat', false, 'h3');
+                }
+            });
             editor.on('init keyup', function () {
                 $form.find('#body-length').val(editor.getContent({format: 'text'}).replace(/\s/g, "").length);
             });
@@ -253,22 +250,13 @@ snowgirlApp.prototype.validatorOptions = function ($form) {
 };
 snowgirlApp.prototype.prepareContentForm = function ($form) {
     this.core.getScriptLoader().get([
-        '//cdn.tinymce.com/4/tinymce.min.js',
+        '/js/core/tinymce/tinymce.min.js',
         '/js/core/bootstrap-validator.min.js'
     ], $.proxy(function () {
         $form.find('textarea').attr('id', (new Date).getTime());
 
         tinymce.init(this.tinymceOptions($form));
         $form.bootstrapValidator(this.validatorOptions($form));
-
-        //$form.on('success.form.bv', $.proxy(function (ev) {
-        //    ev.preventDefault();
-        //    ev.stopPropagation();
-        //    this.core.makeReq(this.core.getUriByRoute('admin', {action: 'page-content'}), 'post', this.getFormData($form), function () {
-        //        location.reload();
-        //    }, 'Выполняю');
-        //    return false;
-        //},this))
     }, this));
 };
 snowgirlApp.prototype.decodeHtml = function (text) {
