@@ -161,8 +161,8 @@ snowgirlApp.prototype.tinymceOptions = function ($form) {
         content_css: [
             '//maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css',
             'https://fonts.googleapis.com/css?family=Montserrat',
-            '/css/core/core.fonts.css?counter=43',
-            '/css/shop/catalog.css',
+//             '/css/core/core.fonts.css',
+//             '/css/shop/catalog.css',
             '/css/core/tinymce.css'
         ],
         invalid_elements: 'script',
@@ -173,8 +173,8 @@ snowgirlApp.prototype.tinymceOptions = function ($form) {
         forced_root_block: false,
         force_br_newlines: true,
         force_p_newlines: false,
-        plugins: ['autoresize', 'contextmenu', 'lists', 'link', 'autolink', 'anchor', 'charmap', 'preview', 'searchreplace', 'table', 'code', 'fullscreen', 'wordcount'].join(' '),
-        toolbar: ['undo', 'redo', 'heading', 'bold', 'bullist', 'numlist', 'link', 'unlink', 'table', 'searchreplace', 'removeformat', 'code', 'spellchecker', 'fullscreen', 'preview'].join(' '),
+        plugins: ['autoresize', 'lists', 'link', 'autolink', 'anchor', 'charmap', 'preview', 'searchreplace', 'code', 'fullscreen', 'wordcount'].join(' '),
+        toolbar: ['undo', 'redo', 'customHeading', 'customParagraph', 'bullist', 'link', 'searchreplace', 'removeformat', 'code', 'spellchecker', 'fullscreen', 'preview'].join(' '),
         menubar: false,
         toolbar_items_size: 'small',
         autoresize_bottom_margin: 15,
@@ -187,10 +187,26 @@ snowgirlApp.prototype.tinymceOptions = function ($form) {
         images_upload_base_path: false,
         images_upload_credentials: true,
         setup: function (editor) {
-            editor.ui.registry.addButton('heading', {
-                text: "Заголовок",
-                onAction: function () {
+            editor.ui.registry.addToggleButton('customHeading', {
+                text: 'Заголовок',
+                onAction: function (_) {
                     editor.execCommand('mceToggleFormat', false, 'h3');
+                },
+                onSetup: function (api) {
+                    editor.formatter.formatChanged('h3', function (state) {
+                        api.setActive(state);
+                    });
+                }
+            });
+            editor.ui.registry.addToggleButton('customParagraph', {
+                text: 'Параграф',
+                onAction: function (_) {
+                    editor.execCommand('mceToggleFormat', false, 'p');
+                },
+                onSetup: function (api) {
+                    editor.formatter.formatChanged('p', function (state) {
+                        api.setActive(state);
+                    });
                 }
             });
             editor.on('init keyup', function () {
