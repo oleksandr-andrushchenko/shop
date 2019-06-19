@@ -41,8 +41,8 @@ class ItemAction
 
         $app->services->mcms->prefetch([
             $app->managers->categories->getAllIDsCacheKey(),
-            $app->managers->pagesRegular->getItemCacheKey($key),
-            $app->managers->pagesRegular->getMenuCacheKey(),
+            $app->managers->pages->getItemCacheKey($key),
+            $app->managers->pages->getMenuCacheKey(),
 //            $app->managers->vendors->getCacheKeyById($item->getVendorId())
         ]);
 

@@ -85,7 +85,7 @@ $this->getLayout()
 
         <?php if (isset($this->menu[$i])) { ?>
             <div class="container">
-                <a href="<?php echo $this->app->managers->pagesRegular->getLink($this->menu[$i]) ?>"
+                <a href="<?php echo $this->app->managers->pages->getLink($this->menu[$i]) ?>"
                    class="link h1">
                     Полулярное #<?php echo $ii ?>
                     <h2 class="link-external"><?php echo $this->menu[$i]->get('menu_title') ?></h2>

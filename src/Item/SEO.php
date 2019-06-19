@@ -84,7 +84,7 @@ class SEO
 
     protected function getRegularPage()
     {
-        return $this->regularPage ?: $this->regularPage = $this->app->managers->pagesRegular->findByKey('item');
+        return $this->regularPage ?: $this->regularPage = $this->app->managers->pages->findByKey('item');
     }
 
     protected function makeAttrValue($attr, $default = null, array $params = [])

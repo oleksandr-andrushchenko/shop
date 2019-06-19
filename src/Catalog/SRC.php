@@ -437,7 +437,7 @@ class SRC
     public function getRegularPage()
     {
         if (null === $this->regularPage) {
-            $this->regularPage = $this->uri->getApp()->managers->pagesRegular->findByKey('catalog');
+            $this->regularPage = $this->uri->getApp()->managers->pages->findByKey('catalog');
         }
 
         return $this->regularPage;

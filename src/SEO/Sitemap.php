@@ -64,7 +64,7 @@ class Sitemap extends \SNOWGIRL_CORE\SEO\Sitemap
                 'stock' => '1.0'
             ];
 
-            $pages = $this->seo->getApp()->managers->pagesRegular;
+            $pages = $this->seo->getApp()->managers->pages;
 
             foreach ($pages->getMenu() as $key => $page) {
                 $sitemap->add($pages->getLink($page, [], false), $priorityMap[$key] ?? '1.0', 'weekly');

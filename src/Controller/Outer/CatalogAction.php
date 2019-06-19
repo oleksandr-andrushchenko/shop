@@ -44,7 +44,7 @@ class CatalogAction
 
         $app->services->mcms->prefetch([
             $app->managers->categories->getAllIDsCacheKey(),
-            $app->managers->pagesRegular->getMenuCacheKey(),
+            $app->managers->pages->getMenuCacheKey(),
         ]);
 
         //cache all categories...
