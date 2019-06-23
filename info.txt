@@ -1,0 +1,2 @@
+@todo add attr & category_attr table
+@todo rename attr tables to attr_@name and attr values tables to item_attr_@name
