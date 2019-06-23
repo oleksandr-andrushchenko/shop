@@ -23,6 +23,8 @@ use SNOWGIRL_CORE\Helper\Arrays;
  */
 class Elastic extends DataProvider
 {
+    use \SNOWGIRL_CORE\Manager\DataProvider\Traits\Elastic;
+
     /**
      * @@todo implement prefix support
      *

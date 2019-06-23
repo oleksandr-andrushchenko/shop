@@ -22,6 +22,8 @@ use SNOWGIRL_SHOP\Manager\Page\Catalog as PageCatalogManager;
  */
 class Mysql extends DataProvider
 {
+    use \SNOWGIRL_CORE\Manager\DataProvider\Traits\Mysql;
+
     public function getFiltersCountsByUri(URI $uri, $query = null, $prefix = false)
     {
         $simple = $this->manager->getApp()->config->catalog->use_simple_queries(false);
