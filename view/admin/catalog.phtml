@@ -38,6 +38,14 @@ $this->getLayout()
                    placeholder="Страница"
                    value="<?php echo $this->search ?>">
         </div>
+        <div class="form-group">
+            <div class="checkbox">
+                <label>
+                    <input type="checkbox" name="search_in_rdbms" value="1"<?php echo $this->searchInRdbms ? ' checked' : '' ?>>
+                    рдбмс
+                </label>
+            </div>
+        </div>
         <button type="submit" class="btn btn-sm btn-primary"><span class="glyphicon glyphicon-search"></span> Искать
         </button>
     </form>

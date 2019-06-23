@@ -38,6 +38,7 @@ class CatalogAction
             'search' => $app->request->get('search'),
             'maxArticleLength' => $app->config->catalog->seo_text_body_length(2500),
             'client' => $app->request->getClient()->getUser(),
+            'searchInRdbms' => 1 == $app->request->get('search_in_rdbms')
         ]);
 
         $page = (int)$app->request->get('page', 1);
@@ -56,8 +57,14 @@ class CatalogAction
 //
 //        $total = $manager->getTotal();
 
-        $objects = $manager->getObjectsByQuery($content->search ?: '');
-        $total = $manager->getCountByQuery($content->search ?: '');
+        $params = [
+            $content->search ?: '',
+            false,
+            $content->searchInRdbms ? 'mysql' : null
+        ];
+
+        $objects = $manager->getObjectsByQuery(...$params);
+        $total = $manager->getCountByQuery(...$params);
 
         $manager->addLinkedObjects($objects, ['params_hash' => PageCatalogCustom::class]);
 
