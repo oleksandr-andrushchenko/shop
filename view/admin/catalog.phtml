@@ -33,12 +33,20 @@ $this->getLayout()
 <div class="control">
     <form method="get" class="form-inline">
         <div class="form-group">
-            <label for="search" class="control-label">Поиск</label>
-            <input id="search" class="form-control input-sm" type="text" name="search"
+            <label for="search_term" class="control-label">Поиск</label>
+            <input id="search_term" class="form-control input-sm" type="text" name="search_term"
                    placeholder="Страница"
-                   value="<?php echo $this->search ?>">
+                   value="<?php echo $this->searchTerm ?>">
         </div>
         <div class="form-group">
+            <div class="checkbox">
+                <label>
+                    <input type="checkbox" name="search_prefix" value="1"<?php echo $this->searchPrefix ? ' checked' : '' ?>>
+                    префикс
+                </label>
+            </div>
+        </div>
+        <div class="form-group hidden">
             <div class="checkbox">
                 <label>
                     <input type="checkbox" name="search_in_rdbms" value="1"<?php echo $this->searchInRdbms ? ' checked' : '' ?>>
