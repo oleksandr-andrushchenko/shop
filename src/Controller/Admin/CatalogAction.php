@@ -35,10 +35,11 @@ class CatalogAction
         $view = $app->views->getLayout(true);
 
         $content = $view->setContentByTemplate('@shop/admin/catalog.phtml', [
-            'search' => $app->request->get('search'),
+            'searchTerm' => $app->request->get('search_term'),
             'maxArticleLength' => $app->config->catalog->seo_text_body_length(2500),
             'client' => $app->request->getClient()->getUser(),
-            'searchInRdbms' => 1 == $app->request->get('search_in_rdbms')
+            'searchPrefix' => 1 == $app->request->get('search_prefix'),
+            'searchInRdbms' => 1 == $app->request->get('search_in_rdbms'),
         ]);
 
         $page = (int)$app->request->get('page', 1);
@@ -49,8 +50,8 @@ class CatalogAction
             ->setLimit($size)
             ->calcTotal(true);
 
-//        if ($content->search) {
-//            $objects = $manager->getObjectsByQuery($content->search);
+//        if ($content->searchTerm) {
+//            $objects = $manager->getObjectsByQuery($content->searchTerm);
 //        } else {
 //            $objects = $manager->getObjects();
 //        }
@@ -58,8 +59,8 @@ class CatalogAction
 //        $total = $manager->getTotal();
 
         $params = [
-            $content->search ?: '',
-            false,
+            $content->searchTerm ?: '',
+            $content->searchPrefix ? true : false,
             $content->searchInRdbms ? 'mysql' : null
         ];
 
@@ -76,7 +77,7 @@ class CatalogAction
                 'link' => $app->router->makeLink('admin', [
                     'action' => 'catalog',
                     'priority' => isset($priorities) ? $priorities : null,
-                    'search' => $content->search,
+                    'search' => $content->searchTerm,
                     'page' => '{page}'
                 ]),
                 'total' => $total,
