@@ -28,6 +28,7 @@ snowgirlApp.prototype.onAddSeoTextButtonClick = function (ev) {
     } else {
         $form = this.$page.find('.seo-text-form.template').clone()
             .removeClass('template')
+            .attr('action', this.core.getUriByRoute('admin', {action: 'page-catalog-custom-add-seo-text'}))
             .find('[name=id]').val($control.parents('tr').data('id')).end()
             .show();
         $form.find('[name=num]').remove();
@@ -46,6 +47,7 @@ snowgirlApp.prototype.onEditSeoTextButtonClick = function (ev) {
     } else {
         $form = this.$page.find('.seo-text-form.template').clone()
             .removeClass('template')
+            .attr('action', this.core.getUriByRoute('admin', {action: 'page-catalog-custom-update-seo-text'}))
             .find('[name=id]').val($item.parents('tr').data('id')).end()
             .find('[name=num]').val($item.data('num')).end()
             .find('[name=h1]').val($item.find('.h1').text()).end()
@@ -62,7 +64,7 @@ snowgirlApp.prototype.onDeleteSeoTextButtonClick = function (ev) {
         var $item = $btn.closestUp('.seo-text');
 
         this.core.makeRequestByRoute('admin', {
-            action: 'page-catalog-custom-seo-text',
+            action: 'page-catalog-custom-delete-seo-text',
             id: $item.parents('tr').data('id'),
             num: $item.data('num')
         }, 'delete')
@@ -76,7 +78,7 @@ snowgirlApp.prototype.onActiveSeoTextClick = function (ev) {
     var $item = $btn.closestUp('.seo-text');
     var pageCatalogId = $item.parents('tr').data('id');
     var params = {
-        action: 'toggle-page-catalog-custom-seo-text-active',
+        action: 'page-catalog-custom-toggle-seo-text-activation',
         id: pageCatalogId,
         num: $item.data('num')
     };
