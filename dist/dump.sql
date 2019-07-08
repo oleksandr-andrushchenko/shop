@@ -697,3 +697,5 @@ CREATE TABLE `vendor` (
 
 
 insert into page_regular(`key`,meta_title,meta_description,meta_keywords,menu_title,h1,description,is_menu,rating,created_at) values('catalog','Каталог мета заголовок','Каталог мета описание','{site},каталог','каталог','Каталог','Описание каталога',1,99,NOW());
+
+insert into rbac(`role_id`, `permission_id`) values(2, 101), (4, 102), (4, 103), (4, 104), (4, 115), (2, 116), (4, 123), (3, 124), (3, 117), (3, 118), (3, 119);
