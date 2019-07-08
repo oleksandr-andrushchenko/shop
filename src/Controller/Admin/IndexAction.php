@@ -1,23 +1,17 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: snowgirl
- * Date: 5/14/19
- * Time: 9:52 PM
- */
 
 namespace SNOWGIRL_SHOP\Controller\Admin;
 
 use SNOWGIRL_CORE\App\Web as App;
-use SNOWGIRL_CORE\Entity\User;
+use SNOWGIRL_SHOP\RBAC;
 
 class IndexAction extends \SNOWGIRL_CORE\Controller\Admin\IndexAction
 {
     protected function getDefaultAction(App $app): string
     {
-        if ($app->request->getClient()->getUser()->isRole(User::ROLE_ADMIN, User::ROLE_MANAGER)) {
+        if ($app->rbac->hasPerm(RBAC::PERM_OFFERS_PAGE)) {
             $action = 'offers';
-        } elseif ($app->request->getClient()->getUser()->isRole(User::ROLE_COPYWRITER)) {
+        } elseif ($app->rbac->hasPerm(RBAC::PERM_CATALOG_PAGE)) {
             $action = 'catalog';
         } else {
             $action = 'logout';

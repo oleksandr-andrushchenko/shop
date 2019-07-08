@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: snowgirl
- * Date: 5/14/19
- * Time: 9:55 PM
- */
 
 namespace SNOWGIRL_SHOP\Controller\Admin;
 
@@ -12,19 +6,17 @@ use SNOWGIRL_CORE\Exception\HTTP\BadRequest;
 use SNOWGIRL_CORE\Exception\HTTP\MethodNotAllowed;
 use SNOWGIRL_SHOP\App\Web as App;
 use SNOWGIRL_CORE\Controller\Admin\PrepareServicesTrait;
+use SNOWGIRL_SHOP\RBAC;
 
 class TransferItemsByAttrsAction
 {
     use PrepareServicesTrait;
 
-    /**
-     * @param App $app
-     *
-     * @throws \SNOWGIRL_CORE\Exception\HTTP\Forbidden
-     */
     public function __invoke(App $app)
     {
         $this->prepareServices($app);
+
+        $app->rbac->checkPerm(RBAC::PERM_TRANSFER_ITEMS_BY_ATTRS);
 
         if (!$app->request->isPost()) {
             throw (new MethodNotAllowed)->setValidMethod('post');

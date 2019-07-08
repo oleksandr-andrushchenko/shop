@@ -1,42 +1,26 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: snowgirl
- * Date: 5/14/19
- * Time: 9:55 PM
- */
 
 namespace SNOWGIRL_SHOP\Controller\Admin;
 
+use SNOWGIRL_CORE\App\Web as App;
+use SNOWGIRL_SHOP\RBAC;
+
 class ControlAction extends \SNOWGIRL_CORE\Controller\Admin\ControlAction
 {
-    protected function getButtons(): array
+    protected function getButtons(App $app): array
     {
-        return [
-            [
+        $tmp = parent::getButtons($app);
+
+        if ($app->rbac->hasPerm(RBAC::PERM_GENERATE_PAGES)) {
+            array_unshift($tmp, [
                 'text' => 'Страницы + Sitemap',
                 'icon' => 'refresh',
                 'class' => 'success',
                 'action' => 'generate-pages-and-sitemap'
-            ],
-            [
-                'text' => 'Sitemap',
-                'icon' => 'refresh',
-                'class' => 'info',
-                'action' => 'generate-sitemap'
-            ],
-            [
-                'text' => 'Rotate Cache',
-                'icon' => 'refresh',
-                'class' => 'warning',
-                'action' => 'rotate-cache'
-            ],
-            [
-                'text' => 'Rotate Sphinx',
-                'icon' => 'refresh',
-                'class' => 'default',
-                'action' => 'rotate-sphinx'
-            ],
-        ];
+            ]);
+        }
+
+
+        return $tmp;
     }
 }

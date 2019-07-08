@@ -1,16 +1,8 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: snowgirl
- * Date: 5/14/19
- * Time: 9:52 PM
- */
 
 namespace SNOWGIRL_SHOP\Controller\Admin;
 
-use SNOWGIRL_CORE\Entity\User;
 use SNOWGIRL_CORE\Exception\HTTP\BadRequest;
-use SNOWGIRL_CORE\Exception\HTTP\Forbidden;
 use SNOWGIRL_CORE\Exception\HTTP\NotFound;
 use SNOWGIRL_SHOP\App\Web as App;
 use SNOWGIRL_CORE\Controller\Admin\PrepareServicesTrait;
@@ -19,24 +11,17 @@ use SNOWGIRL_SHOP\Entity\Import\Source as ImportSource;
 use SNOWGIRL_SHOP\Entity\Vendor;
 use SNOWGIRL_SHOP\Entity\Item\Attr as ItemAttr;
 use SNOWGIRL_SHOP\Manager\Page\Catalog as PageCatalogManager;
+use SNOWGIRL_SHOP\RBAC;
 
 class ImportSourceAction
 {
     use PrepareServicesTrait;
 
-    /**
-     * @param App $app
-     *
-     * @throws Forbidden
-     * @throws \SNOWGIRL_CORE\Exception
-     */
     public function __invoke(App $app)
     {
         $this->prepareServices($app);
 
-        if (!$app->request->getClient()->getUser()->isRole(User::ROLE_ADMIN, User::ROLE_MANAGER)) {
-            throw new Forbidden;
-        }
+        $app->rbac->checkPerm(RBAC::PERM_IMPORT_SOURCE_PAGE);
 
         if (!$id = $app->request->get('id')) {
             throw (new BadRequest)->setInvalidParam('id');

@@ -1,20 +1,11 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: snowgirl
- * Date: 7/23/17
- * Time: 7:57 PM
- */
+
 namespace SNOWGIRL_SHOP\View\Layout;
 
-use SNOWGIRL_CORE\Entity\User;
 use SNOWGIRL_CORE\Script\Css;
 use SNOWGIRL_CORE\Script\Js;
+use SNOWGIRL_SHOP\RBAC;
 
-/**
- * Class Admin
- * @package SNOWGIRL_SHOP\View\Layout
- */
 class Admin extends \SNOWGIRL_CORE\View\Layout\Admin
 {
     protected function addCssNodes()
@@ -34,30 +25,21 @@ class Admin extends \SNOWGIRL_CORE\View\Layout\Admin
     {
         parent::addMenuNodes();
 
-//        $this->addMenu('Главная', $this->makeLink('index'));
+        $tmp = [];
+        $tmp[] = $this->app->rbac->hasPerm(RBAC::PERM_DATABASE_PAGE) ? 'database' : false;
+        $tmp[] = $this->app->rbac->hasPerm(RBAC::PERM_CATEGORIES_PAGE) ? 'categories' : false;
+        $tmp[] = $this->app->rbac->hasPerm(RBAC::PERM_CATALOG_PAGE) ? 'catalog' : false;
+        $tmp[] = $this->app->rbac->hasPerm(RBAC::PERM_OFFERS_PAGE) ? 'offers' : false;
+        $tmp[] = $this->app->rbac->hasPerm(RBAC::PERM_ITEM_FIXES_PAGE) ? 'item-fixes' : false;
+        $tmp[] = $this->app->rbac->hasPerm(RBAC::PERM_CONTROL_PAGE) ? 'control' : false;
+//        $tmp[] = $this->app->rbac->hasPerm(RBAC::PERM_PROFILER_PAGE) ? 'profiler' : false;
 
-        if ($this->client->isLoggedIn()) {
-            if ($this->client->getUser()->isRole(User::ROLE_ADMIN)) {
-                $this->addMenu('БД', $this->makeLink('admin', 'database'));
-            }
+        $tmp = array_filter($tmp, function ($uri) {
+            return false !== $uri;
+        });
 
-            if ($this->client->getUser()->isRole(User::ROLE_ADMIN, User::ROLE_MANAGER)) {
-                $this->addMenu('Категории', $this->makeLink('admin', 'categories'));
-            }
-
-            if ($this->client->getUser()->isRole(User::ROLE_ADMIN, User::ROLE_COPYWRITER)) {
-                $this->addMenu('Каталог', $this->makeLink('admin', 'catalog'));
-            }
-
-            if ($this->client->getUser()->isRole(User::ROLE_ADMIN, User::ROLE_MANAGER)) {
-                $this->addMenu('Офферы', $this->makeLink('admin', 'offers'))
-                    ->addMenu('Фиксы', $this->makeLink('admin', 'item-fixes'))
-                    ->addMenu('Разное', $this->makeLink('admin', 'control'));
-            }
-
-//            if ($this->client->getUser()->isRole(User::ROLE_ADMIN)) {
-//                $this->addMenu('Профайлер', $this->makeLink('admin', 'profiler'));
-//            }
+        foreach ($tmp as $action) {
+            $this->addMenu($this->makeText('layout.admin.' . $action), $this->makeLink('admin', $action));
         }
 
         return $this;

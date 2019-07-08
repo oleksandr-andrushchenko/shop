@@ -6,6 +6,7 @@ use SNOWGIRL_CORE\Script\Css;
 use SNOWGIRL_CORE\Script\Js;
 use SNOWGIRL_SHOP\Entity\Page\Catalog as PageCatalog;
 use SNOWGIRL_SHOP\Entity\Page\Catalog\Custom as PageCatalogCustom;
+use SNOWGIRL_SHOP\RBAC;
 
 /** @var View $this */
 /** @var PageCatalog $pageCatalog */
@@ -41,7 +42,8 @@ $this->getLayout()
         <div class="form-group">
             <div class="checkbox">
                 <label>
-                    <input type="checkbox" name="search_prefix" value="1"<?php echo $this->searchPrefix ? ' checked' : '' ?>>
+                    <input type="checkbox" name="search_prefix"
+                           value="1"<?php echo $this->searchPrefix ? ' checked' : '' ?>>
                     префикс
                 </label>
             </div>
@@ -49,7 +51,8 @@ $this->getLayout()
         <div class="form-group hidden">
             <div class="checkbox">
                 <label>
-                    <input type="checkbox" name="search_in_rdbms" value="1"<?php echo $this->searchInRdbms ? ' checked' : '' ?>>
+                    <input type="checkbox" name="search_in_rdbms"
+                           value="1"<?php echo $this->searchInRdbms ? ' checked' : '' ?>>
                     рдбмс
                 </label>
             </div>
@@ -87,7 +90,7 @@ $this->getLayout()
             </td>
             <td>
                 <?php foreach (['meta_title', 'meta_description', 'h1'] as $attr) { ?>
-                    <?php if ($this->managerCustom->isCanModifyAttrs($this->client)) { ?>
+                    <?php if ($this->app->rbac->hasPerm(RBAC::PERM_MODIFY_CATALOG_META)) { ?>
                         <?php if ($pageCatalogCustom && $tmp = $pageCatalogCustom->get($attr)) { ?>
                             <a class="btn btn-sm btn-success btn-modify-attr" title="<?php echo $tmp ?>"
                                data-name="<?php echo $attr ?>" data-value="<?php echo $tmp ?>">
@@ -120,7 +123,7 @@ $this->getLayout()
                              id="seo-text-<?php echo $k ?>"
                              data-num="<?php echo $k ?>"
                              data-active="<?php echo $text['active'] ?>">
-                            <?php if ($this->managerCustom->isCanActiveSeoTexts($this->client)) { ?>
+                            <?php if (($text['user'] == $this->client->getId() && $this->app->rbac->hasPerm(RBAC::PERM_ACTIVATE_OWN_CATALOG_SEO_TEXT)) || ($text['user'] != $this->client->getId() && $this->app->rbac->hasPerm(RBAC::PERM_ACTIVATE_FOREIGN_CATALOG_SEO_TEXT))) { ?>
                                 <a class="btn btn-sm btn-<?php echo $text['active'] ? 'success' : 'default' ?> btn-active-seo-text"
                                    title="Опубликовано">
                                     <span class="glyphicon glyphicon-ok"></span>
@@ -132,12 +135,12 @@ $this->getLayout()
                                 <span class="label label-default" title="Не опубликовано"><span
                                             class="glyphicon glyphicon-remove"></span></span>
                             <?php } ?>
-                            <?php if ($this->managerCustom->isCanEditSeoText($text, $this->client)) { ?>
+                            <?php if (($text['user'] == $this->client->getId() && $this->app->rbac->hasPerm(RBAC::PERM_ADD_UPDATE_CATALOG_SEO_TEXT)) || ($text['user'] != $this->client->getId() && $this->app->rbac->hasPerm(RBAC::PERM_UPDATE_FOREIGN_CATALOG_SEO_TEXT))) { ?>
                                 <a class="btn btn-sm btn-default btn-edit-seo-text" title="Редактировать">
                                     <span class="glyphicon glyphicon-edit"></span>
                                 </a>
                             <?php } ?>
-                            <?php if ($this->managerCustom->isCanDeleteSeoText($text, $this->client)) { ?>
+                            <?php if (($text['user'] == $this->client->getId() && $this->app->rbac->hasPerm(RBAC::PERM_DELETE_OWN_CATALOG_SEO_TEXT)) || ($text['user'] != $this->client->getId() && $this->app->rbac->hasPerm(RBAC::PERM_DELETE_FOREIGN_CATALOG_SEO_TEXT))) { ?>
                                 <a class="btn btn-sm btn-default btn-delete-seo-text" title="Удалить">
                                     <span class="glyphicon glyphicon-trash"></span>
                                 </a>
@@ -189,7 +192,7 @@ $this->getLayout()
                   minlength="<?php echo $this->maxArticleLength ?>"></textarea>
         </div>
     </div>
-    <?php if ($this->managerCustom->isCanActiveSeoTexts($this->client)) { ?>
+    <?php if ($this->app->rbac->hasPerm(RBAC::PERM_ACTIVATE_OWN_CATALOG_SEO_TEXT) || $this->app->rbac->hasPerm(RBAC::PERM_ACTIVATE_FOREIGN_CATALOG_SEO_TEXT)) { ?>
         <div class="form-group">
             <div class="col-lg-offset-2  col-lg-10 col-md-offset-2 col-md-10">
                 <div class="checkbox">
