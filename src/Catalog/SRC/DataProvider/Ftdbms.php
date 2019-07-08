@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: snowgirl
- * Date: 4/18/19
- * Time: 2:38 PM
- */
 
 namespace SNOWGIRL_SHOP\Catalog\SRC\DataProvider;
 
@@ -13,11 +7,6 @@ use SNOWGIRL_CORE\Service\Storage\Query\Expr;
 use SNOWGIRL_SHOP\Catalog\URI;
 use SNOWGIRL_SHOP\Catalog\SRC\DataProvider;
 
-/**
- * Class Ftdbms
- *
- * @package SNOWGIRL_SHOP\Catalog\SRC\DataProvider
- */
 class Ftdbms extends DataProvider
 {
     public function getTypesByUri(URI $uri, &$map = [], &$current = []): array

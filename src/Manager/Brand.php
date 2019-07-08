@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: snowgirl
- * Date: 11/2/16
- * Time: 1:20 AM
- */
 
 namespace SNOWGIRL_SHOP\Manager;
 
@@ -16,6 +10,7 @@ use SNOWGIRL_SHOP\Manager\Item\Attr;
 
 /**
  * Class Brand
+ *
  * @property BrandEntity $entity
  * @method static Brand getItem($id)
  * @method Brand copy($clear = false)
@@ -38,6 +33,7 @@ class Brand extends Attr
 
     /**
      * @param int $perCharLimit
+     *
      * @return Entity[]|BrandEntity[]
      */
     public function getNonEmptyGroupedByFirstCharObjects($perCharLimit = 10)
@@ -59,7 +55,7 @@ class Brand extends Attr
 
             $pk = $this->entity->getPk();
 
-            $query = new Query(['params' =>[++$perCharLimit]]);
+            $query = new Query(['params' => [++$perCharLimit]]);
             $query->text = implode(' ', [
                 $db->makeSelectSQL($pk, false, $query->params),
                 'FROM (',

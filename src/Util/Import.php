@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: snowgirl
- * Date: 3/30/18
- * Time: 6:00 PM
- */
 
 namespace SNOWGIRL_SHOP\Util;
 
@@ -18,6 +12,7 @@ use SNOWGIRL_SHOP\Entity\Import\Source as ImportSource;
 
 /**
  * Class Import
+ *
  * @property App app
  * @package SNOWGIRL_SHOP\Util
  */
@@ -58,6 +53,7 @@ class Import extends Util
 
     /**
      * @param ImportSource $importSource
+     *
      * @return bool
      */
     public function doDeleteImportSourceItemsDuplicates(ImportSource $importSource)

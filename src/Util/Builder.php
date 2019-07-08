@@ -1,25 +1,20 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: snowgirl
- * Date: 9/30/18
- * Time: 2:22 PM
- */
 
 namespace SNOWGIRL_SHOP\Util;
 
 /**
  * Class Builder
- * @property Attr attrs
- * @property Brand brands
- * @property Catalog catalog
+ *
+ * @property Attr     attrs
+ * @property Brand    brands
+ * @property Catalog  catalog
  * @property Category categories
- * @property Color colors
- * @property Import import
- * @property Item items
- * @property Site sites
- * @property Tag tags
- * @property Image images
+ * @property Color    colors
+ * @property Import   import
+ * @property Item     items
+ * @property Site     sites
+ * @property Tag      tags
+ * @property Image    images
  * @package SNOWGIRL_SHOP\Util
  */
 class Builder extends \SNOWGIRL_CORE\Util\Builder

@@ -1,10 +1,5 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: snowgirl
- * Date: 10/3/17
- * Time: 4:46 PM
- */
+
 namespace SNOWGIRL_SHOP;
 
 use SNOWGIRL_CORE\Request;
@@ -15,6 +10,7 @@ use SNOWGIRL_SHOP\Catalog\URI\Manager as CatalogUriManager;
 
 /**
  * Class Tests
+ *
  * @property App app
  * @package SNOWGIRL_SHOP
  */

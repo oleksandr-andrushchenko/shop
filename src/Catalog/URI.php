@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: snowgirl
- * Date: 12/02/15
- * Time: 9:08 AM
- */
 
 namespace SNOWGIRL_SHOP\Catalog;
 
@@ -18,10 +12,6 @@ use SNOWGIRL_CORE\Helper\Strings;
 use SNOWGIRL_SHOP\Entity\Vendor;
 use SNOWGIRL_SHOP\Manager\Item\Attr as AttrManager;
 
-/**
- * Class URI
- * @package SNOWGIRL_SHOP\Catalog
- */
 class URI
 {
     const CATALOG = 'catalog';
@@ -429,8 +419,10 @@ class URI
 
     /**
      * @todo normalize value...
+     *
      * @param $k
      * @param $v
+     *
      * @return URI
      */
     public function set($k, $v = 1)
@@ -482,9 +474,10 @@ class URI
     }
 
     /**
-     * @param $k
-     * @param $v
+     * @param            $k
+     * @param            $v
      * @param bool|false $isWas
+     *
      * @return URI
      */
     public function inverse($k, $v, &$isWas = false)
@@ -536,6 +529,7 @@ class URI
      *
      * @param $param
      * @param $value
+     *
      * @return null|ItemAttr|Entity
      */
     public static function getPageComponentByParam($param, $value)

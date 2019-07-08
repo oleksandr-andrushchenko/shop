@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: snowgirl
- * Date: 11/3/16
- * Time: 3:42 AM
- */
 
 namespace SNOWGIRL_SHOP;
 
@@ -18,11 +12,12 @@ use SNOWGIRL_SHOP\Util\Builder as Utils;
 
 /**
  * Class App
+ *
  * @property Analytics analytics
- * @property Views views
- * @property Managers managers
- * @property Utils utils
- * @property SEO seo
+ * @property Views     views
+ * @property Managers  managers
+ * @property Utils     utils
+ * @property SEO       seo
  * @package SNOWGIRL_SHOP
  */
 trait AppTrait

@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: snowgirl
- * Date: 5/15/19
- * Time: 12:18 AM
- */
 
 namespace SNOWGIRL_SHOP\Controller\Outer;
 
@@ -15,11 +9,6 @@ class DefaultAction
 {
     use PrepareServicesTrait;
 
-    /**
-     * @param App $app
-     *
-     * @return mixed
-     */
     public function __invoke(App $app)
     {
         $this->prepareServices($app);

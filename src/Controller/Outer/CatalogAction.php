@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: snowgirl
- * Date: 5/15/19
- * Time: 12:18 AM
- */
 
 namespace SNOWGIRL_SHOP\Controller\Outer;
 
@@ -31,8 +25,6 @@ class CatalogAction
      *
      * @return bool
      * @throws \SNOWGIRL_CORE\Exception
-     * @throws \SNOWGIRL_CORE\Exception\HTTP\Forbidden
-     * @throws \Exception
      */
     public function __invoke(App $app)
     {

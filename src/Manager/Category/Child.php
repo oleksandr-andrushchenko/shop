@@ -1,19 +1,14 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: snowgirl
- * Date: 12/28/16
- * Time: 5:38 AM
- */
+
 namespace SNOWGIRL_SHOP\Manager\Category;
 
 use SNOWGIRL_CORE\App;
 use SNOWGIRL_CORE\Manager;
 use SNOWGIRL_SHOP\Entity\Category as CategoryEntity;
-use SNOWGIRL_SHOP\Manager\Category as CategoryManager;
 
 /**
  * Class Child
+ *
  * @property App $app
  * @method static Child factory($app)
  * @package SNOWGIRL_SHOP\Manager\Category

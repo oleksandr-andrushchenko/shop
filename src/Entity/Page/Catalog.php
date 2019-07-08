@@ -1,19 +1,9 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: snowgirl
- * Date: 4/9/18
- * Time: 9:47 AM
- */
 
 namespace SNOWGIRL_SHOP\Entity\Page;
 
 use SNOWGIRL_CORE\Entity;
 
-/**
- * Class Catalog
- * @package SNOWGIRL_SHOP\Entity\Page
- */
 class Catalog extends Entity
 {
     protected static $table = 'page_catalog';
@@ -35,6 +25,7 @@ class Catalog extends Entity
 
     /**
      * @param $v
+     *
      * @return Entity|Catalog
      * @throws \SNOWGIRL_CORE\Exception\EntityAttr\Required
      */
@@ -50,6 +41,7 @@ class Catalog extends Entity
 
     /**
      * @param $v
+     *
      * @return Entity|Catalog
      * @throws \SNOWGIRL_CORE\Exception\EntityAttr\Required
      */
@@ -65,6 +57,7 @@ class Catalog extends Entity
 
     /**
      * @param $v
+     *
      * @return Entity|Catalog
      * @throws \SNOWGIRL_CORE\Exception\EntityAttr\Required
      */
@@ -80,6 +73,7 @@ class Catalog extends Entity
 
     /**
      * @param $v
+     *
      * @return Entity|Catalog
      * @throws \SNOWGIRL_CORE\Exception\EntityAttr\Required
      */
@@ -95,6 +89,7 @@ class Catalog extends Entity
 
     /**
      * @param $v
+     *
      * @return Entity|Catalog
      * @throws \SNOWGIRL_CORE\Exception\EntityAttr\Required
      */
@@ -110,6 +105,7 @@ class Catalog extends Entity
 
     /**
      * @param $v
+     *
      * @return Catalog
      */
     public function setParams($v)
@@ -126,6 +122,7 @@ class Catalog extends Entity
     /**
      * @param $k
      * @param $v
+     *
      * @return Catalog
      */
     public function addParam($k, $v)
@@ -138,6 +135,7 @@ class Catalog extends Entity
 
     /**
      * @param $v
+     *
      * @return Entity|Catalog
      * @throws \SNOWGIRL_CORE\Exception\EntityAttr\Required
      */
@@ -153,6 +151,7 @@ class Catalog extends Entity
 
     /**
      * @param $v
+     *
      * @return Catalog
      */
     public function setMeta($v)
@@ -169,6 +168,7 @@ class Catalog extends Entity
     /**
      * @param $k
      * @param $v
+     *
      * @return Catalog
      */
     public function addMeta($k, $v)

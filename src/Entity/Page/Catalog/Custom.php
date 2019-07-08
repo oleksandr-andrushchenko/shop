@@ -1,19 +1,9 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: snowgirl
- * Date: 9/25/18
- * Time: 12:36 AM
- */
 
 namespace SNOWGIRL_SHOP\Entity\Page\Catalog;
 
 use SNOWGIRL_CORE\Entity;
 
-/**
- * Class Custom
- * @package SNOWGIRL_SHOP\Entity\Page\Catalog
- */
 class Custom extends Entity
 {
     protected static $table = 'page_catalog_custom';
@@ -38,6 +28,7 @@ class Custom extends Entity
 
     /**
      * @param $v
+     *
      * @return Entity
      * @throws \SNOWGIRL_CORE\Exception\EntityAttr\Required
      */
@@ -53,6 +44,7 @@ class Custom extends Entity
 
     /**
      * @param $v
+     *
      * @return Entity
      * @throws \SNOWGIRL_CORE\Exception\EntityAttr\Required
      */
@@ -68,6 +60,7 @@ class Custom extends Entity
 
     /**
      * @param $v
+     *
      * @return Entity
      */
     public function setParamsHash($v)
@@ -82,6 +75,7 @@ class Custom extends Entity
 
     /**
      * @param $v
+     *
      * @return Custom
      */
     public function setMetaTitle($v)
@@ -96,6 +90,7 @@ class Custom extends Entity
 
     /**
      * @param $v
+     *
      * @return Custom
      */
     public function setMetaDescription($v)
@@ -110,6 +105,7 @@ class Custom extends Entity
 
     /**
      * @param $v
+     *
      * @return Custom
      */
     public function setMetaKeywords($v)
@@ -124,6 +120,7 @@ class Custom extends Entity
 
     /**
      * @param $v
+     *
      * @return Custom
      */
     public function setH1($v)
@@ -138,6 +135,7 @@ class Custom extends Entity
 
     /**
      * @param $v
+     *
      * @return Custom
      */
     public function setBody($v)
@@ -152,6 +150,7 @@ class Custom extends Entity
 
     /**
      * @param $v
+     *
      * @return Custom
      */
     public function setSeoTexts($v)
@@ -167,6 +166,7 @@ class Custom extends Entity
 
     /**
      * @param array $seoText
+     *
      * @return $this
      */
     public function addSeoText(array $seoText)
@@ -181,6 +181,7 @@ class Custom extends Entity
 
     /**
      * @param $v
+     *
      * @return Custom
      */
     public function setCreatedAt($v)
@@ -196,6 +197,7 @@ class Custom extends Entity
 
     /**
      * @param $v
+     *
      * @return Custom
      */
     public function setUpdatedAt($v)

@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: snowgirl
- * Date: 9/24/18
- * Time: 9:37 PM
- */
 
 namespace SNOWGIRL_SHOP\Util;
 
@@ -19,6 +13,7 @@ use SNOWGIRL_CORE\Entity\Page\Regular as PageRegular;
 
 /**
  * Class Site
+ *
  * @property App app
  * @package SNOWGIRL_SHOP\Util
  */
@@ -26,7 +21,9 @@ class Site extends Util
 {
     /**
      * @todo site-id...
+     *
      * @param $siteId
+     *
      * @return bool
      */
     public function doAddTablesIdColumns($siteId)
@@ -57,7 +54,8 @@ class Site extends Util
     /**
      * @todo...
      */
-    public function doCreateDatabaseFromAnother() {
+    public function doCreateDatabaseFromAnother()
+    {
 
     }
 }

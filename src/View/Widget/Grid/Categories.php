@@ -1,10 +1,5 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: snowgirl
- * Date: 12/10/17
- * Time: 11:45 AM
- */
+
 namespace SNOWGIRL_SHOP\View\Widget\Grid;
 
 use SNOWGIRL_CORE\Exception;
@@ -13,10 +8,6 @@ use SNOWGIRL_CORE\View\Widget;
 use SNOWGIRL_SHOP\Catalog\URI;
 use SNOWGIRL_SHOP\Entity\Category;
 
-/**
- * Class Categories
- * @package SNOWGIRL_SHOP\View\Widget\Grid
- */
 class Categories extends Widget
 {
     protected $items = [];

@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: snowgirl
- * Date: 3/29/18
- * Time: 1:21 AM
- */
 
 namespace SNOWGIRL_SHOP\Util;
 
@@ -28,6 +22,7 @@ use SNOWGIRL_SHOP\Catalog\URI\Manager as CatalogUriManager;
 
 /**
  * Class Category
+ *
  * @property App app
  * @package SNOWGIRL_SHOP\Util
  */
@@ -35,8 +30,10 @@ class Category extends Util
 {
     /**
      * @todo fix... duplicates... (ignore param..)
+     *
      * @param string $delimiter
-     * @param null $error
+     * @param null   $error
+     *
      * @return bool
      */
     public function doBuildTreeByNames($delimiter = '/', &$error = null)

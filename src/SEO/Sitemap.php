@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: snowgirl
- * Date: 3/3/18
- * Time: 1:46 PM
- */
 
 namespace SNOWGIRL_SHOP\SEO;
 
@@ -18,6 +12,7 @@ use SNOWGIRL_SHOP\SEO;
 
 /**
  * Class Sitemap
+ *
  * @property SEO seo
  * @package SNOWGIRL_SHOP\SEO
  */
@@ -126,7 +121,9 @@ class Sitemap extends \SNOWGIRL_CORE\SEO\Sitemap
     }
 
     /**
-     * Alternative method - much more effective (using [is_article, count] Rdbms key and last-id instead of limit's offsets)
+     * Alternative method - much more effective (using [is_article, count] Rdbms key and last-id instead of limit's
+     * offsets)
+     *
      * @return \Closure
      */
     protected function getCatalogGenerator()

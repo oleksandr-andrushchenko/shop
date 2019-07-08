@@ -1,19 +1,9 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: snowgirl
- * Date: 9/29/16
- * Time: 12:48 AM
- */
 
 namespace SNOWGIRL_SHOP\Import;
 
 use SNOWGIRL_SHOP\Import;
 
-/**
- * Class SalesDoubler
- * @package SNOWGIRL_SHOP\Import
- */
 class SalesDoubler extends Import
 {
     protected $xml;

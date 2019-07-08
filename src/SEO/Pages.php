@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: snowgirl
- * Date: 3/6/18
- * Time: 12:56 PM
- */
 
 namespace SNOWGIRL_SHOP\SEO;
 
@@ -27,7 +21,7 @@ use SNOWGIRL_SHOP\Entity\Item\Attr\Alias as ItemAttrAlias;
 use SNOWGIRL_SHOP\SEO;
 
 /**
- * @todo... test & fix
+ * @todo    ... test & fix
  * Class Pages
  * @property SEO seo
  * @package SNOWGIRL_SHOP\SEO
@@ -67,6 +61,7 @@ class Pages extends \SNOWGIRL_CORE\SEO\Pages
     /**
      * @param bool $aliases
      * @param bool $ftdbms
+     *
      * @return bool
      */
     protected function generateCatalogPages($aliases = false, $ftdbms = true)
@@ -463,7 +458,8 @@ class Pages extends \SNOWGIRL_CORE\SEO\Pages
 
     /**
      * @param array $componentsAndTypes
-     * @param bool $aliases
+     * @param bool  $aliases
+     *
      * @return array
      */
     protected function orderAccordingPagePath(array $componentsAndTypes, $aliases = false)
@@ -494,6 +490,7 @@ class Pages extends \SNOWGIRL_CORE\SEO\Pages
 
     /**
      * @param ItemAttr[] $components
+     *
      * @return ItemAttr[]|ItemAttrAlias[]
      */
     protected function replaceWithAliases(array $components)

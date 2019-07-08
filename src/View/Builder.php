@@ -1,10 +1,5 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: snowgirl
- * Date: 12/10/17
- * Time: 11:59 AM
- */
+
 namespace SNOWGIRL_SHOP\View;
 
 use SNOWGIRL_SHOP\View\Widget\Grid\Categories;
@@ -19,6 +14,7 @@ use SNOWGIRL_SHOP\View\Widget\Form\Order as OrderForm;
  * @method Brands brands($params = [], $parent = null)
  * @method Items items($params = [], $parent = null)
  * @method OrderForm orderForm(array $params = [], $parent = null)
+ *
  * @package SNOWGIRL_SHOP\View
  */
 class Builder extends \SNOWGIRL_CORE\View\Builder

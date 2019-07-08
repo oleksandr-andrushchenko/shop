@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: snowgirl
- * Date: 5/15/19
- * Time: 12:18 AM
- */
 
 namespace SNOWGIRL_SHOP\Controller\Outer;
 
@@ -23,16 +17,6 @@ class ItemAction
     use PrepareServicesTrait;
     use GetCurrencyObjectTrait;
 
-    /**
-     * @todo check if attributes objects exists... (category,brand,etc...)
-     * @todo ..if not exists - manage such situation (category: find nearest category, brand: find brand from item...)
-     *
-     * @param App $app
-     *
-     * @return bool
-     * @throws \SNOWGIRL_CORE\Exception
-     * @throws \Exception
-     */
     public function __invoke(App $app)
     {
         $this->prepareServices($app);

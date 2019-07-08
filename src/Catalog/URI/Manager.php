@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: snowgirl
- * Date: 1/27/18
- * Time: 11:56 PM
- */
 
 namespace SNOWGIRL_SHOP\Catalog\URI;
 
@@ -22,10 +16,6 @@ use SNOWGIRL_SHOP\Manager\Page\Catalog as PageCatalogManager;
 use SNOWGIRL_CORE\Helper\Arrays;
 use SNOWGIRL_CORE\Entity\Redirect;
 
-/**
- * Class Manager
- * @package SNOWGIRL_SHOP\Catalog\URI
- */
 class Manager
 {
     /** @var Managers */
@@ -44,7 +34,8 @@ class Manager
 
     /**
      * @param Request $request
-     * @param bool $domain
+     * @param bool    $domain
+     *
      * @return bool|URI
      * @throws \Exception
      */
@@ -82,10 +73,12 @@ class Manager
 
     /**
      * Returns all possible found params from $path
+     *
      * @todo optimize loop... then remove URI's cache prefetch
      *
-     * @param Request $request
+     * @param Request          $request
      * @param PageCatalog|null $page
+     *
      * @return array|bool
      * @throws \Exception
      */
@@ -154,9 +147,10 @@ class Manager
      * @todo cache & optimize...
      * @todo add name_hash columns for index build???!?
      *
-     * @param array $uri - attrs uri array
-     * @param null $unknown
+     * @param array      $uri - attrs uri array
+     * @param null       $unknown
      * @param bool|false $activeOnly
+     *
      * @return array
      * @throws \Exception
      */
@@ -217,9 +211,10 @@ class Manager
     }
 
     /**
-     * @param $uri
-     * @param $rawUri
+     * @param         $uri
+     * @param         $rawUri
      * @param Request $request
+     *
      * @return bool
      */
     protected function checkRedirectWithOldFormat($uri, $rawUri, Request $request)
@@ -235,12 +230,13 @@ class Manager
     }
 
     /**
-     * @todo...
+     * @todo ...
      * @todo use ftdbms...
      * @todo add rdbms as alternative...
      *
-     * @param $rawUri
+     * @param         $rawUri
      * @param Request $request
+     *
      * @throws \Exception
      */
     protected function checkRedirectWithCatalogHistory($rawUri, Request $request)
@@ -267,8 +263,9 @@ class Manager
     }
 
     /**
-     * @param array $rawUri
+     * @param array   $rawUri
      * @param Request $request
+     *
      * @return bool
      */
     protected function checkRedirectWithSeoUriFix(array $rawUri, Request $request)
@@ -286,11 +283,12 @@ class Manager
     }
 
     /**
-     * @todo...
+     * @todo ...
      * @todo fix... (check live logs...)
      *
-     * @param array $rawUri
+     * @param array   $rawUri
      * @param Request $request
+     *
      * @return bool
      */
     protected function checkRedirectWithTable(array $rawUri, Request $request)
@@ -336,8 +334,9 @@ class Manager
     }
 
     /**
-     * @param array $params
+     * @param array   $params
      * @param Request $request
+     *
      * @return bool
      * @throws \Exception
      */
@@ -354,10 +353,11 @@ class Manager
     protected $checkRedirectWithPartialsParamsCache;
 
     /**
-     * @param array $unknownUriArray
-     * @param array $params
-     * @param $sayIfCanOnly
+     * @param array   $unknownUriArray
+     * @param array   $params
+     * @param         $sayIfCanOnly
      * @param Request $request
+     *
      * @return bool
      * @throws \Exception
      */
@@ -424,8 +424,9 @@ class Manager
     }
 
     /**
-     * @param array $rawUri
+     * @param array   $rawUri
      * @param Request $request
+     *
      * @return bool
      */
     protected function checkRedirectWithDuplicates(array $rawUri, Request $request)
@@ -442,8 +443,10 @@ class Manager
 
     /**
      * @todo remove...
-     * @param URI $uri
+     *
+     * @param URI    $uri
      * @param string $domain
+     *
      * @return mixed|string
      */
     public function getRequestUri(URI $uri, $domain = 'master')
@@ -466,6 +469,7 @@ class Manager
     /**
      * @param URI $from
      * @param URI $to
+     *
      * @return int
      */
     public function addRedirect(URI $from, URI $to)
@@ -487,8 +491,9 @@ class Manager
     /**
      * Hard-weight operation...
      *
-     * @param URI $uri
+     * @param URI      $uri
      * @param \Closure $itemMapper
+     *
      * @return URI[]
      */
     public function getOtherVariants(URI $uri, \Closure $itemMapper)

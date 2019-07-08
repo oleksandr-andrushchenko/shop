@@ -1,19 +1,9 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: snowgirl
- * Date: 11/25/17
- * Time: 1:54 AM
- */
 
 namespace SNOWGIRL_SHOP\Entity;
 
 use SNOWGIRL_CORE\Entity;
 
-/**
- * Class Stock
- * @package SNOWGIRL_SHOP\Entity
- */
 class Stock extends Entity implements PartnerLinkHolderInterface
 {
     protected static $table = 'stock';

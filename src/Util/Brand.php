@@ -1,10 +1,5 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: snowgirl
- * Date: 3/30/18
- * Time: 5:35 PM
- */
+
 namespace SNOWGIRL_SHOP\Util;
 
 use SNOWGIRL_CORE\Exception;
@@ -23,6 +18,7 @@ use SNOWGIRL_SHOP\Manager\Brand\Term as BrandTermManager;
 
 /**
  * Class Brand
+ *
  * @property App app
  * @package SNOWGIRL_SHOP\Util
  */

@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: snowgirl
- * Date: 4/4/19
- * Time: 10:49 PM
- */
 
 namespace SNOWGIRL_SHOP\Manager\Item\Attr\DataProvider;
 
@@ -16,11 +10,6 @@ use SNOWGIRL_SHOP\Entity\Material;
 use SNOWGIRL_SHOP\Manager\Item\Attr\DataProvider;
 use SNOWGIRL_CORE\Helper\Arrays;
 
-/**
- * Class Elastic
- *
- * @package SNOWGIRL_SHOP\Manager\Item\Attr\DataProvider
- */
 class Elastic extends DataProvider
 {
     use \SNOWGIRL_CORE\Manager\DataProvider\Traits\Elastic;

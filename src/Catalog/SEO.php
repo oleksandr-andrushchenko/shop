@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: snowgirl
- * Date: 12/02/15
- * Time: 9:08 AM
- */
 
 namespace SNOWGIRL_SHOP\Catalog;
 
@@ -162,7 +156,7 @@ class SEO
             }
         }
 
-        return $this->uri->getSRC()->getRegularPage()->make($attr, $default, $params);
+        return $this->uri->getSRC()->getPage()->make($attr, $default, $params);
     }
 
     protected function addCoreParams()

@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: snowgirl
- * Date: 03/10/15
- * Time: 00:14 AM
- */
 
 namespace SNOWGIRL_SHOP\Item;
 
@@ -12,10 +6,6 @@ use SNOWGIRL_CORE\App;
 use SNOWGIRL_CORE\Entity;
 use SNOWGIRL_CORE\Exception;
 
-/**
- * Class URI
- * @package SNOWGIRL_SHOP\Item
- */
 class URI
 {
     public const ID = 'id';
@@ -103,8 +93,10 @@ class URI
 
     /**
      * @todo normalize value...
+     *
      * @param $k
      * @param $v
+     *
      * @return URI
      */
     public function set($k, $v)
@@ -122,7 +114,8 @@ class URI
 
     /**
      * @param array $params
-     * @param int $mode
+     * @param int   $mode
+     *
      * @return string
      * @throws Exception
      */
@@ -185,8 +178,9 @@ class URI
     protected $output;
 
     /**
-     * @param int $mode
+     * @param int  $mode
      * @param bool $isNoFollow
+     *
      * @return mixed
      * @throws Exception
      */

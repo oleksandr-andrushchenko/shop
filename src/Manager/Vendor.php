@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: snowgirl
- * Date: 11/2/16
- * Time: 8:52 PM
- */
 
 namespace SNOWGIRL_SHOP\Manager;
 
@@ -18,6 +12,7 @@ use SNOWGIRL_SHOP\Util\Item as ItemUtil;
 
 /**
  * Class Vendor
+ *
  * @property VendorEntity $entity
  * @method static VendorEntity getItem($id)
  * @method Vendor clear()
@@ -64,7 +59,7 @@ class Vendor extends Attr implements GoLinkBuilderInterface
             $columns = new Expr('DISTINCT(' . $pk . ') AS ' . $this->app->services->rdbms->quote($pk));
 
             return $this->app->managers->items->clear()
-                    ->getColumn($pk, $columns);
+                ->getColumn($pk, $columns);
         }));
     }
 
@@ -101,6 +96,7 @@ class Vendor extends Attr implements GoLinkBuilderInterface
 
     /**
      * @param VendorEntity $vendor
+     *
      * @return VendorAdapter|null
      */
     public function getAdapterObject(VendorEntity $vendor)

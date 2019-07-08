@@ -1,20 +1,10 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: snowgirl
- * Date: 5/5/18
- * Time: 2:47 PM
- */
 
 namespace SNOWGIRL_SHOP\Import;
 
 use SNOWGIRL_SHOP\Import;
 use SNOWGIRL_CORE\Helper\Arrays;
 
-/**
- * Class Gepur
- * @package SNOWGIRL_SHOP\Import
- */
 class Gepur extends Import
 {
     protected $sources = [
@@ -245,7 +235,9 @@ class Gepur extends Import
 
     /**
      * Returns normalized names
+     *
      * @param $row
+     *
      * @return array
      */
     protected function importRowToSizes($row)
@@ -261,7 +253,9 @@ class Gepur extends Import
 
     /**
      * @todo test..
+     *
      * @param $row
+     *
      * @return array
      */
     protected function importRowToMaterials($row)

@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: snowgirl
- * Date: 5/15/19
- * Time: 12:18 AM
- */
 
 namespace SNOWGIRL_SHOP\Controller\Outer;
 
@@ -15,13 +9,6 @@ class GetCatalogFiltersColorsView
 {
     use GetFiltersCountsObjectTrait;
 
-    /**
-     * @param App      $app
-     * @param URI|null $uri
-     * @param bool     $async
-     *
-     * @return null|\SNOWGIRL_CORE\Response|\SNOWGIRL_CORE\View|string
-     */
     public function __invoke(App $app, URI $uri = null, $async = false)
     {
         if ($ajax = null === $uri) {

@@ -1,10 +1,5 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: snowgirl
- * Date: 3/30/18
- * Time: 5:48 PM
- */
+
 namespace SNOWGIRL_SHOP\Util;
 
 use SNOWGIRL_CORE\Exception;
@@ -18,6 +13,7 @@ use SNOWGIRL_SHOP\Entity\Item;
 
 /**
  * Class Tag
+ *
  * @property App app
  * @package SNOWGIRL_SHOP\Util
  */

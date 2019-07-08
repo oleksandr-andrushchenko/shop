@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: snowgirl
- * Date: 4/2/19
- * Time: 8:04 PM
- */
 
 namespace SNOWGIRL_SHOP\Catalog\SRC\DataProvider;
 
@@ -19,11 +13,6 @@ use SNOWGIRL_SHOP\Entity\Item;
 use SNOWGIRL_SHOP\Manager\Page\Catalog as PageCatalogManager;
 use SNOWGIRL_SHOP\Manager\Item\Attr as ItemAttrManager;
 
-/**
- * Class Rdbms
- *
- * @package SNOWGIRL_SHOP\Catalog\SRC\DataProvider
- */
 class Rdbms extends DataProvider
 {
     public function getItemsAttrs()

@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: snowgirl
- * Date: 10/3/17
- * Time: 7:22 PM
- */
 
 namespace SNOWGIRL_SHOP\Item;
 
@@ -12,10 +6,6 @@ use SNOWGIRL_CORE\App;
 use SNOWGIRL_SHOP\Entity\Item;
 use SNOWGIRL_SHOP\Manager\Builder as Managers;
 
-/**
- * Class SRC
- * @package SNOWGIRL_SHOP\Item
- */
 class SRC
 {
     /** @var App */
@@ -29,8 +19,9 @@ class SRC
     }
 
     /**
-     * @param $id
+     * @param          $id
      * @param Managers $managers
+     *
      * @return Item
      */
     public static function checkId($id, Managers $managers)
@@ -39,8 +30,9 @@ class SRC
     }
 
     /**
-     * @param $id
+     * @param          $id
      * @param Managers $managers
+     *
      * @return Item
      */
     protected static function getById($id, Managers $managers)

@@ -1,20 +1,10 @@
 <?php
-/**
- * Created by JetBrains PhpStorm.
- * User: snowgirl
- * Date: 01.11.15
- * Time: 23:04
- * To change this template use File | Settings | File Templates.
- */
+
 namespace SNOWGIRL_SHOP\Entity\Import;
 
 use SNOWGIRL_CORE\Exception;
 use SNOWGIRL_CORE\Entity;
 
-/**
- * Class History
- * @package SNOWGIRL_SHOP\Entity\Import
- */
 class History extends Entity
 {
     protected static $table = 'import_history';
@@ -51,6 +41,7 @@ class History extends Entity
 
     /**
      * @param $v
+     *
      * @return History
      * @throws Exception\EntityAttr\Required
      */

@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: snowgirl
- * Date: 11/27/18
- * Time: 5:51 AM
- */
 
 namespace SNOWGIRL_SHOP\Util;
 
@@ -14,6 +8,7 @@ use SNOWGIRL_CORE\Image as ImageObject;
 
 /**
  * Class Image
+ *
  * @property App app
  * @package SNOWGIRL_SHOP\Util
  */

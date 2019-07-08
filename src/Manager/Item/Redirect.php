@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: snowgirl
- * Date: 9/22/18
- * Time: 5:06 PM
- */
 
 namespace SNOWGIRL_SHOP\Manager\Item;
 
@@ -12,10 +6,6 @@ use SNOWGIRL_CORE\Manager;
 use SNOWGIRL_CORE\Entity;
 use SNOWGIRL_SHOP\Entity\Item\Redirect as RedirectEntity;
 
-/**
- * Class Redirect
- * @package SNOWGIRL_SHOP\Manager\Item
- */
 class Redirect extends Manager
 {
     protected function onInserted(Entity $entity)
@@ -33,6 +23,7 @@ class Redirect extends Manager
 
     /**
      * @param $id
+     *
      * @return array|null
      */
     public function getByIdFrom($id)

@@ -1,20 +1,10 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: snowgirl
- * Date: 3/3/18
- * Time: 1:59 PM
- */
 
 namespace SNOWGIRL_SHOP\SEO;
 
 use SNOWGIRL_SHOP\Catalog\URI;
 use SNOWGIRL_SHOP\Manager\Page\Catalog;
 
-/**
- * Class RobotsTxt
- * @package SNOWGIRL_SHOP\SEO
- */
 class RobotsTxt extends \SNOWGIRL_CORE\SEO\RobotsTxt
 {
     protected function getDisallows()

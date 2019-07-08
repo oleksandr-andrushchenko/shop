@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: snowgirl
- * Date: 5/14/19
- * Time: 9:52 PM
- */
 
 namespace SNOWGIRL_SHOP\Controller\Admin;
 
@@ -16,11 +10,6 @@ class BrandsAction
 {
     use PrepareServicesTrait;
 
-    /**
-     * @param App $app
-     *
-     * @throws \SNOWGIRL_CORE\Exception\HTTP\Forbidden
-     */
     public function __invoke(App $app)
     {
         $this->prepareServices($app);

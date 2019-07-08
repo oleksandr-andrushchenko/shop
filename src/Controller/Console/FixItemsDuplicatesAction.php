@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: snowgirl
- * Date: 5/14/19
- * Time: 10:50 PM
- */
 
 namespace SNOWGIRL_SHOP\Controller\Console;
 
@@ -16,11 +10,6 @@ class FixItemsDuplicatesAction
 {
     use PrepareServicesTrait;
 
-    /**
-     * @param App $app
-     *
-     * @throws \SNOWGIRL_CORE\Exception\HTTP\NotFound
-     */
     public function __invoke(App $app)
     {
         $this->prepareServices($app);

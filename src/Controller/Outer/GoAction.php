@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: snowgirl
- * Date: 5/15/19
- * Time: 12:18 AM
- */
 
 namespace SNOWGIRL_SHOP\Controller\Outer;
 
@@ -21,14 +15,6 @@ class GoAction
 {
     use PrepareServicesTrait;
 
-    /**
-     * @param App  $app
-     * @param null $type
-     * @param null $id
-     * @param null $source
-     *
-     * @throws NotFound
-     */
     public function __invoke(App $app, $type = null, $id = null, $source = null)
     {
         $this->prepareServices($app);
@@ -56,14 +42,14 @@ class GoAction
                         $app->request->redirect($app->managers->items->getLink($itemTo), 301);
                     }
 
-                    throw new NotFound;
+                    throw (new NotFound)->setNonExisting('item');
                 } else {
-                    throw new NotFound;
+                    throw (new NotFound)->setNonExisting('item');
                 }
             }
         } elseif ('shop' == $type) {
             if (!$holder = $app->managers->vendors->find($id)) {
-                throw new NotFound;
+                throw (new NotFound)->setNonExisting('vendor');
             }
 
             if (!$holder->isActive()) {
@@ -77,7 +63,7 @@ class GoAction
             }
         } elseif ('stock' == $type) {
             if (!$holder = $app->managers->stock->find($id)) {
-                throw new NotFound;
+                throw (new NotFound)->setNonExisting('stock');
             }
 
             if (!$holder->isActive()) {

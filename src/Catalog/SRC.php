@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: snowgirl
- * Date: 12/02/15
- * Time: 9:08 AM
- */
 
 namespace SNOWGIRL_SHOP\Catalog;
 
@@ -16,7 +10,7 @@ use SNOWGIRL_CORE\Entity;
 use SNOWGIRL_CORE\Manager;
 use SNOWGIRL_SHOP\Entity\Item;
 
-use SNOWGIRL_CORE\Entity\Page\Regular as PageRegular;
+use SNOWGIRL_CORE\Entity\Page;
 
 use SNOWGIRL_SHOP\Entity\Page\Catalog as PageCatalog;
 use SNOWGIRL_SHOP\Entity\Page\Catalog\Custom as PageCatalogCustom;
@@ -429,18 +423,18 @@ class SRC
         return $this->getPageNum() == $this->getLastPage();
     }
 
-    protected $regularPage;
+    protected $page;
 
     /**
-     * @return PageRegular
+     * @return Page
      */
-    public function getRegularPage()
+    public function getPage()
     {
-        if (null === $this->regularPage) {
-            $this->regularPage = $this->uri->getApp()->managers->pages->findByKey('catalog');
+        if (null === $this->page) {
+            $this->page = $this->uri->getApp()->managers->pages->findByKey('catalog');
         }
 
-        return $this->regularPage;
+        return $this->page;
     }
 
     protected $catalogPage;

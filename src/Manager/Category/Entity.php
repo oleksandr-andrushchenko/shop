@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: snowgirl
- * Date: 3/30/17
- * Time: 12:37 AM
- */
 
 namespace SNOWGIRL_SHOP\Manager\Category;
 
@@ -21,6 +15,7 @@ use SNOWGIRL_SHOP\Item\FixWhere;
 
 /**
  * Class Entity
+ *
  * @property App app
  * @method static Entity factory($app)
  * @method Entity clear()
@@ -35,6 +30,7 @@ class Entity extends Manager
 
     /**
      * @param bool $force
+     *
      * @return bool
      */
     public function createTableAndFill($force = false)
@@ -114,6 +110,7 @@ class Entity extends Manager
 
     /**
      * @param CategoryEntityEntity $entity
+     *
      * @return CategoryEntity
      */
     public function getCategory(CategoryEntityEntity $entity)
@@ -136,8 +133,9 @@ class Entity extends Manager
 
     /**
      * @todo add force index...
-     * @param $function
-     * @param $categoryId
+     *
+     * @param       $function
+     * @param       $categoryId
      * @param array $where
      */
     protected function updateItemsCategory($function, $categoryId, array $where)
@@ -155,6 +153,7 @@ class Entity extends Manager
 
     /**
      * @param FixWhere|null $fixWhere
+     *
      * @return bool
      */
     public function updateByParentsAndEntities(FixWhere $fixWhere = null)
@@ -180,6 +179,7 @@ class Entity extends Manager
 
     /**
      * @param FixWhere|null $fixWhere
+     *
      * @return bool
      */
     public function updateByParentsAndNamesLikeCategories(FixWhere $fixWhere = null)
@@ -203,6 +203,7 @@ class Entity extends Manager
 
     /**
      * @param FixWhere|null $fixWhere
+     *
      * @return bool
      */
     public function updateByEntities(FixWhere $fixWhere = null)
@@ -224,6 +225,7 @@ class Entity extends Manager
 
     /**
      * @param FixWhere|null $fixWhere
+     *
      * @return bool
      */
     public function updateByNamesLikeEntities(FixWhere $fixWhere = null)
@@ -246,6 +248,7 @@ class Entity extends Manager
 
     /**
      * @param FixWhere|null $fixWhere
+     *
      * @return bool
      */
     public function updateByEntitiesLikeEntities(FixWhere $fixWhere = null)

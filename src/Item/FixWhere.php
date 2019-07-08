@@ -1,20 +1,11 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: snowgirl
- * Date: 11/5/17
- * Time: 8:35 PM
- */
+
 namespace SNOWGIRL_SHOP\Item;
 
 use SNOWGIRL_CORE\Service\Storage\Query\Expr;
 use SNOWGIRL_CORE\App;
 use SNOWGIRL_SHOP\Entity\Import\Source as ImportSource;
 
-/**
- * Class FixWhere
- * @package SNOWGIRL_SHOP\Item
- */
 class FixWhere
 {
     /** @var App */
@@ -188,9 +179,10 @@ class FixWhere
     }
 
     /**
-     * @param Expr $expr1
-     * @param Expr $expr2
+     * @param Expr   $expr1
+     * @param Expr   $expr2
      * @param string $template
+     *
      * @return Expr
      */
     protected function mergeExprs(Expr $expr1, Expr $expr2, $template = '($1) AND ($2)')
@@ -212,8 +204,9 @@ class FixWhere
     }
 
     /**
-     * @param array $input
+     * @param array  $input
      * @param string $template
+     *
      * @return Expr
      */
     protected function mergeExprsArray(array $input, $template = '($1) AND ($2)')

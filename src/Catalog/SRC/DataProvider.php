@@ -1,20 +1,9 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: snowgirl
- * Date: 4/2/19
- * Time: 8:01 PM
- */
 
 namespace SNOWGIRL_SHOP\Catalog\SRC;
 
 use SNOWGIRL_SHOP\Catalog\SRC;
 
-/**
- * Class DataProvider
- *
- * @package SNOWGIRL_SHOP\Catalog\SRC
- */
 abstract class DataProvider
 {
     protected $src;

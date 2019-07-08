@@ -1,18 +1,9 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: snowgirl
- * Date: 12/1/17
- * Time: 6:22 AM
- */
+
 namespace SNOWGIRL_SHOP\Entity\Brand;
 
 use SNOWGIRL_CORE\Exception;
 
-/**
- * Class Term
- * @package SNOWGIRL_SHOP\Entity\Brand
- */
 class Term extends \SNOWGIRL_SHOP\Entity\Term
 {
     protected static $table = 'brand_term';

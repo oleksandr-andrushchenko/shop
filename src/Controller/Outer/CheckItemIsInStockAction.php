@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: snowgirl
- * Date: 5/15/19
- * Time: 12:18 AM
- */
 
 namespace SNOWGIRL_SHOP\Controller\Outer;
 
@@ -18,11 +12,6 @@ class CheckItemIsInStockAction
 {
     use PrepareServicesTrait;
 
-    /**
-     * @param App $app
-     *
-     * @throws NotFound
-     */
     public function __invoke(App $app)
     {
         $this->prepareServices($app);
@@ -36,7 +25,7 @@ class CheckItemIsInStockAction
         }
 
         if (!$item = $app->managers->items->find($id)) {
-            throw new NotFound;
+            throw (new NotFound)->setNonExisting('item');
         }
 
         if ($item->isInStock()) {

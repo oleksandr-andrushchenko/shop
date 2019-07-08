@@ -1,19 +1,7 @@
 <?php
-/**
- * Created by JetBrains PhpStorm.
- * User: snowgirl
- * Date: 13.01.16
- * Time: 10:52
- * To change this template use File | Settings | File Templates.
- */
+
 namespace SNOWGIRL_SHOP\Entity\Size;
 
-use SNOWGIRL_CORE\Entity;
-
-/**
- * Class Term
- * @package SNOWGIRL_SHOP\Entity\Size
- */
 class Term extends \SNOWGIRL_SHOP\Entity\Term
 {
     protected static $table = 'size_term';

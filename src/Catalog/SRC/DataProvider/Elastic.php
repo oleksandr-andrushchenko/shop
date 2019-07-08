@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: snowgirl
- * Date: 4/2/19
- * Time: 8:04 PM
- */
 
 namespace SNOWGIRL_SHOP\Catalog\SRC\DataProvider;
 

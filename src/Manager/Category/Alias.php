@@ -1,10 +1,5 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: snowgirl
- * Date: 4/7/18
- * Time: 9:54 AM
- */
+
 namespace SNOWGIRL_SHOP\Manager\Category;
 
 use SNOWGIRL_CORE\Manager;
@@ -13,7 +8,7 @@ use SNOWGIRL_SHOP\Entity\Category\Alias as CategoryAliasEntity;
 use SNOWGIRL_CORE\Entity\Redirect;
 
 /**
- * @todo...
+ * @todo    ...
  * Class Alias
  * @method CategoryAliasEntity find($id)
  * @package SNOWGIRL_SHOP\Manager\Category

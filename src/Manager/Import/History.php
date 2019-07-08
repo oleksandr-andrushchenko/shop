@@ -1,10 +1,5 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: snowgirl
- * Date: 11/2/16
- * Time: 8:56 PM
- */
+
 namespace SNOWGIRL_SHOP\Manager\Import;
 
 use SNOWGIRL_SHOP\Entity\Import\Source as ImportSourceEntity;
@@ -13,6 +8,7 @@ use SNOWGIRL_SHOP\Entity\Import\History as ImportHistoryEntity;
 
 /**
  * Class History
+ *
  * @package SNOWGIRL_SHOP\Manager\Import
  * @method static History factory($app)
  */

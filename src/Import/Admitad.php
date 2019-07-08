@@ -1,20 +1,10 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: snowgirl
- * Date: 9/28/16
- * Time: 10:32 PM
- */
 
 namespace SNOWGIRL_SHOP\Import;
 
 use SNOWGIRL_SHOP\Import;
 use SNOWGIRL_SHOP\Entity\Item;
 
-/**
- * Class Admitad
- * @package SNOWGIRL_SHOP\Import
- */
 class Admitad extends Import
 {
     protected $sources = [
@@ -38,6 +28,7 @@ class Admitad extends Import
      * Returns mixed names
      *
      * @param $row
+     *
      * @return array
      */
     protected function importRowToColors($row)
@@ -55,6 +46,7 @@ class Admitad extends Import
      * Returns mixed names
      *
      * @param $row
+     *
      * @return array
      */
     protected function importRowToSeasons($row)
@@ -72,6 +64,7 @@ class Admitad extends Import
      * Returns mixed names
      *
      * @param $row
+     *
      * @return string|integer
      */
     protected function importRowToCountry($row)
@@ -89,6 +82,7 @@ class Admitad extends Import
      * Returns mixed names
      *
      * @param $row
+     *
      * @return array
      */
     protected function importRowToSizes($row)
@@ -118,6 +112,7 @@ class Admitad extends Import
      * Returns mixed names
      *
      * @param $row
+     *
      * @return array
      */
     protected function importRowToMaterials($row)

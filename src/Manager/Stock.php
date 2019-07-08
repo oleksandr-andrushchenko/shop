@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: snowgirl
- * Date: 12/16/17
- * Time: 6:21 PM
- */
 
 namespace SNOWGIRL_SHOP\Manager;
 
@@ -15,6 +9,7 @@ use SNOWGIRL_SHOP\Entity\Stock as StockEntity;
 /**
  * Class Stock
  * @method StockEntity find($id)
+ *
  * @package SNOWGIRL_SHOP\Manager
  */
 class Stock extends Manager implements GoLinkBuilderInterface

@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: snowgirl
- * Date: 9/28/16
- * Time: 4:42 PM
- */
 
 namespace SNOWGIRL_SHOP;
 
@@ -38,9 +32,10 @@ use SNOWGIRL_SHOP\Item\FixWhere;
 
 /**
  * Class Import
+ *
  * @property App|Web|Console app
  * @package SNOWGIRL_SHOP
- * @see https://csv.thephpleague.com/9.0/
+ * @see     https://csv.thephpleague.com/9.0/
  */
 class Import
 {
@@ -245,8 +240,10 @@ class Import
 
     /**
      * @see https://packagist.org/packages/kzykhys/php-csv-parser
+     *
      * @param int $offset
      * @param int $limit
+     *
      * @return CsvParser
      * @throws Exception
      */
@@ -509,6 +506,7 @@ class Import
     /**
      * @param int $page
      * @param int $size
+     *
      * @return \stdClass
      */
     public function getData($page = 1, $size = 10)
@@ -956,8 +954,10 @@ class Import
 
     /**
      * Returns mixed values (names or/and IDs)
+     *
      * @param $pk
      * @param $row
+     *
      * @return int
      */
     protected function importRowToSvaAttr($pk, $row)
@@ -1224,6 +1224,7 @@ class Import
      *
      * @param $pk
      * @param $row
+     *
      * @return array
      */
     protected function importRowToMvaAttr($pk, $row)
@@ -1336,7 +1337,9 @@ class Import
 
     /**
      * @todo use Item Entity's Columns info...
+     *
      * @param $row
+     *
      * @return float|null
      */
     protected function importRowToOldPrice($row)
@@ -1542,6 +1545,7 @@ class Import
     /**
      * @param null $uniqueFileHash
      * @param null $whyNoReason
+     *
      * @return bool
      * @throws \Exception
      */
@@ -1576,6 +1580,7 @@ class Import
 
     /**
      * @param $fileUniqueHash
+     *
      * @return $this
      * @throws Exception\EntityAttr\Required
      */
@@ -1594,6 +1599,7 @@ class Import
 
     /**
      * @param $isOk
+     *
      * @return $this
      * @throws \Exception
      */
@@ -1683,8 +1689,9 @@ class Import
     }
 
     /**
-     * @param $msg
+     * @param        $msg
      * @param string $type
+     *
      * @return Import
      */
     protected function log($msg, $type = Logger::TYPE_DEBUG)

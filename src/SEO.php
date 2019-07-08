@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: snowgirl
- * Date: 9/10/17
- * Time: 2:56 PM
- */
 
 namespace SNOWGIRL_SHOP;
 
@@ -18,6 +12,7 @@ use SNOWGIRL_SHOP\SEO\Sitemap;
 
 /**
  * Class SEO
+ *
  * @property App app
  * @method App getApp()
  * @method Pages getPages()

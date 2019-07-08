@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: snowgirl
- * Date: 4/4/19
- * Time: 11:20 PM
- */
 
 namespace SNOWGIRL_SHOP\Manager\Item\DataProvider;
 
@@ -14,11 +8,6 @@ use SNOWGIRL_CORE\Service\Storage\Query\Expr;
 use SNOWGIRL_SHOP\Catalog\URI;
 use SNOWGIRL_SHOP\Manager\Item\DataProvider;
 
-/**
- * Class Rdbms
- *
- * @package SNOWGIRL_SHOP\Manager\Item\DataProvider
- */
 class Rdbms extends DataProvider
 {
     use Manager\DataProvider\Traits\Rdbms;

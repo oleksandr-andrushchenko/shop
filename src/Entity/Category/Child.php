@@ -1,10 +1,5 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: snowgirl
- * Date: 12/16/16
- * Time: 7:08 PM
- */
+
 namespace SNOWGIRL_SHOP\Entity\Category;
 
 use SNOWGIRL_CORE\Entity;
@@ -12,6 +7,7 @@ use SNOWGIRL_CORE\Entity;
 /**
  * Holds categories children (+category is child of itself)
  * Class Child
+ *
  * @package SNOWGIRL_SHOP\Entity\Category
  */
 class Child extends Entity

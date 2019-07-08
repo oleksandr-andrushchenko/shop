@@ -1,11 +1,4 @@
 <?php
-/**
- * Created by JetBrains PhpStorm.
- * User: snowgirl
- * Date: 20.10.15
- * Time: 0:06
- * To change this template use File | Settings | File Templates.
- */
 
 namespace SNOWGIRL_SHOP\Entity\Import;
 
@@ -15,20 +8,21 @@ use SNOWGIRL_CORE\Entity;
 
 /**
  * Class Source
+ *
  * @package SNOWGIRL_SHOP\Entity\Import
  * @method Source set($k, $v)
  * @method \SNOWGIRL_SHOP\Manager\Import\Source getManager()
- * @property int import_source_id
- * @property string name
- * @property string file
- * @property array file_filter
- * @property array file_mapping
- * @property string uri
- * @property string tech_notes
- * @property bool is_cron
- * @property int vendor_id
- * @property string class
- * @property string source_column
+ * @property int      import_source_id
+ * @property string   name
+ * @property string   file
+ * @property array    file_filter
+ * @property array    file_mapping
+ * @property string   uri
+ * @property string   tech_notes
+ * @property bool     is_cron
+ * @property int      vendor_id
+ * @property string   class
+ * @property string   source_column
  * @property DateTime created_at
  * @property DateTime updated_at
  */
@@ -83,6 +77,7 @@ class Source extends Entity
 
     /**
      * @param $v
+     *
      * @return Entity|Source
      * @throws Exception\EntityAttr\Required
      */
@@ -98,6 +93,7 @@ class Source extends Entity
 
     /**
      * @param $v
+     *
      * @return Entity|Source
      * @throws Exception\EntityAttr\Required
      */
@@ -160,6 +156,7 @@ class Source extends Entity
 
     /**
      * @param $v
+     *
      * @return Entity|Source
      * @throws Exception\EntityAttr\Required
      */
@@ -175,6 +172,7 @@ class Source extends Entity
 
     /**
      * @param $v
+     *
      * @return Entity|Source
      * @throws Exception\EntityAttr\Required
      */

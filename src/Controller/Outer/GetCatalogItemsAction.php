@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: snowgirl
- * Date: 5/15/19
- * Time: 12:18 AM
- */
 
 namespace SNOWGIRL_SHOP\Controller\Outer;
 
@@ -19,14 +13,6 @@ class GetCatalogItemsAction
 {
     use PrepareServicesTrait;
 
-    /**
-     * @param App  $app
-     * @param null $type
-     * @param null $id
-     * @param null $source
-     *
-     * @throws \Exception
-     */
     public function __invoke(App $app, $type = null, $id = null, $source = null)
     {
         $this->prepareServices($app);

@@ -1,11 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: snowgirl
- * Date: 4/22/16
- * Time: 2:25 PM
- *
- */
 
 namespace SNOWGIRL_SHOP\Entity;
 
@@ -13,6 +6,7 @@ use SNOWGIRL_SHOP\Entity\Item\Attr;
 
 /**
  * Class Vendor
+ *
  * @package SNOWGIRL_SHOP\Entity
  * @method Vendor setName($name)
  * @method Vendor setUri($name)

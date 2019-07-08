@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: snowgirl
- * Date: 4/4/19
- * Time: 11:20 PM
- */
 
 namespace SNOWGIRL_SHOP\Manager\Item\DataProvider;
 
@@ -12,11 +6,6 @@ use SNOWGIRL_CORE\Service\Nosql\Mongo;
 use SNOWGIRL_SHOP\Catalog\URI;
 use SNOWGIRL_SHOP\Manager\Item\DataProvider;
 
-/**
- * Class Nosql
- *
- * @package SNOWGIRL_SHOP\Manager\Item\DataProvider
- */
 class Nosql extends DataProvider
 {
     use \SNOWGIRL_CORE\Manager\DataProvider\Traits\Nosql;

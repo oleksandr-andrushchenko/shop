@@ -1,17 +1,7 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: snowgirl
- * Date: 3/31/18
- * Time: 2:21 AM
- */
 
 namespace SNOWGIRL_SHOP\Entity\Item;
 
-/**
- * Class Archive
- * @package SNOWGIRL_SHOP\Entity\Item
- */
 class Archive extends \SNOWGIRL_CORE\Entity
 {
     protected static $table = 'item_archive';

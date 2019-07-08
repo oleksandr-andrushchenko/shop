@@ -1,17 +1,7 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: snowgirl
- * Date: 4/7/18
- * Time: 9:43 AM
- */
 
 namespace SNOWGIRL_SHOP\Entity\Category;
 
-/**
- * Class Alias
- * @package SNOWGIRL_SHOP\Entity\Category
- */
 class Alias extends \SNOWGIRL_SHOP\Entity\Item\Attr\Alias
 {
     protected static $table = 'category_alias';

@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: snowgirl
- * Date: 1/28/18
- * Time: 3:12 AM
- */
 
 namespace SNOWGIRL_SHOP\Item\URI;
 
@@ -21,6 +15,7 @@ use SNOWGIRL_SHOP\Catalog\URI as CatalogURI;
 
 /**
  * Class Manager
+ *
  * @property App|Web|Console
  * @package SNOWGIRL_SHOP\Item\URI
  */
@@ -40,7 +35,8 @@ class Manager
 
     /**
      * @param Request $request
-     * @param bool $domain
+     * @param bool    $domain
+     *
      * @return bool|URI
      * @throws \Exception
      */
@@ -60,6 +56,7 @@ class Manager
 
     /**
      * @param Request $request
+     *
      * @return array|bool
      * @throws \Exception
      */
@@ -101,8 +98,9 @@ class Manager
     }
 
     /**
-     * @param $path
+     * @param         $path
      * @param Request $request
+     *
      * @return bool
      * @throws \Exception
      */

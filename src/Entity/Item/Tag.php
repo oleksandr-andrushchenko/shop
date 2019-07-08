@@ -1,18 +1,9 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: snowgirl
- * Date: 5/2/17
- * Time: 21:54 PM
- */
+
 namespace SNOWGIRL_SHOP\Entity\Item;
 
 use SNOWGIRL_CORE\Entity;
 
-/**
- * Class Tag
- * @package SNOWGIRL_SHOP\Entity\Item
- */
 class Tag extends Entity
 {
     protected static $table = 'item_tag';

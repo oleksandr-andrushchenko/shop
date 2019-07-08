@@ -1,11 +1,4 @@
 <?php
-/**
- * Created by JetBrains PhpStorm.
- * User: snowgirl
- * Date: 30.09.15
- * Time: 14:39
- * To change this template use File | Settings | File Templates.
- */
 
 namespace SNOWGIRL_SHOP\Entity;
 
@@ -13,6 +6,7 @@ use SNOWGIRL_CORE\Entity;
 
 /**
  * Class Item
+ *
  * @package SNOWGIRL_SHOP\Entity
  * @method \SNOWGIRL_SHOP\Manager\Item getManager()
  */
@@ -69,6 +63,7 @@ class Item extends Entity
 
     /**
      * @param $v
+     *
      * @return Entity
      * @throws \SNOWGIRL_CORE\Exception\EntityAttr\Required
      */
@@ -84,6 +79,7 @@ class Item extends Entity
 
     /**
      * @param $v
+     *
      * @return Entity
      * @throws \SNOWGIRL_CORE\Exception\EntityAttr\Required
      */
@@ -99,6 +95,7 @@ class Item extends Entity
 
     /**
      * @param $v
+     *
      * @return Entity
      * @throws \SNOWGIRL_CORE\Exception\EntityAttr\Required
      */
@@ -124,6 +121,7 @@ class Item extends Entity
 
     /**
      * @param $image
+     *
      * @return Entity
      * @throws \SNOWGIRL_CORE\Exception\EntityAttr\Required
      */
@@ -289,6 +287,7 @@ class Item extends Entity
 
     /**
      * @param $v
+     *
      * @return Entity
      * @throws \SNOWGIRL_CORE\Exception\EntityAttr\Required
      */
@@ -351,6 +350,7 @@ class Item extends Entity
 
     /**
      * @param $v
+     *
      * @return Entity
      * @throws \SNOWGIRL_CORE\Exception\EntityAttr\Required
      */

@@ -1,11 +1,4 @@
 <?php
-/**
- * Created by JetBrains PhpStorm.
- * User: snowgirl
- * Date: 12.10.15
- * Time: 0:40
- * To change this template use File | Settings | File Templates.
- */
 
 namespace SNOWGIRL_SHOP\Entity;
 
@@ -13,6 +6,7 @@ use SNOWGIRL_SHOP\Entity\Item\Attr;
 
 /**
  * Class Color
+ *
  * @package SNOWGIRL_SHOP\Entity
  * @method \SNOWGIRL_SHOP\Manager\Color getManager()
  */

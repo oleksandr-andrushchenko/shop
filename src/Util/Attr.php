@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: snowgirl
- * Date: 9/23/18
- * Time: 12:39 AM
- */
 
 namespace SNOWGIRL_SHOP\Util;
 
@@ -24,6 +18,7 @@ use SNOWGIRL_SHOP\Manager\Item\Attr as ItemAttrManager;
 
 /**
  * Class Attr
+ *
  * @property App app
  * @package SNOWGIRL_SHOP\Util
  */

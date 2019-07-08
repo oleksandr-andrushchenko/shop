@@ -1,11 +1,5 @@
 <?php
-/**
- * Created by JetBrains PhpStorm.
- * User: snowgirl
- * Date: 28.09.15
- * Time: 0:06
- * To change this template use File | Settings | File Templates.
- */
+
 namespace SNOWGIRL_SHOP\Entity;
 
 use SNOWGIRL_SHOP\Entity\Item\Attr;
@@ -13,6 +7,7 @@ use SNOWGIRL_SHOP\Entity\Item\Attr;
 /**
  * Class Category
  * @method static Category factory()
+ *
  * @package SNOWGIRL_SHOP\Entity
  */
 class Category extends Attr

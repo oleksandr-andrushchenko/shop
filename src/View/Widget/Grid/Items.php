@@ -1,19 +1,10 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: snowgirl
- * Date: 1/24/18
- * Time: 4:27 PM
- */
+
 namespace SNOWGIRL_SHOP\View\Widget\Grid;
 
 use SNOWGIRL_CORE\View\Widget;
 use SNOWGIRL_CORE\View\Widget\Ad;
 
-/**
- * Class Items
- * @package SNOWGIRL_SHOP\View\Widget\Grid
- */
 class Items extends Widget
 {
     protected $items = [];

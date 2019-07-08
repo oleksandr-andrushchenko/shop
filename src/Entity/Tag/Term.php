@@ -1,19 +1,7 @@
 <?php
-/**
- * Created by JetBrains PhpStorm.
- * User: snowgirl
- * Date: 12.05.17
- * Time: 10:52
- * To change this template use File | Settings | File Templates.
- */
+
 namespace SNOWGIRL_SHOP\Entity\Tag;
 
-use SNOWGIRL_CORE\Entity;
-
-/**
- * Class Term
- * @package SNOWGIRL_SHOP\Entity\Tag
- */
 class Term extends \SNOWGIRL_SHOP\Entity\Term
 {
     protected static $table = 'tag_term';

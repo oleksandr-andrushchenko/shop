@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: snowgirl
- * Date: 5/15/19
- * Time: 12:18 AM
- */
 
 namespace SNOWGIRL_SHOP\Controller\Outer;
 
@@ -17,9 +11,6 @@ class TranslateAction
     use PrepareServicesTrait;
     use ProcessTypicalPageTrait;
 
-    /**
-     * @param App $app
-     */
     public function __invoke(App $app)
     {
         $this->prepareServices($app);

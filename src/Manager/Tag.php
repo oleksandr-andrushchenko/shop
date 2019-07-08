@@ -1,10 +1,5 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: snowgirl
- * Date: 5/5/17
- * Time: 4:45 PM
- */
+
 namespace SNOWGIRL_SHOP\Manager;
 
 use SNOWGIRL_SHOP\Manager\Item\Attr;
@@ -17,6 +12,7 @@ use SNOWGIRL_SHOP\Entity\Tag as TagEntity;
  * @method Tag setLimit($limit)
  * @method TagEntity find($id)
  * @method TagEntity[] findMany(array $id)
+ *
  * @package SNOWGIRL_SHOP\Manager
  */
 class Tag extends Attr

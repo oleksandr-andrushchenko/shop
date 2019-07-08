@@ -1,19 +1,9 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: snowgirl
- * Date: 4/7/17
- * Time: 2:04 AM
- */
+
 namespace SNOWGIRL_SHOP\Entity;
 
-use SNOWGIRL_CORE\Exception\EntityAttr\MD5;
 use SNOWGIRL_SHOP\Entity\Item\Attr;
 
-/**
- * Class Size
- * @package SNOWGIRL_SHOP\Entity
- */
 class Size extends Attr
 {
     protected static $table = 'size';

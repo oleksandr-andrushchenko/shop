@@ -1,20 +1,11 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: snowgirl
- * Date: 12/18/17
- * Time: 2:27 PM
- */
+
 namespace SNOWGIRL_SHOP;
 
 use SNOWGIRL_SHOP\Entity\Vendor as VendorEntity;
 use SNOWGIRL_SHOP\Entity\Item;
 use SNOWGIRL_CORE\HtmlParser;
 
-/**
- * Class Vendor
- * @package SNOWGIRL_SHOP
- */
 abstract class Vendor
 {
     /** @var App */

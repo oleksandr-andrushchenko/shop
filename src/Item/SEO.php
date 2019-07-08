@@ -1,17 +1,11 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: snowgirl
- * Date: 11.02.16
- * Time: 9:25 AM
- */
 
 namespace SNOWGIRL_SHOP\Item;
 
 use SNOWGIRL_CORE\App;
 use SNOWGIRL_CORE\Helper;
 use SNOWGIRL_CORE\View\Layout;
-use SNOWGIRL_CORE\Entity\Page\Regular as PageRegular;
+use SNOWGIRL_CORE\Entity\Page;
 use SNOWGIRL_SHOP\Catalog\URI as CatalogURI;
 
 /**
@@ -79,17 +73,17 @@ class SEO
         return $this->params;
     }
 
-    /** @var  PageRegular */
-    protected $regularPage;
+    /** @var  Page */
+    protected $page;
 
-    protected function getRegularPage()
+    protected function getPage()
     {
-        return $this->regularPage ?: $this->regularPage = $this->app->managers->pages->findByKey('item');
+        return $this->page ?: $this->page = $this->app->managers->pages->findByKey('item');
     }
 
     protected function makeAttrValue($attr, $default = null, array $params = [])
     {
-        return $this->getRegularPage()->make($attr, $default, $params);
+        return $this->getPage()->make($attr, $default, $params);
     }
 
     public function getParam($key, array $params = [], $nice = true)

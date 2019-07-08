@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: snowgirl
- * Date: 4/21/17
- * Time: 9:47 PM
- */
 
 namespace SNOWGIRL_SHOP\Entity\Item;
 
@@ -13,6 +7,7 @@ use SNOWGIRL_SHOP\Catalog\URI;
 
 /**
  * Class Attr
+ *
  * @property string uri
  * @property string name
  * @package SNOWGIRL_SHOP\Entity\Item
@@ -52,6 +47,7 @@ abstract class Attr extends Entity
 
     /**
      * @param $v
+     *
      * @return Entity|Attr
      * @throws \SNOWGIRL_CORE\Exception\EntityAttr\Required
      */

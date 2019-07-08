@@ -1,10 +1,5 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: snowgirl
- * Date: 9/25/17
- * Time: 7:27 PM
- */
+
 namespace SNOWGIRL_SHOP\Manager;
 
 use SNOWGIRL_CORE\Manager;
@@ -25,30 +20,31 @@ use SNOWGIRL_SHOP\Manager\Import\History as ImportHistory;
 
 /**
  * Class Builder
- * @property Item items
- * @property Category categories
- * @property Brand brands
- * @property Color colors
- * @property Tag tags
- * @property Size sizes
- * @property Material materials
- * @property Country countries
- * @property PageCatalog catalog
+ *
+ * @property Item              items
+ * @property Category          categories
+ * @property Brand             brands
+ * @property Color             colors
+ * @property Tag               tags
+ * @property Size              sizes
+ * @property Material          materials
+ * @property Country           countries
+ * @property PageCatalog       catalog
  * @property PageCatalogCustom catalogCustom
- * @property Vendor vendors
- * @property Season seasons
- * @property Source sources
- * @property CategoryEntity categoriesToEntities
- * @property CategoryChild categoriesToChildren
- * @property ItemToColor itemsToColors
- * @property ItemToSize itemsToSizes
- * @property ItemToMaterial itemsToMaterials
- * @property ItemToTag itemsToTags
- * @property ItemToSeason itemsToSeasons
- * @property Stock stock
- * @property ItemArchive archiveItems
- * @property ItemRedirect itemRedirects
- * @property ImportHistory importHistory
+ * @property Vendor            vendors
+ * @property Season            seasons
+ * @property Source            sources
+ * @property CategoryEntity    categoriesToEntities
+ * @property CategoryChild     categoriesToChildren
+ * @property ItemToColor       itemsToColors
+ * @property ItemToSize        itemsToSizes
+ * @property ItemToMaterial    itemsToMaterials
+ * @property ItemToTag         itemsToTags
+ * @property ItemToSeason      itemsToSeasons
+ * @property Stock             stock
+ * @property ItemArchive       archiveItems
+ * @property ItemRedirect      itemRedirects
+ * @property ImportHistory     importHistory
  * @method Manager|Term get($class)
  * @method Manager|Term getByEntityClass($class)
  * @method Manager|ItemAttr getByTable($table)

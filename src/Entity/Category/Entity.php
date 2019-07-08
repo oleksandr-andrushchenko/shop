@@ -1,17 +1,7 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: snowgirlCH
- * Date: 3/28/17
- * Time: 11:01 AM
- */
 
 namespace SNOWGIRL_SHOP\Entity\Category;
 
-/**
- * Class Entity
- * @package SNOWGIRL_SHOP\Entity\Category
- */
 class Entity extends \SNOWGIRL_CORE\Entity
 {
     protected static $table = 'category_entity';

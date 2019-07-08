@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: snowgirl
- * Date: 11/2/16
- * Time: 8:56 PM
- */
 
 namespace SNOWGIRL_SHOP\Manager\Import;
 
@@ -22,11 +16,12 @@ use SNOWGIRL_CORE\Helper\Classes;
 
 /**
  * Class Source
+ *
  * @property ImportSourceEntity $entity
  * @method static ImportSourceEntity getItem($id)
  * @method ImportSourceEntity find($id)
  * @method static Source factory($app)
- * @property App app
+ * @property App                app
  * @method ImportSourceEntity[] getObjects($idAsKeyOrKey = null)
  * @method Source clear()
  * @method Source setWhat($what)
@@ -77,7 +72,8 @@ class Source extends Manager
 
     /**
      * @param ImportSourceEntity $source
-     * @param array $input
+     * @param array              $input
+     *
      * @return array|bool|null
      */
     public function updateFileMapping(ImportSourceEntity $source, array $input)
@@ -221,6 +217,7 @@ class Source extends Manager
 
     /**
      * @param ImportSourceEntity $source
+     *
      * @return Entity|VendorEntity
      */
     public function getVendor(ImportSourceEntity $source)
@@ -230,6 +227,7 @@ class Source extends Manager
 
     /**
      * @param ImportSourceEntity $source
+     *
      * @return Import
      */
     public function getImport(ImportSourceEntity $source)

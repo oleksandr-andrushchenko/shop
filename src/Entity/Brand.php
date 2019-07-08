@@ -1,19 +1,9 @@
 <?php
-/**
- * Created by JetBrains PhpStorm.
- * User: snowgirl
- * Date: 30.09.15
- * Time: 14:40
- * To change this template use File | Settings | File Templates.
- */
+
 namespace SNOWGIRL_SHOP\Entity;
 
 use SNOWGIRL_SHOP\Entity\Item\Attr;
 
-/**
- * Class Brand
- * @package SNOWGIRL_SHOP\Entity
- */
 class Brand extends Attr
 {
     protected static $table = 'brand';
