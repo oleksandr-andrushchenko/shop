@@ -24,7 +24,7 @@ $this->getLayout()
             <ul>
                 <?php foreach ($this->vendors as $vendor) { ?>
                     <li>
-                        <form action="<?php echo trans('admin', ['action' => 'row', 'table' => $vendor->getTable()]) ?>"
+                        <form action="<?php echo href('admin', ['action' => 'row', 'table' => $vendor->getTable()]) ?>"
                               method="post" class="form-inline form-vendor item">
                             <input type="hidden" name="id" value="<?php echo $vendor->getId() ?>">
                             <input type="hidden" name="is_active" value="0">
@@ -55,7 +55,7 @@ $this->getLayout()
             Список пуст
         <?php } ?>
 
-        <form action="<?php echo trans('admin', ['action' => 'row', 'table' => Vendor::getTable()]) ?>"
+        <form action="<?php echo href('admin', ['action' => 'row', 'table' => Vendor::getTable()]) ?>"
               method="post" class="form-horizontal">
             <div class="form-group">
                 <div class="col-lg-offset-2  col-lg-10 col-md-offset-2 col-md-10">
@@ -131,7 +131,7 @@ $this->getLayout()
             <ul>
                 <?php foreach ($this->importSources as $importSource) { ?>
                     <li>
-                        <form action="<?php echo trans('admin', ['action' => 'row', 'table' => $importSource->getTable()]) ?>"
+                        <form action="<?php echo href('admin', ['action' => 'row', 'table' => $importSource->getTable()]) ?>"
                               method="post" class="form-inline form-import-source item">
                             <input type="hidden" name="id" value="<?php echo $importSource->getId() ?>">
                             <input type="hidden" name="is_cron" value="0">
@@ -165,7 +165,7 @@ $this->getLayout()
             Список пуст
         <?php } ?>
 
-        <form action="<?php echo trans('admin', ['action' => 'row', 'table' => ImportSource::getTable()]) ?>"
+        <form action="<?php echo href('admin', ['action' => 'row', 'table' => ImportSource::getTable()]) ?>"
               method="post" class="form-horizontal">
             <div class="form-group">
                 <div class="col-lg-offset-2  col-lg-10 col-md-offset-2 col-md-10">
