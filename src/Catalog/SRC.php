@@ -15,12 +15,6 @@ use SNOWGIRL_CORE\Entity\Page;
 use SNOWGIRL_SHOP\Entity\Page\Catalog as PageCatalog;
 use SNOWGIRL_SHOP\Entity\Page\Catalog\Custom as PageCatalogCustom;
 
-/**
- * @todo    !!! create separate Strategies (classes implemented from common interface) instead of raw mods
- *
- * Class SRC
- * @package SNOWGIRL_SHOP\Catalog
- */
 class SRC
 {
     protected $uri;
@@ -30,6 +24,8 @@ class SRC
     protected $maxMatched;
 
     /**
+     * @todo    !!! create separate Strategies (classes implemented from common interface) instead of raw mods
+     *
      * @param URI        $uri
      * @param array      $entities   - attrs entities to collect (used in templates, e.g. - entity.item.catalog.phtml )
      * @param bool|false $maxMatched - is order by max matched (attributes counts)
@@ -116,8 +112,6 @@ class SRC
 
         $output = [];
 
-//        var_dump($this->getDataProvider()->getItemsAttrs());die;
-
         foreach ($this->getDataProvider()->getItemsAttrs() as $item) {
             $id = (int)$item['item_id'];
             unset($item['item_id']);
@@ -177,11 +171,6 @@ class SRC
         foreach ($this->entities as $attrKey => $attrEntity) {
             /** @var string $attrEntity */
             $attrId = [];
-
-//            print_r([
-//                $this->entities,
-//                $itemIdToAttrs
-//            ]);die;
 
             foreach ($itemIdToAttrs as $attrs) {
                 if ($attrs[$attrKey]) {
@@ -330,21 +319,11 @@ class SRC
 
     protected static $showValues;
 
-    /**
-     * @param \SNOWGIRL_CORE\App|App $app
-     *
-     * @return array
-     */
     public static function getShowValues(App $app)
     {
         return self::$showValues ?: self::$showValues = explode(',', $app->config->catalog->show);
     }
 
-    /**
-     * @param \SNOWGIRL_CORE\App|App $app
-     *
-     * @return mixed
-     */
     public static function getDefaultShowValue(App $app)
     {
         $tmp = self::getShowValues($app);
@@ -353,10 +332,6 @@ class SRC
 
     protected static $orderValues;
 
-    /**
-     * @todo if change - sync with tables order columns...
-     * @return array
-     */
     public static function getOrderValues()
     {
         return self::$orderValues ?: self::$orderValues = [
@@ -374,9 +349,6 @@ class SRC
         return current($tmp);
     }
 
-    /**
-     * @return array
-     */
     public function getItemsPricesRange()
     {
         $tmp = [];
