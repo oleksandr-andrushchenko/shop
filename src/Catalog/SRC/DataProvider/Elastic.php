@@ -150,15 +150,6 @@ class Elastic extends DataProvider
         return $output;
     }
 
-    /**
-     * Main Order function - returns Rdbms(!) order
-     *
-     * @todo if change - sync with tables order columns...
-     *
-     * @param bool|false $cache
-     *
-     * @return array
-     */
     public function getOrder($cache = false)
     {
         $output = [];
@@ -171,19 +162,7 @@ class Elastic extends DataProvider
             return $output;
         }
 
-        $output[] = ['is_in_stock' => 'desc'];
-
-        $output[] = [$info->column => $info->desc ? 'desc' : 'asc'];
-
-//        $output[] = new QueryExpr('IFNULL(`updated_at`, `created_at`) DESC');
-        $output[] = ['created_at' => 'desc'];
-        $output[] = ['updated_at' => 'desc'];
-
-        if (!isset($output['rating'])) {
-            $output[] = ['rating' => 'desc'];
-        }
-
-        $output[] = ['item_id' => 'desc'];
+        throw new \Exception('other potentially suitable columns are missed in index, please add them first');
 
         return $output;
     }
