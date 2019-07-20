@@ -112,19 +112,7 @@ class Nosql extends DataProvider
             return $output;
         }
 
-        $output['is_in_stock'] = SORT_DESC;
-
-        $output[$info->column] = $info->desc ? SORT_DESC : SORT_ASC;
-
-//        $output[] = new QueryExpr('IFNULL(`updated_at`, `created_at`) DESC');
-        $output['created_at'] = SORT_DESC;
-        $output['updated_at'] = SORT_DESC;
-
-        if (!isset($output['rating'])) {
-            $output['rating'] = SORT_DESC;
-        }
-
-        $output['item_id'] = SORT_DESC;
+        //@todo...
 
         return $output;
     }
