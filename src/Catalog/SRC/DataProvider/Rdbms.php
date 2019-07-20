@@ -244,9 +244,8 @@ class Rdbms extends DataProvider
 
         $output[$info->column] = $info->desc ? SORT_DESC : SORT_ASC;
 
-//        $output[] = new QueryExpr('IFNULL(`updated_at`, `created_at`) DESC');
         $output['created_at'] = SORT_DESC;
-        $output['updated_at'] = SORT_DESC;
+        $output['partner_updated_at'] = SORT_DESC;
 
         if (!isset($output['rating'])) {
             $output['rating'] = SORT_DESC;
