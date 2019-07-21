@@ -140,7 +140,7 @@ class Entity extends Manager
      */
     protected function updateItemsCategory($function, $categoryId, array $where)
     {
-        $where = Arrays::sortByKeysArray($where, ['category_id', 'vendor_id', 'created_at', 'updated_at', 'entity', 'name']);
+        $where = Arrays::sortByKeysArray($where, ['category_id', 'vendor_id', 'import_source_id', 'created_at', 'partner_updated_at', 'entity', 'name']);
 
         if ($aff = $this->app->managers->items->updateMany(['category_id' => $categoryId], $where)) {
             $this->app->services->logger->make(implode(' - ', [
