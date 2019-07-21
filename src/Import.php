@@ -667,7 +667,7 @@ class Import
     protected function setOutOfStock()
     {
         $this->app->managers->items->updateMany(['is_in_stock' => 0], [
-            'vendor_id' => $this->source->getVendorId()
+            'import_source_id' => $this->source->getId()
         ]);
 
         return $this;
