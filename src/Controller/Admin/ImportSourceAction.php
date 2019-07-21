@@ -56,10 +56,7 @@ class ImportSourceAction
             'modifyNotLessThan' => 10,
             'mappingAutoFuncFor' => [$app->managers->categories->getEntity()->getPk()],
             'fileName' => $source->getFile(),
-            'sva' => array_map(function ($component) {
-                /** @var ItemAttr $component */
-                return $component::getPk();
-            }, $app->managers->catalog->getSvaComponents())
+            'sva' => array_keys($app->managers->catalog->getSvaPkToTable())
         ]);
 
         if ($app->request->get('data', false)) {
