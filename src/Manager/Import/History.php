@@ -2,7 +2,7 @@
 
 namespace SNOWGIRL_SHOP\Manager\Import;
 
-use SNOWGIRL_SHOP\Entity\Import\Source as ImportSourceEntity;
+use SNOWGIRL_SHOP\Entity\Import\Source as ImportSource;
 use SNOWGIRL_CORE\Manager;
 use SNOWGIRL_SHOP\Entity\Import\History as ImportHistoryEntity;
 
@@ -14,21 +14,59 @@ use SNOWGIRL_SHOP\Entity\Import\History as ImportHistoryEntity;
  */
 class History extends Manager
 {
-    public function isOkLastImport(ImportSourceEntity $importSource)
+    /**
+     * @param ImportSource $importSource
+     *
+     * @return bool|null
+     */
+    public function isOkLastImport(ImportSource $importSource)
     {
         /** @var ImportHistoryEntity $tmp */
         $tmp = $this->copy(true)
             ->setWhere([
-                $importSource->getPk() => $importSource->getId(),
+                'import_source_id' => $importSource->getId(),
                 'is_ok' => 1
             ])
-            ->setOrders(['created_at' => SORT_DESC])
+            ->setOrders([$this->getEntity()->getPk() => SORT_DESC])
+            ->setLimit(1)
             ->getObject();
+
+//        dump($tmp->getImportSourceId(),$tmp->getCreatedAt());
 
         if ($tmp) {
             return (time() - strtotime($tmp->getCreatedAt())) / (24 * 60 * 60) < 7;
         }
 
         return null;
+    }
+
+    /**
+     * @todo fix
+     * @param ImportSource[] $importSources
+     *
+     * @return array
+     */
+    public function isOkLastImports(array $importSources)
+    {
+        $output = [];
+
+        $tmp = $this->copy(true)
+            ->setColumns(['import_source_id', 'created_at'])
+            ->setWhere([
+                'import_source_id' => array_map(function (ImportSource $importSource) {
+                    return $importSource->getId();
+                }, $importSources),
+                'is_ok' => 1
+            ])
+            ->setOrders([$this->getEntity()->getPk() => SORT_DESC])
+            ->setGroups(['import_source_id'])
+            ->getArrays('import_source_id');
+
+        foreach ($importSources as $importSource) {
+            $id = $importSource->getId();
+            $output[$id] = isset($tmp[$id]) ? (time() - strtotime($tmp[$id]['created_at'])) / (24 * 60 * 60) < 7 : null;
+        }
+
+//        return $output;
     }
 }
