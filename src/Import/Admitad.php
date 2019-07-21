@@ -15,18 +15,6 @@ class Admitad extends Import
         'season_id' => ['description']
     ];
 
-    protected $langs = ['ru'];
-
-    protected $filters = [
-        'categoryId' => [
-            'equal' => ['женщ'],
-            'not_equal' => ['муж', 'дево', 'мальч', 'детс']
-        ],
-        'currencyId' => [
-            'equal' => ['RUB']
-        ]
-    ];
-
     protected $mappings = [
         'name' => ['column' => 'name'],
         'partner_item_id' => ['column' => 'id'],
@@ -43,7 +31,7 @@ class Admitad extends Import
         'partner_updated_at' => ['column' => 'modified_time']
     ];
 
-    protected $defaultAllowModifyOnly = false;
+    protected $langs = ['ru'];
 
     protected $csvProcessorV2 = false;
     protected $mvaProcessorV2 = true;
