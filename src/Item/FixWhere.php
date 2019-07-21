@@ -188,10 +188,9 @@ class FixWhere
         }
 
         if ($this->sources) {
-            //@todo change when vendor has more then one source...
-            $where = array_merge(['vendor_id' => array_map(function ($source) {
+            $where = array_merge(['import_source_id' => array_map(function ($source) {
                 /** @var ImportSource $source */
-                return $source->getVendorId();
+                return $source->getImportSourceId();
             }, $this->sources)], $where);
         }
 
