@@ -18,7 +18,7 @@ use SNOWGIRL_SHOP\Catalog\URI as CatalogURI;
  * phone,
  * category,
  * brand,
- * upc (universal product code)
+ * partner_item_id (?? universal product code ??)
  * description
  * keywords
  *
@@ -55,7 +55,7 @@ class SEO
             'category' => $this->app->managers->items->getCategory($item)->getName(),
             'brand' => $brand = $this->app->managers->items->getBrand($item)->getName(),
 //            'color' => ($v = $this->app->managers->items->getColor($this->getItem())) ? $v->getName() : '',
-            'upc' => $item->getUpc()
+            'partner_item_id' => $item->getPartnerItemId()
         ]);
 
         $this->params['description'] = implode('. ', [

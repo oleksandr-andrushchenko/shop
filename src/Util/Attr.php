@@ -218,7 +218,7 @@ class Attr extends Util
                 }
 
                 foreach ($inserts as $table => $insert) {
-                    if ($insert && $aff = $managers[$table]->insertMany($insert, true)) {
+                    if ($insert && $aff = $managers[$table]->insertMany($insert, ['ignore' => true])) {
                         $this->app->services->logger->make($aff . ' updated for attr="' . $table . '"');
                     }
                 }

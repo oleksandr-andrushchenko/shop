@@ -13,7 +13,7 @@ use SNOWGIRL_CORE\Service\Nosql\Mongo;
 use SNOWGIRL_CORE\Service\Rdbms\Mysql;
 use SNOWGIRL_CORE\Service\Storage\Query;
 use SNOWGIRL_CORE\Util;
-use SNOWGIRL_CORE\App;
+use SNOWGIRL_SHOP\App\Console as App;
 use SNOWGIRL_SHOP\Catalog\SRC;
 use SNOWGIRL_SHOP\Catalog\URI;
 use SNOWGIRL_SHOP\Entity\Category;
@@ -158,8 +158,8 @@ class Item extends Util
 
     public function doUpdateItemsOrders()
     {
-        $table = ItemEntity::getTable();
-        $pk = ItemEntity::getPk();
+        $table = $this->app->managers->items->getEntity()->getTable();
+        $pk = $this->app->managers->items->getEntity()->getPk();
         $db = $this->app->services->rdbms;
         $after = 'is_in_stock';
 
@@ -169,14 +169,12 @@ class Item extends Util
 
             $info = $src->getOrderInfo();
 
-            try {
+            if (!in_array($info->cache_column, $db->getColumns($table))) {
                 $db->debugReq(implode(' ', [
                     'ALTER TABLE' . ' ' . $db->quote($table),
                     'ADD COLUMN ' . $db->quote($info->cache_column) . ' int(11) NOT NULL DEFAULT \'0\'',
                     'AFTER ' . $db->quote($after)
                 ]));
-            } catch (\Exception $ex) {
-                $this->app->services->logger->makeException($ex);
             }
 
             $db->req('SET @num=0');
@@ -192,11 +190,11 @@ class Item extends Util
                 'SET ' . $db->quote($info->cache_column, 'i') . ' = ' . $db->quote('num', 'i2')
             ]);
 
-            $db->debugReq($query);
+            $aff = $db->debugReq($query)->affectedRows();
 
             $after = $info->cache_column;
 
-            $this->output('DONE[' . $info->cache_column . ']');
+            $this->output('DONE[' . $info->cache_column . ']: ' . $aff);
         }
 
         $this->output('DONE');
@@ -245,18 +243,18 @@ class Item extends Util
     public function doFixWithNonExistingAttrs()
     {
         $aff = $this->doDeleteWithNonExistingCategories();
-        $this->output('items deleted with non-existing categories: ' . $aff);
+        $this->output('deleted with invalid categories: ' . $aff);
 
         $tmp = $this->doDeleteWithNonExistingBrands();
-        $this->output('items deleted with non-existing brands: ' . $tmp);
+        $this->output('deleted with invalid brands: ' . $tmp);
         $aff += $tmp;
 
         $tmp = $this->doFixWithNonExistingCountries();
-        $this->output('items updated with non-existing countries: ' . $tmp);
+        $this->output('updated with invalid countries: ' . $tmp);
         $aff += $tmp;
 
         $tmp = $this->app->utils->attrs->doDeleteNonExistingItemsMva();
-        $this->output('items updated with non-existing mva: ' . $tmp);
+        $this->output('updated with invalid mva: ' . $tmp);
         $aff += $tmp;
 
         return $aff;
