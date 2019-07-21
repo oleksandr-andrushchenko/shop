@@ -36,7 +36,7 @@ class Source extends Entity
 
     protected static $columns = [
         'import_source_id' => ['type' => self::COLUMN_INT, self::AUTO_INCREMENT],
-        'name' => ['type' => self::COLUMN_TEXT, self::REQUIRED],
+        'name' => ['type' => self::COLUMN_TEXT, self::REQUIRED, self::SEARCH_IN, self::SEARCH_DISPLAY],
         'file' => ['type' => self::COLUMN_TEXT, self::REQUIRED],
         'file_filter' => ['type' => self::COLUMN_TEXT, 'default' => ''],
         'file_mapping' => ['type' => self::COLUMN_TEXT, 'default' => ''],
