@@ -8,8 +8,12 @@ use SNOWGIRL_SHOP\Entity\Import\Source as ImportSource;
 
 class FixWhere
 {
-    /** @var App */
+    /**
+     * @var App
+     */
     protected $app;
+    protected $partnerUpdatedAtFrom;
+    protected $partnerUpdatedAtTo;
     protected $createdAtFrom;
     protected $createdAtTo;
     protected $updatedAtFrom;
@@ -18,12 +22,29 @@ class FixWhere
     protected $updatedAtTo;
     protected $updatedAtToWithNulls;
     protected $orBetweenCreatedAndUpdated;
-    /** @var ImportSource[] */
+
+    /**
+     * @var ImportSource[]
+     */
     protected $sources = [];
 
     public function __construct(App $app)
     {
         $this->app = $app;
+    }
+
+    public function setPartnerUpdatedAtFrom($v)
+    {
+        $this->partnerUpdatedAtFrom = $v;
+        $this->dropCache();
+        return $this;
+    }
+
+    public function setPartnerUpdatedAtTo($v)
+    {
+        $this->partnerUpdatedAtTo = $v;
+        $this->dropCache();
+        return $this;
     }
 
     public function setCreatedAtFrom($v)
@@ -107,6 +128,18 @@ class FixWhere
     {
         $where = [];
         $orWhere = [];
+
+        if ($this->partnerUpdatedAtFrom || $this->partnerUpdatedAtTo) {
+            $q = $this->app->services->rdbms->quote('partner_updated_at');
+
+            if ($tmp = $this->partnerUpdatedAtFrom) {
+                $where[] = new Expr($q . ' > ?', $tmp);
+            }
+
+            if ($tmp = $this->partnerUpdatedAtTo) {
+                $where[] = new Expr($q . ' < ?', $tmp);
+            }
+        }
 
         if ($this->createdAtFrom || $this->createdAtTo) {
             $q = $this->app->services->rdbms->quote('created_at');
