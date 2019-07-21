@@ -11,7 +11,7 @@ class Custom extends Entity
     protected static $isFtdbmsIndex = false;
     protected static $columns = [
         'page_catalog_custom_id' => ['type' => self::COLUMN_INT, self::AUTO_INCREMENT],
-        'params_hash' => ['type' => self::COLUMN_TEXT, self::MD5, self::REQUIRED],
+        'params_hash' => ['type' => self::COLUMN_TEXT, self::MD5, self::REQUIRED, self::SEARCH_IN, self::SEARCH_DISPLAY],
         'meta_title' => ['type' => self::COLUMN_TEXT],
         'meta_description' => ['type' => self::COLUMN_TEXT],
         'meta_keywords' => ['type' => self::COLUMN_TEXT],
