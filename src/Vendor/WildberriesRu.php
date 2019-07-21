@@ -14,6 +14,6 @@ class WildberriesRu extends Vendor
 
     public function getItemTargetLink(Item $item)
     {
-        return 'https://www.wildberries.ru/catalog/' . strtolower($item->getUpc()) . '/detail.aspx';
+        return 'https://www.wildberries.ru/catalog/' . strtolower($item->getPartnerItemId()) . '/detail.aspx';
     }
 }

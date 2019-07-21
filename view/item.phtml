@@ -61,7 +61,7 @@ if ((!$item->get('archive')) && $item->isInStock()) {
     <div class="col-md-6 vs title right">
         <h1 class="item-name" itemprop="name">
             <?php echo htmlspecialchars($this->h1) ?>
-            <?php echo $id = $item->getUpc() ?>
+            <?php echo $id = $item->getPartnerItemId() ?>
             <?php echo $this->app->views->getRating($item->getRating(), 5, 2) ?>
         </h1>
         <meta itemprop="description" content="<?php echo htmlspecialchars(trim(implode(' ', [

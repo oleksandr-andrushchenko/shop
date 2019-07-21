@@ -14,6 +14,6 @@ class LamodaRu extends Vendor
 
     public function getItemTargetLink(Item $item)
     {
-        return 'https://www.lamoda.ru/p/' . strtolower($item->getUpc()) . '/';
+        return 'https://www.lamoda.ru/p/' . strtolower($item->getPartnerItemId()) . '/';
     }
 }
