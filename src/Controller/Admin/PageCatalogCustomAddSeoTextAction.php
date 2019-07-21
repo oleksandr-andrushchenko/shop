@@ -64,6 +64,6 @@ class PageCatalogCustomAddSeoTextAction
 
         $app->managers->catalogCustom->save($pageCatalogCustom);
 
-        $app->request->redirect($app->request->getReferer());
+        $app->request->redirectBack();
     }
 }

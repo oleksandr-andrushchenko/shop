@@ -6,7 +6,6 @@ use SNOWGIRL_CORE\Helper\Arrays;
 use SNOWGIRL_CORE\Service\Storage\Query\Expr;
 use SNOWGIRL_SHOP\App\Web as App;
 use SNOWGIRL_CORE\Controller\Admin\PrepareServicesTrait;
-use SNOWGIRL_SHOP\Entity\Item;
 use SNOWGIRL_SHOP\Import;
 use SNOWGIRL_SHOP\Manager\Item as ItemManager;
 use SNOWGIRL_SHOP\Manager\Page\Catalog as PageCatalogManager;
@@ -27,8 +26,8 @@ class ItemFixesAction
         $view = $app->views->getLayout(true);
 
         $content = $view->setContentByTemplate('@shop/admin/item-fixes.phtml', [
-            'columns' => Arrays::removeKeys(Item::getColumns(), ['upc', 'price', 'old_price', 'rating', 'uri']),
-            'editableColumns' => Import::getPostImportEditableColumns(),
+            'columns' => Arrays::removeKeys($app->managers->items->getEntity()->getColumns(), ['partner_item_id', 'price', 'old_price', 'rating', 'uri']),
+            'editableColumns' => Import::getPostEditableColumns(),
             'categories' => $app->managers->categories->clear()->setOrders(['name' => SORT_ASC])->getObjects(true),
             'countries' => $app->managers->countries->clear()->setOrders(['name' => SORT_ASC])->getObjects(true),
             'searchBy' => $searchBy = $app->request->get('search_by', false),
@@ -41,7 +40,6 @@ class ItemFixesAction
         $pageNum = (int)$app->request->get('page', 1);
         $pageSize = (int)$app->request->get('size', 20);
 
-        /** @var ItemManager $src */
         $src = $app->managers->items->clear();
 
         $db = $app->services->rdbms;
@@ -81,7 +79,6 @@ class ItemFixesAction
             ->setLimit($srcLimit)
             ->calcTotal(true);
 
-        /** @var Item[] $items */
         $items = $src->getObjects(true);
 
         $content->items = $items;
@@ -99,7 +96,7 @@ class ItemFixesAction
         $content->addParams([
             'brands' => $app->managers->brands->findMany(array_unique($tmp['brands'])),
             'vendors' => $app->managers->vendors->findMany(array_unique($tmp['vendors'])),
-            'mvaEntities' => PageCatalogManager::getMvaComponents()
+            'mvaEntities' => $app->managers->catalog->getMvaComponents()
         ]);
 
         $tmp = [];

@@ -46,8 +46,8 @@ class ItemAction
         $view = $app->views->getLayout();
 
         $app->seo->manageItemPage($uri, $view, [
-            'meta_title' => '{name} – купить за {price} руб. в интернет-магазине: цена, фото и описание. Арт. {upc}',
-            'meta_description' => '{description} ✔ интернет-магазин {site} *** Тел: {phone} ✔ Доставка ✔ Гарантия ✔ Лучшие цены! Артикул № {upc}',
+            'meta_title' => '{name} – купить за {price} руб. в интернет-магазине: цена, фото и описание. Арт. {partner_item_id}',
+            'meta_description' => '{description} ✔ интернет-магазин {site} *** Тел: {phone} ✔ Доставка ✔ Гарантия ✔ Лучшие цены! Артикул № {partner_item_id}',
             'meta_keywords' => 'купить, {keywords}, женские, распродажа, дешево',
             'h1' => '{name}',
             'description' => '{name}',

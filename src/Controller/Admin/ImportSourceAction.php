@@ -6,11 +6,7 @@ use SNOWGIRL_CORE\Exception\HTTP\BadRequest;
 use SNOWGIRL_CORE\Exception\HTTP\NotFound;
 use SNOWGIRL_SHOP\App\Web as App;
 use SNOWGIRL_CORE\Controller\Admin\PrepareServicesTrait;
-use SNOWGIRL_SHOP\Entity\Category;
-use SNOWGIRL_SHOP\Entity\Import\Source as ImportSource;
-use SNOWGIRL_SHOP\Entity\Vendor;
 use SNOWGIRL_SHOP\Entity\Item\Attr as ItemAttr;
-use SNOWGIRL_SHOP\Manager\Page\Catalog as PageCatalogManager;
 use SNOWGIRL_SHOP\RBAC;
 
 class ImportSourceAction
@@ -43,14 +39,14 @@ class ImportSourceAction
             'file' => $app->request->get('file', $source->getFile()),
             'uri' => $app->request->get('uri', $source->getUri()),
             'vendors' => $app->managers->vendors->clear()->getObjects(),
-            'vendorId' => $app->request->get(Vendor::getPk(), $source->getVendorId()),
+            'vendorId' => $app->request->get($app->managers->vendors->getEntity()->getPk(), $source->getVendorId()),
             'importClass' => $app->request->get('class_name', $source->getClassName()),
             'cronImport' => $app->request->get('is_cron', $source->getIsCron()),
-            'dbColumns' => $import->getItemColumnsToImport(),
-            'dbRequiredColumns' => $import->getRequiredItemColumnsToImport(),
+            'dbColumns' => $import->getItemColumns(),
+            'dbRequiredColumns' => $import->getRequiredItemColumns(),
             'svaValues' => $import->getSvaValues($app),
             'importClasses' => $app->managers->sources->getImportClasses(true),
-            'sourceTypes' => ImportSource::getColumns()['type']['range'],
+            'sourceTypes' => $app->managers->sources->getEntity()->getColumns()['type']['range'],
             'deliveryNotes' => $app->request->get('delivery_notes', $source->getDeliveryNotes()),
             'salesNotes' => $app->request->get('sales_notes', $source->getSalesNotes()),
             'techNotes' => $app->request->get('tech_notes', $source->getTechNotes()),
@@ -58,12 +54,12 @@ class ImportSourceAction
             'mappingFileColumnsValuesInfo' => $import->getMappingFileColumnsValuesInfo($counts),
             'isShowModifiersItems' => $counts <= 100,
             'modifyNotLessThan' => 10,
-            'mappingAutoFuncFor' => [Category::getPk()],
+            'mappingAutoFuncFor' => [$app->managers->categories->getEntity()->getPk()],
             'fileName' => $source->getFile(),
             'sva' => array_map(function ($component) {
                 /** @var ItemAttr $component */
                 return $component::getPk();
-            }, PageCatalogManager::getSvaComponents())
+            }, $app->managers->catalog->getSvaComponents())
         ]);
 
         if ($app->request->get('data', false)) {

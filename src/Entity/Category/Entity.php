@@ -14,9 +14,7 @@ class Entity extends \SNOWGIRL_CORE\Entity
         'value' => ['type' => self::COLUMN_TEXT, self::REQUIRED],
         'value_hash' => ['type' => self::COLUMN_TEXT, self::REQUIRED],
         'count' => ['type' => self::COLUMN_INT, self::REQUIRED],
-        'is_active' => ['type' => self::COLUMN_INT, 'default' => 0],
-//            'created_at',
-//            'updated_at'
+        'is_active' => ['type' => self::COLUMN_INT, 'default' => 0]
     ];
 
     public function setId($v)

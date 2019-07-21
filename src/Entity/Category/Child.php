@@ -17,9 +17,7 @@ class Child extends Entity
 
     protected static $columns = [
         'category_id' => ['type' => self::COLUMN_INT, self::REQUIRED, 'entity' => __NAMESPACE__],
-        'child_category_id' => ['type' => self::COLUMN_INT, self::REQUIRED, 'entity' => __NAMESPACE__],
-//            'created_at',
-//            'updated_at'
+        'child_category_id' => ['type' => self::COLUMN_INT, self::REQUIRED, 'entity' => __NAMESPACE__]
     ];
 
     public function setCategoryId($v)

@@ -25,8 +25,7 @@ class ImportSourceGetMapToPossibleValuesAction
             throw (new BadRequest)->setInvalidParam('column');
         }
 
-        $manager = $app->managers->getByEntityPk($column);
-        $entity = $manager->getEntity()->getClass();
+        $entity = $app->managers->getByEntityPk($column)->getEntity()->getClass();
 
         $app->response->setJSON(200, $app->utils->attrs->getIdToName($entity));
     }

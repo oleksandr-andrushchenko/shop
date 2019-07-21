@@ -29,10 +29,9 @@ class ImportSourceToggleCronAction
         }
 
         $source->setIsCron($source->isCron() ? 0 : 1);
+
         $app->managers->sources->updateOne($source);
 
-        $app->response->setJSON(200, [
-            'is_cron' => $source->getIsCron()
-        ]);
+        $app->response->setJSON(200, ['is_cron' => $source->getIsCron()]);
     }
 }
