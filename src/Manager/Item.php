@@ -34,6 +34,7 @@ use SNOWGIRL_CORE\Service\Storage\Query;
  * @method ItemEntity find($id)
  * @method Item copy($clear = false)
  * @method DataProvider getDataProvider()
+ * @method ItemEntity[] getObjects($idAsKeyOrKey = null)
  * @package SNOWGIRL_SHOP\Manager
  */
 class Item extends Manager implements GoLinkBuilderInterface
@@ -582,7 +583,7 @@ class Item extends Manager implements GoLinkBuilderInterface
             'SELECT ' . implode(', ', array_merge($columns, ['@n := IF(@g = ' . $db->quote($groupColumn) . ', @n + 1, 1) AS ' . $db->quote('n'), '@g := ' . $db->quote($groupColumn)])),
             'FROM ' . implode(', ', [$db->quote($table), '(SELECT @n := 0, @g := 0) ' . $db->quote('t')]),
             $db->makeWhereSQL($where, $query->params),
-            $db->makeOrderSQL([$groupColumn => SORT_ASC, 'updated_at' => SORT_DESC, 'created_at' => SORT_DESC], $query->params),
+            $db->makeOrderSQL([$groupColumn => SORT_ASC, 'created_at' => SORT_DESC, 'partner_updated_at' => SORT_DESC], $query->params),
             ') ' . $db->quote('t2'),
             $db->makeWhereSQL(new Expr($db->quote('n') . ' < ?', $countPerGroup + 1), $query->params)
         ]);
@@ -617,6 +618,7 @@ class Item extends Manager implements GoLinkBuilderInterface
                      ->setStorage($this->storage)
                      ->setColumns([$pk, 'image'])
                      ->setWhere($where)
+                     ->setQueryParam('log', false)
                      ->getArrays() as $item) {
             $output[$item['image']] = $item[$pk];
         }
