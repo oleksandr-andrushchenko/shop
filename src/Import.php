@@ -85,9 +85,8 @@ class Import
 
     protected function getFilters()
     {
-        if ($this->filters) {
-            //@todo add check if actual
-            $this->source->setFileFilter(Arrays::mergeRecursiveUnique($this->source->getFileFilter(true), $this->filters));
+        if ($this->filters && !$this->source->getFileFilter(true)) {
+            $this->source->setFileFilter($this->filters);
         }
 
         return $this->source->getFileFilter(true);
@@ -95,9 +94,8 @@ class Import
 
     protected function getMappings()
     {
-        if ($this->mappings) {
-            //@todo add check if actual
-            $this->source->setFileMapping(Arrays::mergeRecursiveUnique($this->source->getFileMapping(true), $this->mappings));
+        if ($this->mappings && !$this->source->getFileMapping(true)) {
+            $this->source->setFileMapping($this->mappings);
         }
 
         return $this->source->getFileMapping(true);
@@ -172,14 +170,6 @@ class Import
         return implode('/', [
             $this->getCachePath(),
             'src'
-        ]);
-    }
-
-    public function getDownloadedTmpCsvFileName()
-    {
-        return implode('/', [
-            $this->getCachePath(),
-            'src.tmp'
         ]);
     }
 
