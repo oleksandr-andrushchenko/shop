@@ -36,18 +36,12 @@ $this->getLayout()
 
 <?php echo '<div class="vs">' ?>
 
-<?php if (null !== $this->isOkLastImport) { ?>
-    <div>
-        Импорт:
-        <span class="import-status label label-<?php echo $this->isOkLastImport ? 'success' : 'danger' ?>">
-            <?php if ($this->isOkLastImport) { ?>
-                Недавно
-            <?php } else { ?>
-                Давно
-            <?php } ?>
-        </span>
-    </div>
-<?php } ?>
+<div>
+    Импорт:
+    <span class="import-status label label-<?php echo $this->isOkLastImport ? 'success' : 'danger' ?>">
+        <?php echo $this->isOkLastImport ? 'Недавно' : 'Давно' ?>
+    </span>
+</div>
 
 <div class="row">
     <div class="col-xs-12 control">
