@@ -18,7 +18,7 @@ class Item extends Entity
     protected static $columns = [
         'item_id' => ['type' => self::COLUMN_INT, self::AUTO_INCREMENT],
         'name' => ['type' => self::COLUMN_TEXT, self::SEARCH_IN, self::SEARCH_DISPLAY, self::REQUIRED, self::FTDBMS_FIELD],
-        'upc' => ['type' => self::COLUMN_TEXT, self::SEARCH_IN, self::FTDBMS_FIELD, self::REQUIRED],
+        'partner_item_id' => ['type' => self::COLUMN_TEXT, self::SEARCH_IN, self::FTDBMS_FIELD, self::REQUIRED],
         'image' => ['type' => self::COLUMN_TEXT, self::IMAGE, self::REQUIRED],
         'image_count' => ['type' => self::COLUMN_INT, 'default' => null],
         'price' => ['type' => self::COLUMN_FLOAT, self::REQUIRED],
@@ -32,12 +32,6 @@ class Item extends Entity
         'country_id' => ['type' => self::COLUMN_INT, 'default' => null, 'entity' => __NAMESPACE__ . '\Country'],
         'vendor_id' => ['type' => self::COLUMN_INT, self::REQUIRED, 'entity' => __NAMESPACE__ . '\Vendor'],
 
-//        'tag_id' => ['type' => self::COLUMN_ARRAY, 'default' => null, 'entity' => __NAMESPACE__ . '\Tag'],
-//        'color_id' => ['type' => self::COLUMN_ARRAY, 'default' => null, 'entity' => __NAMESPACE__ . '\Color'],
-//        'material_id' => ['type' => self::COLUMN_ARRAY, 'default' => null, 'entity' => __NAMESPACE__ . '\Material'],
-//        'size_id' => ['type' => self::COLUMN_ARRAY, 'default' => null, 'entity' => __NAMESPACE__ . '\Size'],
-//        'season_id' => ['type' => self::COLUMN_ARRAY, 'default' => null, 'entity' => __NAMESPACE__ . '\Season'],
-
         'is_sport' => ['type' => self::COLUMN_INT, 'default' => 0],
         'is_size_plus' => ['type' => self::COLUMN_INT, 'default' => 0],
         'partner_link' => ['type' => self::COLUMN_TEXT, self::REQUIRED],
@@ -48,25 +42,18 @@ class Item extends Entity
         'order_asc_price' => ['type' => self::COLUMN_INT, 'default' => 0],
         'order_desc_price' => ['type' => self::COLUMN_INT, 'default' => 0],
 
-        'created_at' => ['type' => self::COLUMN_TIME, self::REQUIRED],
-        'updated_at' => ['type' => self::COLUMN_TIME, 'default' => null]
+        'partner_updated_at' => ['type' => self::COLUMN_INT, self::REQUIRED],
+        'created_at' => ['type' => self::COLUMN_TIME, self::FTDBMS_ATTR, self::REQUIRED],
     ];
     protected static $indexes = [
+        'uk_vendor_partner_item' => ['import_source_id', 'partner_item_id'],
+        'uk_image' => ['image'],
         'ix_catalog_category_brand' => ['is_sport', 'is_size_plus', 'category_id', 'brand_id'],
-        'uk_vendor_upc' => ['vendor_id', 'upc'],
-        'ix_fix_category_vendor' => ['category_id', 'vendor_id', 'created_at', 'updated_at'],
-        'ix_fix_vendor' => ['vendor_id', 'created_at', 'updated_at'],
         'ix_order_desc_rating' => ['order_desc_rating'],
         'ix_order_asc_price' => ['order_asc_price'],
         'ix_order_desc_price' => ['order_desc_price']
     ];
 
-    /**
-     * @param $v
-     *
-     * @return Entity
-     * @throws \SNOWGIRL_CORE\Exception\EntityAttr\Required
-     */
     public function setId($v)
     {
         return $this->setItemId($v);
@@ -77,12 +64,6 @@ class Item extends Entity
         return $this->getItemId();
     }
 
-    /**
-     * @param $v
-     *
-     * @return Entity
-     * @throws \SNOWGIRL_CORE\Exception\EntityAttr\Required
-     */
     public function setItemId($v)
     {
         return $this->setRequiredAttr('item_id', (int)$v);
@@ -93,12 +74,6 @@ class Item extends Entity
         return (int)$this->getRawAttr('item_id');
     }
 
-    /**
-     * @param $v
-     *
-     * @return Entity
-     * @throws \SNOWGIRL_CORE\Exception\EntityAttr\Required
-     */
     public function setName($v)
     {
         return $this->setRequiredAttr('name', trim($v));
@@ -119,12 +94,6 @@ class Item extends Entity
         return $this->getRawAttr('partner_link');
     }
 
-    /**
-     * @param $image
-     *
-     * @return Entity
-     * @throws \SNOWGIRL_CORE\Exception\EntityAttr\Required
-     */
     public function setImage($image)
     {
         return $this->setRequiredAttr('image', $image);
@@ -285,20 +254,14 @@ class Item extends Entity
         return 1 == $this->getIsSizePlus();
     }
 
-    /**
-     * @param $v
-     *
-     * @return Entity
-     * @throws \SNOWGIRL_CORE\Exception\EntityAttr\Required
-     */
-    public function setUpc($v)
+    public function setPartnerItemId($v)
     {
-        return $this->setRequiredAttr('upc', $v);
+        return $this->setRequiredAttr('partner_item_id', $v);
     }
 
-    public function getUpc()
+    public function getPartnerItemId()
     {
-        return $this->getRawAttr('upc');
+        return $this->getRawAttr('partner_item_id');
     }
 
     public function setIsInStock($v)
@@ -337,23 +300,9 @@ class Item extends Entity
 
     public function isNewly()
     {
-        if (!$v = $this->getCreatedAt()) {
-            return false;
-        }
-
-        if (!is_numeric($v)) {
-            $v = \DateTime::createFromFormat('Y-m-d H:i:s', $v)->getTimestamp();
-        }
-
-        return (time() - (int)$v) < 24 * 3600;
+        return (time() - $this->getCreatedAt(true)->getTimestamp()) < 24 * 3600;
     }
 
-    /**
-     * @param $v
-     *
-     * @return Entity
-     * @throws \SNOWGIRL_CORE\Exception\EntityAttr\Required
-     */
     public function setImportSourceId($v)
     {
         return $this->setRequiredAttr('import_source_id', self::normalizeInt($v));
@@ -366,23 +315,21 @@ class Item extends Entity
 
     public function setCreatedAt($v)
     {
-        return $this->setRawAttr('created_at', self::normalizeTime($v));
+        return $this->setRequiredRawAttr('created_at', self::normalizeInt($v));
     }
 
     public function getCreatedAt($datetime = false)
     {
-        $v = $this->getRawAttr('created_at');
-        return $datetime ? self::timeToDatetime($v) : $v;
+        return $datetime ? self::timeToDatetime((int)$this->getRawAttr('created_at')) : (int)$this->getRawAttr('created_at');
     }
 
-    public function setUpdatedAt($v)
+    public function setPartnerUpdatedAt($v)
     {
-        return $this->setRawAttr('updated_at', self::normalizeTime($v, true));
+        return $this->setRequiredAttr('partner_updated_at', (int)$v);
     }
 
-    public function getUpdatedAt($datetime = false)
+    public function getPartnerUpdatedAt()
     {
-        $v = $this->getRawAttr('updated_at');
-        return $datetime ? self::timeToDatetime($v) : $v;
+        return (int)$this->getRawAttr('partner_updated_at');
     }
 }
