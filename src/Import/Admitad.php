@@ -16,13 +16,41 @@ class Admitad extends Import
     ];
 
     protected $langs = ['ru'];
-    protected $filters = [];
-    protected $mappings = [];
+
+    protected $filters = [
+        'categoryId' => [
+            'equal' => ['женщ'],
+            'not_equal' => ['муж', 'дево', 'мальч', 'детс']
+        ],
+        'currencyId' => [
+            'equal' => ['RUB']
+        ]
+    ];
+
+    protected $mappings = [
+        'name' => ['column' => 'name'],
+        'partner_item_id' => ['column' => 'id'],
+        'image' => ['column' => 'picture'],
+        'price' => ['column' => 'price'],
+        'old_price' => ['column' => 'oldprice'],
+        'entity' => ['column' => 'typePrefix'],
+        'description' => ['column' => 'description'],
+        'category_id' => ['column' => 'categoryId', 'modify' => [], 0 => 'modify_only'],
+        'brand_id' => ['column' => 'vendor'],
+        'source_item_id' => ['column' => 'id'],
+        'partner_link' => ['column' => 'url'],
+        'is_in_stock' => ['column' => 'available', 'modify' => ['true' => ['value' => '1', 'tags' => []]], 0 => 'modify_only'],
+        'partner_updated_at' => ['column' => 'modified_time']
+    ];
+
+    protected $defaultAllowModifyOnly = false;
 
     protected $csvProcessorV2 = false;
     protected $mvaProcessorV2 = true;
 
     protected $csvFileDelimiter = ';';
+
+    protected $isCheckUpdatedAt = true;
 
     /**
      * Returns mixed names
@@ -31,7 +59,7 @@ class Admitad extends Import
      *
      * @return array
      */
-    protected function importRowToColors($row)
+    protected function getColorsByRow($row)
     {
         if (isset($this->indexes['param']) && $source = trim($row[$this->indexes['param']])) {
             if (preg_match('#Цвет:([a-zA-ZА-Яа-яЁё\s,-]+)#ui', $source, $tmp)) {
@@ -39,7 +67,7 @@ class Admitad extends Import
             }
         }
 
-        return parent::importRowToColors($row);
+        return parent::getColorsByRow($row);
     }
 
     /**
@@ -49,7 +77,7 @@ class Admitad extends Import
      *
      * @return array
      */
-    protected function importRowToSeasons($row)
+    protected function getSeasonsByRow($row)
     {
         if (isset($this->indexes['param']) && $source = trim($row[$this->indexes['param']])) {
             if (preg_match('#Сезонность:([a-zA-ZА-Яа-яЁё\s,-]+)#ui', $source, $tmp)) {
@@ -57,7 +85,7 @@ class Admitad extends Import
             }
         }
 
-        return parent::importRowToSeasons($row);
+        return parent::getSeasonsByRow($row);
     }
 
     /**
@@ -67,7 +95,7 @@ class Admitad extends Import
      *
      * @return string|integer
      */
-    protected function importRowToCountry($row)
+    protected function getCountryByRow($row)
     {
         if (isset($this->indexes['param']) && $source = trim($row[$this->indexes['param']])) {
             if (preg_match('#Страна-изготовитель:([a-zA-ZА-Яа-яЁё\s,-]+)#ui', $source, $tmp)) {
@@ -75,7 +103,7 @@ class Admitad extends Import
             }
         }
 
-        return parent::importRowToCountry($row);
+        return parent::getCountryByRow($row);
     }
 
     /**
@@ -85,7 +113,7 @@ class Admitad extends Import
      *
      * @return array
      */
-    protected function importRowToSizes($row)
+    protected function getSizesByRow($row)
     {
         if (isset($this->indexes['param']) && $source = trim($row[$this->indexes['param']])) {
             if (preg_match('#(Размер|Объем):([a-zA-ZА-Яа-яЁё\s,0-9]+)#ui', $source, $tmp)) {
@@ -105,7 +133,7 @@ class Admitad extends Import
             }
         }
 
-        return parent::importRowToSizes($row);
+        return parent::getSizesByRow($row);
     }
 
     /**
@@ -115,7 +143,7 @@ class Admitad extends Import
      *
      * @return array
      */
-    protected function importRowToMaterials($row)
+    protected function getMaterialsByRow($row)
     {
         if (isset($this->indexes['param']) && $source = trim($row[$this->indexes['param']])) {
             if (preg_match_all('#Материал([^:]+)?:([a-zA-ZА-Яа-яЁё\s,-]+)#ui', $source, $tmp)) {
@@ -129,7 +157,7 @@ class Admitad extends Import
             }
         }
 
-        return parent::importRowToMaterials($row);
+        return parent::getMaterialsByRow($row);
     }
 
     public function getItemTargetLink(Item $item)
