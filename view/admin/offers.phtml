@@ -129,7 +129,9 @@ $this->getLayout()
 
         <?php if (0 < count($this->importSources)) { ?>
             <ul>
-                <?php foreach ($this->importSources as $importSource) { ?>
+                <?php foreach ($this->importSources as $importSource) {
+                    $isOkLastImport = $this->app->managers->importHistory->isOkLastImport($importSource);
+                    ?>
                     <li>
                         <form action="<?php echo href('admin', ['action' => 'row', 'table' => $importSource->getTable()]) ?>"
                               method="post" class="form-inline form-import-source item">
@@ -144,6 +146,10 @@ $this->getLayout()
                             <label><input name="is_cron" value="1"
                                           type="checkbox" <?php echo $importSource->isCron() ? 'checked' : '' ?>>
                             </label>
+
+                            <span class="import-status label label-<?php echo $isOkLastImport ? 'success' : 'danger' ?>">
+                                <?php echo $isOkLastImport ? 'Недавно' : 'Давно' ?>
+                            </span>
 
                             <label><select name="class_name" class="form-control" required>
                                     <option value="">&mdash; Класс</option>
