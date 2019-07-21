@@ -13,3 +13,9 @@ alter table `item` drop column `updated_at`;
 alter table `item_archive` add `partner_updated_at` int(5) unsigned NOT NULL after `season_id`;
 update `item_archive` set `partner_updated_at` = unix_timestamp(ifnull(`updated_at`, `created_at`));
 alter table `item_archive` drop column `updated_at`;
+
+
+
+alter table item drop KEY `uk_vendor_partner_item`;
+alter table item add UNIQUE KEY `uk_source_partner_item` (`import_source_id`,`partner_item_id`);
+alter table item KEY `ix_category_source_updated` (`category_id`,`import_source_id`,`partner_updated_at`);
