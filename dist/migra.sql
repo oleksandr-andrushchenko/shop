@@ -18,4 +18,4 @@ alter table `item_archive` drop column `updated_at`;
 
 alter table item drop KEY `uk_vendor_partner_item`;
 alter table item add UNIQUE KEY `uk_source_partner_item` (`import_source_id`,`partner_item_id`);
-alter table item KEY `ix_category_source_updated` (`category_id`,`import_source_id`,`partner_updated_at`);
+alter table item add KEY `ix_category_source_updated` (`category_id`,`import_source_id`,`partner_updated_at`);
