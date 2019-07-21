@@ -46,8 +46,9 @@ class Item extends Entity
         'created_at' => ['type' => self::COLUMN_TIME, self::FTDBMS_ATTR, self::REQUIRED],
     ];
     protected static $indexes = [
-        'uk_vendor_partner_item' => ['import_source_id', 'partner_item_id'],
         'uk_image' => ['image'],
+        'uk_source_partner_item' => ['import_source_id', 'partner_item_id'],
+        'ix_category_source_updated' => ['category_id', 'import_source_id', 'partner_updated_at'],
         'ix_catalog_category_brand' => ['is_sport', 'is_size_plus', 'category_id', 'brand_id'],
         'ix_order_desc_rating' => ['order_desc_rating'],
         'ix_order_asc_price' => ['order_asc_price'],

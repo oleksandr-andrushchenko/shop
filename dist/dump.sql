@@ -299,11 +299,12 @@ CREATE TABLE `item` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`item_id`),
   UNIQUE KEY `uk_image` (`image`),
-  UNIQUE KEY `uk_vendor_partner_id` (`vendor_id`,`partner_id`),
+  UNIQUE KEY `uk_source_partner_item` (`import_source_id`,`partner_item_id`),
+  KEY `ix_catalog_category_brand` (`is_sport`,`is_size_plus`,`category_id`,`brand_id`),
+  KEY `ix_category_source_updated` (`category_id`,`import_source_id`,`partner_updated_at`),
   KEY `ix_order_desc_rating` (`order_desc_rating`),
   KEY `ix_order_asc_price` (`order_asc_price`),
-  KEY `ix_order_desc_price` (`order_desc_price`),
-  KEY `ix_catalog_category_brand` (`is_sport`,`is_size_plus`,`category_id`,`brand_id`)
+  KEY `ix_order_desc_price` (`order_desc_price`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Страницы всех предложений';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
