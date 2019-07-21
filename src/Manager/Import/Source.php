@@ -55,7 +55,17 @@ class Source extends Manager
 
             foreach (['equal', 'not_equal'] as $type) {
                 if (array_key_exists($type, $filter) && '' != $filter[$type]) {
-                    $tmp[$fileColumn][$type] = self::_explode($filter[$type]);
+                    $tmp2 = explode(',', $filter[$type]);
+
+                    array_walk($tmp2, function (&$i) {
+                        $i = trim($i);
+                    });
+
+                    $tmp2 = array_filter($tmp2, function ($i) {
+                        return $i !== '';
+                    });
+
+                    $tmp[$fileColumn][$type] = $tmp2;
                 }
             }
 
@@ -65,9 +75,8 @@ class Source extends Manager
         }
 
         $source->setFileFilter($tmp);
-        $tmp = $this->updateOne($source);
 
-        return $tmp;
+        return $this->updateOne($source);
     }
 
     /**
@@ -188,21 +197,6 @@ class Source extends Manager
 
             return true;
         });
-    }
-
-    public static function _explode($input, $delimiter = ',')
-    {
-        $input = explode($delimiter, $input);
-
-        array_walk($input, function (&$i) {
-            $i = trim($i);
-        });
-
-        $input = array_filter($input, function ($i) {
-            return $i !== '';
-        });
-
-        return $input;
     }
 
     public function getLink(Entity $entity, array $params = [], $domain = false)
