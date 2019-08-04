@@ -94,14 +94,17 @@ class Sitemap extends \SNOWGIRL_CORE\SEO\Sitemap
                         ->setColumns([$pk, 'params_hash', 'created_at', 'updated_at'])
                         ->setOrders([$pk => SORT_ASC])
                         ->setLimit($size)
-                        ->getArrays();
+                        ->getArrays('params_hash');
 
                     $catalogs = $catalog
                         ->setColumns(['params_hash', 'uri'])
-                        ->setWhere(['params_hash' => array_map(function ($custom) {
-                            return $custom['params_hash'];
-                        }, $customs)])
+                        ->setWhere(['params_hash' => array_keys($customs)])
                         ->getArrays('params_hash');
+
+
+                    $customs = array_filter($customs, function ($custom) use ($catalogs) {
+                        return isset($catalogs[$custom['params_hash']]);
+                    });
 
                     return array_map(function ($custom) use ($catalogs) {
                         $custom['uri'] = $catalogs[$custom['params_hash']]['uri'];
@@ -111,7 +114,7 @@ class Sitemap extends \SNOWGIRL_CORE\SEO\Sitemap
                 ->setFnDo(function ($items) use ($sitemap, $pk) {
                     foreach ($items as $item) {
                         $sitemap->add('/' . $this->catalogUriPrefix . $item['uri'], '1.0', 'weekly',
-                            $this->getAddLastModParamByDateTimes($item['updated_at'], $item['created_at']));
+                            $this->getAddLastModParamByTimes($item['updated_at'], $item['created_at']));
                     }
 
                     return ($last = array_pop($items)) ? $last[$pk] : false;
@@ -176,7 +179,7 @@ class Sitemap extends \SNOWGIRL_CORE\SEO\Sitemap
                     }
 
                     return $items
-                        ->setColumns([$pk, 'name', 'image', 'is_in_stock', 'brand_id', 'created_at', 'updated_at'])
+                        ->setColumns([$pk, 'name', 'image', 'is_in_stock', 'brand_id', 'created_at', 'partner_updated_at'])
                         ->setOrders([$pk => SORT_ASC])
                         ->setLimit($size)
                         ->getArrays();
@@ -188,7 +191,7 @@ class Sitemap extends \SNOWGIRL_CORE\SEO\Sitemap
                                 '/' . $this->catalogUriPrefix . ItemURI::buildPath($item['name'], $item[$pk]),
                                 (1 == $item['is_in_stock']) ? '0.8' : '0.5',
                                 'weekly',
-                                $this->getAddLastModParamByDateTimes($item['updated_at'], $item['created_at']),
+                                $this->getAddLastModParamByTimes($item['partner_updated_at'], $item['created_at']),
                                 $this->getAddImageParam($item['image'], $item['name'])
                             );
                         }
