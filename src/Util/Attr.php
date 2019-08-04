@@ -11,10 +11,10 @@ use SNOWGIRL_CORE\Service\Nosql\Mongo;
 use SNOWGIRL_CORE\Service\Rdbms\Mysql;
 use SNOWGIRL_CORE\Service\Storage\Query;
 use SNOWGIRL_CORE\Util;
-use SNOWGIRL_CORE\App;
+use SNOWGIRL_SHOP\App\Console as App;
 use SNOWGIRL_SHOP\Item\FixWhere;
-use SNOWGIRL_SHOP\Manager\Page\Catalog as PageCatalogManager;
 use SNOWGIRL_SHOP\Manager\Item\Attr as ItemAttrManager;
+use SNOWGIRL_SHOP\Manager\Term as TermManager;
 
 /**
  * Class Attr
@@ -24,7 +24,7 @@ use SNOWGIRL_SHOP\Manager\Item\Attr as ItemAttrManager;
  */
 class Attr extends Util
 {
-    public function doDeleteNonExistingItemsMva()
+    public function doDeleteNonExistingItemsMva(FixWhere $fixWhere)
     {
         $affGlobal = 0;
 
@@ -33,8 +33,8 @@ class Attr extends Util
         $itemTable = $this->app->managers->items->getEntity()->getTable();
         $itemPk = $this->app->managers->items->getEntity()->getPk();
 
-        foreach (PageCatalogManager::getMvaComponents() as $class) {
-            /** @var \SNOWGIRL_SHOP\Manager\Item\Attr $manager */
+        foreach ($this->app->managers->catalog->getMvaComponents() as $class) {
+            /** @var ItemAttrManager $manager */
             $manager = $this->app->managers->getByEntityClass($class);
             $table = $manager->getEntity()->getTable();
             $pk = $manager->getEntity()->getPk();
@@ -49,12 +49,18 @@ class Attr extends Util
                 'WHERE ' . $db->quote($pk, 'a') . ' IS NULL'
             ]))->affectedRows();
 
-            $aff2 = $db->req(implode(' ', [
+            $where = $fixWhere->get();
+            $where[] = new Expr($db->quote($itemPk, 'i') . ' IS NULL');
+
+            $query = new Query(['params' => []]);
+            $query->text = implode(' ', [
                 'DELETE ' . $db->quote('ia'),
                 'FROM ' . $db->quote($linkTable) . ' ' . $db->quote('ia'),
                 'LEFT JOIN ' . $db->quote($itemTable) . ' i USING (' . $db->quote($itemPk) . ')',
-                'WHERE ' . $db->quote($itemPk, 'i') . ' IS NULL'
-            ]))->affectedRows();
+                $db->makeWhereSQL($where, $query->params)
+            ]);
+
+            $aff2 = $db->req($query)->affectedRows();
 
             $aff = $aff1 + $aff2;
 
@@ -66,18 +72,19 @@ class Attr extends Util
         return $affGlobal;
     }
 
-    public function getIdToName($entity, $isLowercase = false)
+    public function getIdToName($entity, $isLowercase = false): array
     {
         $output = [];
 
         $manager = $this->app->managers->getByEntityClass($entity)->copy(true);
+        $pk = $manager->getEntity()->getPk();
 
         if ($manager->getEntity() instanceof Category) {
             $manager->setOrders([new Expr('LENGTH(`name`) DESC'), 'name' => SORT_ASC]);
         }
 
-        foreach ($manager->getObjects() as $object) {
-            $output[$object->getId()] = $object->get('name');
+        foreach ($manager->setColumns([$pk, 'name'])->getArrays() as $row) {
+            $output[$row[$pk]] = $row['name'];
         }
 
         if ($isLowercase) {
@@ -89,22 +96,65 @@ class Attr extends Util
         return $output;
     }
 
-    public function getNameToId($entity, $isLowercase = false)
+    public function getNameToId($entity, $isLowercase = false): array
     {
         return array_flip($this->getIdToName($entity, $isLowercase));
     }
 
-    public function getUriToId($entity)
+    public function getUriToId($entity): array
     {
-        $manager = $this->app->managers->getByEntityClass($entity);
-        $entity = $manager->getEntity();
-
         $output = [];
 
-        $pk = $entity->getPk();
+        $manager = $this->app->managers->getByEntityClass($entity);
+        $pk = $manager->getEntity()->getPk();
 
-        foreach ($manager->copy(true)->setColumns([$pk, 'uri'])->getArrays() as $item) {
-            $output[$item['uri']] = $item[$pk];
+        foreach ($manager->copy(true)->setColumns([$pk, 'uri'])->getArrays() as $row) {
+            $output[$row['uri']] = $row[$pk];
+        }
+
+        return $output;
+    }
+
+    public function getNameToIdAndUriToId(Manager $manager, $isLowercase = false): array
+    {
+        $output = [[], []];
+
+        $pk = $manager->getEntity()->getPk();
+
+        if ($manager->getEntity() instanceof Category) {
+            $manager->setOrders([new Expr('LENGTH(`name`) DESC'), 'name' => SORT_ASC]);
+        }
+
+        $manager->setColumns([$pk, 'name', 'uri']);
+
+        if ($isLowercase) {
+            foreach ($manager->getArrays() as $row) {
+                $output[0][mb_strtolower($row['name'])] = (int)$row[$pk];
+                $output[1][$row['uri']] = $row[$pk];
+            }
+        } else {
+            foreach ($manager->getArrays() as $row) {
+                $output[0][$row['name']] = (int)$row[$pk];
+                $output[1][$row['uri']] = (int)$row[$pk];
+            }
+        }
+
+        return $output;
+    }
+
+    public function getTermNameToAttrId(TermManager $manager, $isLowercase = false)
+    {
+        $output = [];
+
+        foreach ($manager->getObjects() as $term) {
+            /** @var TermEntity $term */
+            $output[$term->getValue()] = $term->getComponentId();
+        }
+
+        if ($isLowercase) {
+            $output = Arrays::mapByKeyMaker($output, function ($key) {
+                return mb_strtolower($key);
+            });
         }
 
         return $output;
@@ -115,7 +165,7 @@ class Attr extends Util
         $allowedTables = array_map(function ($component) {
             /** @var Entity $component */
             return $component::getTable();
-        }, PageCatalogManager::getMvaComponents());
+        }, $this->app->managers->catalog->getMvaComponents());
 
         //@todo add for Sizes too...
         $allowedTables = array_diff($allowedTables, [$this->app->managers->sizes->getEntity()->getTable()]);
@@ -238,7 +288,10 @@ class Attr extends Util
 
         $affGlobal = 0;
 
-        foreach (array_merge(PageCatalogManager::getMvaComponents(), PageCatalogManager::getSvaComponents()) as $class) {
+        foreach (array_merge(
+                     $this->app->managers->catalog->getMvaComponents(),
+                     $this->app->managers->catalog->getSvaComponents()
+                 ) as $class) {
             //        $nosql->dropSchema($nosql->getSchema());
 
             $manager = $this->app->managers->getByEntityClass($class);
