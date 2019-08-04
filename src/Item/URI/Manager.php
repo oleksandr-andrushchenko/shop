@@ -146,7 +146,7 @@ class Manager
 
             if ($item) {
                 $request->redirect($this->managers->items->getLink($item), 301);
-                
+
                 return true;
             }
         }
