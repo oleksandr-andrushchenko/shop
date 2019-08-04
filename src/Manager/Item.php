@@ -16,6 +16,7 @@ use SNOWGIRL_SHOP\Manager\Item\DataProvider;
 use SNOWGIRL_SHOP\Manager\Page\Catalog as PageCatalogManager;
 
 use SNOWGIRL_SHOP\Entity\Item as ItemEntity;
+use SNOWGIRL_SHOP\Entity\Item\Archive as ItemArchiveEntity;
 use SNOWGIRL_SHOP\Entity\Tag as TagEntity;
 use SNOWGIRL_SHOP\Entity\Material as MaterialEntity;
 use SNOWGIRL_SHOP\Entity\Brand as BrandEntity;
@@ -678,8 +679,8 @@ class Item extends Manager implements GoLinkBuilderInterface
 
     public function getLink(Entity $entity, array $params = [], $domain = false)
     {
-        /** @var ItemEntity $entity */
-        $params['uri'] = ItemURI::buildPath($entity->getName(), $entity->getId());
+        /** @var ItemEntity|ItemArchiveEntity $entity */
+        $params['uri'] = ItemURI::buildPath($entity->get('name'), $entity->getId());
 
         return $this->app->router->makeLink('item', $params, $domain);
     }
