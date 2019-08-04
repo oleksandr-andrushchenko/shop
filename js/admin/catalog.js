@@ -162,7 +162,7 @@ snowgirlApp.prototype.tinymceOptions = function ($form) {
         language_url: '/js/core/tinymce/langs/ru.js',
         content_css: [
             '//maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css',
-            'https://fonts.googleapis.com/css?family=Montserrat',
+            'https://fonts.googleapis.com/css?family=Montserrat&display=swap',
 //             '/css/core/core.fonts.css',
 //             '/css/shop/catalog.css',
             '/css/core/tinymce.css'
