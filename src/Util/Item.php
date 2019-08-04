@@ -202,58 +202,75 @@ class Item extends Util
         return true;
     }
 
-    public function doDeleteWithNonExistingCategories()
+    public function doDeleteWithNonExistingCategories(FixWhere $fixWhere)
     {
         $db = $this->app->services->rdbms;
+        $it = $this->app->managers->items->getEntity()->getTable();
+        $ck = $this->app->managers->categories->getEntity()->getPk();
+        $ct = $this->app->managers->categories->getEntity()->getTable();
 
-        return $this->app->services->rdbms->req(implode(' ', [
-            'DELETE ' . $db->quote($it = ItemEntity::getTable()),
+        $where = $fixWhere->get();
+        $where[] = new Expr($db->quote($ck, $ct) . ' IS NULL');
+
+        $query = new Query(['params' => []]);
+        $query->text = implode(' ', [
+            'DELETE ' . $db->quote($it),
             'FROM ' . $db->quote($it),
-            'LEFT JOIN ' . $db->quote($ct = Category::getTable()) . ' ON ' . $db->quote($ck = Category::getPk(), $ct) . ' = ' . $db->quote($ck, $it),
-            'WHERE ' . $db->quote($ck, $ct) . ' IS NULL'
-        ]))->affectedRows();
+            'LEFT JOIN ' . $db->quote($ct) . ' ON ' . $db->quote($ck, $ct) . ' = ' . $db->quote($ck, $it),
+            $db->makeWhereSQL($where, $query->params)
+        ]);
+
+        return $this->app->services->rdbms->req($query)->affectedRows();
     }
 
-    public function doDeleteWithNonExistingBrands()
+    public function doDeleteWithNonExistingBrands(FixWhere $fixWhere)
     {
         $db = $this->app->services->rdbms;
+        $it = $this->app->managers->items->getEntity()->getTable();
+        $bk = $this->app->managers->brands->getEntity()->getPk();
+        $bt = $this->app->managers->brands->getEntity()->getTable();
 
-        return $this->app->services->rdbms->req(implode(' ', [
-            'DELETE ' . $db->quote($it = ItemEntity::getTable()),
+        $where = $fixWhere->get();
+        $where[] = new Expr($db->quote($bk, $bt) . ' IS NULL');
+
+        $query = new Query(['params' => []]);
+        $query->text = implode(' ', [
+            'DELETE ' . $db->quote($it),
             'FROM ' . $db->quote($it),
-            'LEFT JOIN ' . $db->quote($bt = Brand::getTable()) . ' ON ' . $db->quote($bk = Brand::getPk(), $bt) . ' = ' . $db->quote($bk, $it),
-            'WHERE ' . $db->quote($bk, $bt) . ' IS NULL'
-        ]))->affectedRows();
+            'LEFT JOIN ' . $db->quote($bt) . ' ON ' . $db->quote($bk, $bt) . ' = ' . $db->quote($bk, $it),
+            $db->makeWhereSQL($where, $query->params)
+        ]);
+
+        return $this->app->services->rdbms->req($query)->affectedRows();
     }
 
-    public function doFixWithNonExistingCountries()
+    public function doFixWithNonExistingCountries(FixWhere $fixWhere)
     {
         $db = $this->app->services->rdbms;
+        $pk = $this->app->managers->countries->getEntity()->getPk();
 
-        $pk = 'country_id';
         $id = $this->app->managers->countries->getList($pk);
-//        D($id);
 
-        return $this->app->managers->items->updateMany(
-            [$pk => null],
-            new Expr($db->quote($pk) . ' NOT IN (' . implode(',', $id) . ')')
-        );
+        $where = $fixWhere->get();
+        $where[] = new Expr($db->quote($pk) . ' NOT IN (' . implode(',', $id) . ')');
+
+        return $this->app->managers->items->updateMany([$pk => null], $where);
     }
 
-    public function doFixWithNonExistingAttrs()
+    public function doFixWithNonExistingAttrs(FixWhere $fixWhere)
     {
-        $aff = $this->doDeleteWithNonExistingCategories();
+        $aff = $this->doDeleteWithNonExistingCategories($fixWhere);
         $this->output('deleted with invalid categories: ' . $aff);
 
-        $tmp = $this->doDeleteWithNonExistingBrands();
+        $tmp = $this->doDeleteWithNonExistingBrands($fixWhere);
         $this->output('deleted with invalid brands: ' . $tmp);
         $aff += $tmp;
 
-        $tmp = $this->doFixWithNonExistingCountries();
+        $tmp = $this->doFixWithNonExistingCountries($fixWhere);
         $this->output('updated with invalid countries: ' . $tmp);
         $aff += $tmp;
 
-        $tmp = $this->app->utils->attrs->doDeleteNonExistingItemsMva();
+        $tmp = $this->app->utils->attrs->doDeleteNonExistingItemsMva($fixWhere);
         $this->output('updated with invalid mva: ' . $tmp);
         $aff += $tmp;
 
@@ -295,11 +312,14 @@ class Item extends Util
         $showCreate = str_replace('), ENGINE=', '), ' . $mva . ') ENGINE=', $showCreate);
 
         $db->req($showCreate);
+
         return true;
     }
 
-    public function doInArchiveTransfer(array $where)
+    public function doInArchiveTransfer(array $where): int
     {
+        $aff = 0;
+
         $this->doCreateArchiveTable();
 
         $db = $this->app->services->rdbms;
@@ -325,6 +345,10 @@ class Item extends Util
                     return 'GROUP_CONCAT(' . $db->quote($column, $table) . ')';
                 }
 
+                if ('is_in_stock' == $column) {
+                    return 0;
+                }
+
                 return $db->quote($column, $itemTable);
             }, $archiveColumns)),
             'FROM ' . $db->quote($itemTable),
@@ -336,7 +360,10 @@ class Item extends Util
             $db->makeGroupSQL($itemPk, $query->params, $itemTable),
         ]);
 
-        $db->req($query);
+        $affTmp = $db->req($query)->affectedRows();
+        $this->output('Copied to item_archive: ' . $affTmp);
+
+        $aff += $affTmp;
 
         foreach ($mva as $pk => $table) {
             $table = 'item_' . $table;
@@ -348,15 +375,25 @@ class Item extends Util
                 'INNER JOIN ' . $db->quote($itemTable) . ' USING(' . $db->quote($itemPk) . ')',
                 $db->makeWhereSQL($where, $query->params, $itemTable)
             ]);
-            $db->req($query);
+
+            $affTmp = $db->req($query)->affectedRows();
+            $this->output('Deleted from item_' . $table . ': ' . $affTmp);
+
+            $aff += $affTmp;
         }
 
-        $this->app->managers->items->deleteMany($where);
-        return true;
+        $affTmp = $this->app->managers->items->deleteMany($where);
+        $this->output('Deleted from item: ' . $affTmp);
+
+        $aff += $affTmp;
+
+        return $aff;
     }
 
-    public function doOutArchiveTransfer(array $where)
+    public function doOutArchiveTransfer(array $where): int
     {
+        $aff = 0;
+
         $db = $this->app->services->rdbms;
 
         $itemTable = $this->app->managers->items->getEntity()->getTable();
@@ -377,6 +414,10 @@ class Item extends Util
             }, $tmpArchiveColumns)) . ')',
             '(',
             'SELECT ' . implode(', ', array_map(function ($column) use ($db) {
+                if ('is_in_stock' == $column) {
+                    return 0;
+                }
+
                 return $db->quote($column);
             }, $tmpArchiveColumns)),
             'FROM ' . $db->quote($archiveTable),
@@ -384,7 +425,10 @@ class Item extends Util
             ')'
         ]);
 
-        $db->req($query);
+        $affTmp = $db->req($query)->affectedRows();
+        $this->output('Copied to item: ' . $affTmp);
+
+        $aff += $affTmp;
 
         $db->dropTable('numbers');
         $db->createTable('numbers', [
@@ -397,7 +441,7 @@ class Item extends Util
         }, range(1, 5)));
 
         foreach ($mva as $pk => $table) {
-            $db->req(implode(' ', [
+            $affTmp = $db->req(implode(' ', [
                 'INSERT IGNORE INTO',
                 $db->quote('item_' . $table),
                 '(' . $db->quote($itemPk) . ', ' . $db->quote($pk) . ')',
@@ -405,11 +449,18 @@ class Item extends Util
                 'FROM ' . $db->quote('numbers'),
                 'INNER JOIN ' . $db->quote($archiveTable) . ' ON CHAR_LENGTH(' . $db->quote($pk) . ') - CHAR_LENGTH(REPLACE(' . $db->quote($pk) . ', \',\', \'\')) >= ' . $db->quote('value') . ' - 1',
                 'ORDER BY ' . $db->quote($itemPk) . ', ' . $db->quote($pk)
-            ]));
+            ]))->affectedRows();
+            $this->output('Copied to item_' . $table . ': ' . $affTmp);
+
+            $aff += $affTmp;
         }
 
         $this->app->managers->archiveItems->deleteMany($where);
-        return true;
+        $this->output('Deleted from item_archive: ' . $affTmp);
+
+        $aff += $affTmp;
+
+        return $aff;
     }
 
     public function doFixArchiveMvaValues()
