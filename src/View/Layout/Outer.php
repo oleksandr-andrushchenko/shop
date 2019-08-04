@@ -26,7 +26,7 @@ class Outer extends \SNOWGIRL_CORE\View\Layout\Outer
         return parent::addCssNodes()
             ->addHeadCss(new Css('@shop/core.css'))
             ->addLazyCss(new Css('@core/rating.css'))
-            ->addLazyCss(new Css('https://fonts.googleapis.com/css?family=Chonburi'))
+            ->addLazyCss(new Css('https://fonts.googleapis.com/css?family=Chonburi&display=swap'))
             ->addLazyCss(new Css('.price .val,.old-price .val{font-family: \'Chonburi\', cursive;}', true));
     }
 
