@@ -171,9 +171,12 @@ class Manager
             implode(' UNION ', array_map(function ($table) use ($uri, $componentsTableToPk, $activeOnly, $req) {
                 $where = ['uri' => $uri];
 
-                if ($activeOnly && $this->managers->getByTable($table)->getEntity()->hasAttr('is_active')) {
-                    $where['is_active'] = 1;
-                }
+//                if ($activeOnly && $this->managers->getByTable($table)->getEntity()->hasAttr('is_active')) {
+//                    $where['is_active'] = 1;
+//                }
+
+                //@todo 404 instead of is_active
+//                $where['is_404'] = 0;
 
                 return implode(' ', [
                     $this->db->makeSelectSQL(new Expr(implode(', ', [
