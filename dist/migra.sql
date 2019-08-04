@@ -9,6 +9,7 @@ alter table `item` add `partner_updated_at` int(5) unsigned NOT NULL after `orde
 update `item` set `partner_updated_at` = unix_timestamp(ifnull(`updated_at`, `created_at`));
 alter table `item` drop column `updated_at`;
 
+alter table `item_archive` change `upc` `partner_item_id` varchar(32) NOT NULL;
 
 alter table `item_archive` add `partner_updated_at` int(5) unsigned NOT NULL after `season_id`;
 update `item_archive` set `partner_updated_at` = unix_timestamp(ifnull(`updated_at`, `created_at`));
