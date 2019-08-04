@@ -33,11 +33,6 @@ class Admitad extends Import
 
     protected $langs = ['ru'];
 
-    protected $csvProcessorV2 = false;
-    protected $mvaProcessorV2 = true;
-
-    protected $csvFileDelimiter = ';';
-
     protected $isCheckUpdatedAt = true;
 
     /**
