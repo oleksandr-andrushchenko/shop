@@ -4,6 +4,8 @@ namespace SNOWGIRL_SHOP;
 
 use SNOWGIRL_CORE\View\Layout;
 use SNOWGIRL_CORE\View\Widget\Pager;
+use SNOWGIRL_SHOP\App\Console;
+use SNOWGIRL_SHOP\App\Web;
 use SNOWGIRL_SHOP\Catalog\URI;
 use SNOWGIRL_SHOP\Item\URI as ItemURI;
 use SNOWGIRL_SHOP\SEO\Pages;
@@ -13,8 +15,8 @@ use SNOWGIRL_SHOP\SEO\Sitemap;
 /**
  * Class SEO
  *
- * @property App app
- * @method App getApp()
+ * @property Web|Console app
+ * @method Web|Console getApp()
  * @method Pages getPages()
  * @method RobotsTxt getRobotsTxt()
  * @method Sitemap getSitemap()

@@ -1308,9 +1308,11 @@ class Import
     protected function getUniqueFileHash()
     {
         $file = new Script($this->getCsvFile());
+
         $tmp = $file->getUniqueHash();
         $tmp = md5($tmp . serialize($this->source->getFileFilter()));
         $tmp = md5($tmp . serialize($this->source->getFileMapping()));
+
         return $tmp;
     }
 

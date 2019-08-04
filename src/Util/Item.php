@@ -377,7 +377,7 @@ class Item extends Util
             ]);
 
             $affTmp = $db->req($query)->affectedRows();
-            $this->output('Deleted from item_' . $table . ': ' . $affTmp);
+            $this->output('Deleted from ' . $table . ': ' . $affTmp);
 
             $aff += $affTmp;
         }
