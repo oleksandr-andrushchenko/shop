@@ -5,7 +5,6 @@ namespace SNOWGIRL_SHOP;
 use SNOWGIRL_CORE\App;
 use SNOWGIRL_SHOP\App\Web;
 use SNOWGIRL_SHOP\App\Console;
-use KzykHys\CsvParser\CsvParser;
 use SNOWGIRL_CORE\Entity;
 use SNOWGIRL_CORE\Exception;
 use SNOWGIRL_CORE\Helper;
@@ -36,7 +35,7 @@ use SNOWGIRL_CORE\Service\Storage\Query\Expr;
  */
 class Import
 {
-    protected const LIMIT = 1000;
+    protected const LIMIT = 500;
 
     /** @var App|Web|Console */
     protected $app;
@@ -53,13 +52,7 @@ class Import
     protected $filters = [];
     protected $mappings = [];
 
-    protected $csvProcessorV2 = false;
-    protected $mvaProcessorV2 = false;
-
-    protected $csvFileDelimiter = ',';
-    protected $csvFileEnclosure = '"';
-    protected $csvFileEncoding = 'CP932';
-    protected $csvFileHeader = false;
+    protected $csvFileDelimiter = ';';
 
     protected $isCheckUpdatedAt;
 
@@ -108,16 +101,9 @@ class Import
             'indexes' => []
         ];
 
-        if ($this->csvProcessorV2) {
-            foreach ($this->getCsvFileParser(0, 1) as $header) {
-                $output['columns'] = $header;
-                break;
-            }
-        } else {
-            if ($handler = fopen($this->getCsvFile(), 'r')) {
-                $output['columns'] = explode($this->csvFileDelimiter, rtrim(fgets($handler)));
-                fclose($handler);
-            }
+        if ($handler = fopen($this->getCsvFile(), 'r')) {
+            $output['columns'] = explode($this->csvFileDelimiter, rtrim(fgets($handler)));
+            fclose($handler);
         }
 
         $output['indexes'] = array_combine($output['columns'], range(0, count($output['columns']) - 1));
@@ -226,27 +212,6 @@ class Import
         return $file;
     }
 
-    /**
-     * @see https://packagist.org/packages/kzykhys/php-csv-parser
-     *
-     * @param int $offset
-     * @param int $limit
-     *
-     * @return CsvParser
-     * @throws Exception
-     */
-    protected function getCsvFileParser($offset = 0, $limit = -1)
-    {
-        return CsvParser::fromFile($this->getCsvFile(), [
-            'delimiter' => $this->csvFileDelimiter,
-            'enclosure' => $this->csvFileEnclosure,
-            'encoding' => $this->csvFileEncoding,
-            'offset' => $offset,
-            'limit' => $limit,
-            'header' => $this->csvFileHeader
-        ]);
-    }
-
     protected function readFileRow($handle, $delimiter)
     {
         //completed values
@@ -276,7 +241,6 @@ class Import
             if (!$quote) {
                 if (false === strpos($line, '"')) {
                     $row = array_merge($row, explode($delimiter, $line));
-//                    var_dump($row);
                 } else {
                     $expByQ = explode('"', $line);
 
@@ -316,85 +280,6 @@ class Import
         $this->walkFileSize = count($this->columns);
 
         $i = 0;
-
-        if ($this->csvProcessorV2) {
-            $parser = $this->getCsvFileParser(1);
-
-            foreach ($parser as $row) {
-                if (!is_array($row)) {
-                    continue;
-                }
-
-                if (count($row) != $this->walkFileSize) {
-                    continue;
-                }
-
-                $row = $this->preNormalizeRow($row);
-
-                $ok = true;
-
-                foreach ($this->filters as $column => $f) {
-                    $okTmp2 = true;
-
-                    foreach (['equal' => false, 'not_equal' => true] as $k => $v) {
-                        if (array_key_exists($k, $f) && $f[$k]) {
-                            $okTmp = $v;
-
-                            foreach ($f[$k] as $tmp2) {
-                                foreach (explode(',', $tmp2) as $tmp22) {
-                                    if (false !== mb_stripos($row[$this->indexes[$column]], $tmp22)) {
-                                        $okTmp = !$v;
-                                        break;
-                                    }
-                                }
-                            }
-
-                            if (!$okTmp) {
-                                $okTmp2 = false;
-                                break;
-                            }
-                        }
-                    }
-
-                    if (!$okTmp2) {
-                        $ok = false;
-                        break;
-                    }
-                }
-
-                if (!$ok) {
-                    continue;
-                }
-
-                if ($allowModifyOnly) {
-                    $ok = true;
-
-                    foreach ($this->mappings as $dbColumn => $vvv) {
-                        if (
-                            isset($vvv['modify'])
-                            && !array_key_exists(trim($row[$this->indexes[$vvv['column']]]), $vvv['modify'])
-                            && in_array('modify_only', $vvv)
-                            && !in_array($vvv['column'], $allowModifyOnlyExclude)
-                        ) {
-                            $ok = false;
-                            break;
-                        }
-                    }
-
-                    if (!$ok) {
-                        continue;
-                    }
-                }
-
-                $row = $this->postNormalizeRow($row);
-
-                if (false === $fn($row, $i++)) {
-                    break;
-                }
-            }
-
-            return true;
-        }
 
         if (!$handle = fopen($this->getCsvFile(), 'r')) {
             return false;
@@ -679,9 +564,10 @@ class Import
     protected $isRuLang;
     protected $index;
     protected $bindValues;
-    protected $passedTotal;
-    protected $skippedTotal;
-    protected $skippedByUpdatedAtTotal;
+    protected $passed;
+    protected $skippedByOther;
+    protected $skippedByUniqueKey;
+    protected $skippedByUpdatedAt;
     protected $startIndex;
     protected $endIndex;
     protected $defaultAllowModifyOnly = true;
@@ -693,136 +579,15 @@ class Import
 
     protected $microtime;
 
-    protected function importRow($row, $partnerItemId = null, $partnerUpdatedAt = null)
+    protected function getPartnerUpdatedAtByPartnerItemId(array $partnerItemId)
     {
-        $this->sport = null;
-        $this->sizePlus = null;
-        $this->tags = [];
+        $output = [];
 
-        $ok = false;
-
-        $values = [];
-
-        while (true) {
-            if ($partnerItemId) {
-                $values['partner_item_id'] = $partnerItemId;
-            } else {
-                if (!$values['partner_item_id'] = $this->getPartnerItemIdByRow($row)) {
-                    break;
-                }
-            }
-
-            $imageCount = null;
-
-            if (!$values['image'] = $this->getImageByRow($row, $imageCount)) {
-                $this->log('[SKIPPED image] partner_id=' . $values['partner_item_id']);
-                break;
-            }
-
-            $values['image_count'] = $imageCount;
-
-            $values = array_merge($values, $this->svaRetrieve($row));
-
-            if (!$values['category_id'] || !$values['brand_id']) {
-                $this->log('[SKIPPED category or brand] partner_id=' . $values['partner_item_id']);
-                break;
-            }
-
-            if (!$values['name'] = $this->getNameByRow($row)) {
-                $this->log('[SKIPPED name] partner_id=' . $values['partner_item_id']);
-                break;
-            }
-
-            if (!$values['price'] = $this->getPriceByRow($row)) {
-                $this->log('[SKIPPED price] partner_id=' . $values['partner_item_id']);
-                break;
-            }
-
-            if ($this->partnerType && !$values['partner_link'] = $this->getPartnerLinkByRow($row)) {
-                $this->log('[SKIPPED link] partner_id=' . $values['partner_item_id']);
-                break;
-            }
-
-            $values['import_source_id'] = $this->getImportSourceByRow($row);
-            $values['old_price'] = $this->getOldPriceByRow($row);
-            $values['is_in_stock'] = $this->getIsInStockByRow($row);
-            $values['entity'] = $this->getEntityByRow($row);
-            $values['is_sport'] = $this->sport ? 1 : 0;
-            $values['is_size_plus'] = $this->sizePlus ? 1 : 0;
-            $values['partner_updated_at'] = $partnerUpdatedAt ?: $this->getPartnerUpdatedAtByRow($row);
-
-            foreach (array_diff($this->itemColumns, array_keys($values)) as $dbColumn) {
-                if (isset($this->mappings[$dbColumn])) {
-                    $map = $this->mappings[$dbColumn];
-
-                    $value = trim($row[$this->indexes[$map['column']]]);
-
-                    if (array_key_exists('modify', $map) && array_key_exists($value, $modifies = $map['modify']) && null !== $modifies[$value]['value']) {
-                        $value = $modifies[$value]['value'];
-                    }
-
-                    $values[$dbColumn] = $value;
-                }
-            }
-
-            foreach ($this->requiredColumns as $dbColumn) {
-                if (isset($values[$dbColumn]) && !mb_strlen($values[$dbColumn])) {
-                    $this->log($dbColumn . '\' value is empty[' . var_export($values[$dbColumn], true) . '] ...ignoring record');
-                    $this->log('[SKIPPED required ' . $dbColumn . '] partner_id=' . $values['partner_item_id']);
-                    break;
-                }
-            }
-
-            if ($this->mvaProcessorV2) {
-                if ($this->tags) {
-                    $this->mvaData['tag_id']['imageToArray'][$values['image']] = array_unique($this->tags);
-                }
-
-                $this->mvaRetrieve($row, $values['image']);
-            }
-
-            $ok = true;
-
-            break;
-        }
-
-        if ($ok) {
-            $this->log('[PASSED] partner_id=' . $values['partner_item_id']);
-
-            $this->values = $values;
-
-            foreach ($values as $v) {
-                $this->bindValues[] = $v;
-            }
-
-            $this->passedTotal++;
-            $this->index++;
-        } else {
-            $this->skippedTotal++;
-        }
-
-        if (self::LIMIT == $this->index) {
-            $this->insertItems();
-            $this->index = 0;
-            $this->bindValues = [];
-
-            if ($this->app->isDev()) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    protected function getPartnerItemIdToOldPartnerUpdatedAtByRows(array $partnerItemId): array
-    {
         $tmp = $this->app->managers->items->clear()
             ->setColumns(['partner_item_id', 'partner_updated_at'])
             ->setWhere(['import_source_id' => $this->source->getId(), 'partner_item_id' => $partnerItemId])
             ->setQueryParam('log', false)
             ->getArrays();
-
-        $output = [];
 
         foreach ($tmp as $v) {
             $output[$v['partner_item_id']] = $v['partner_updated_at'];
@@ -831,13 +596,30 @@ class Import
         return $output;
     }
 
-    protected $svaComponents;
-    protected $svaData;
+    protected function getPartnerItemIdByImage(array $image)
+    {
+        $output = [];
 
-    protected function prepareSvaData()
+        $tmp = $this->app->managers->items->clear()
+            ->setColumns(['partner_item_id', 'image'])
+            ->setWhere(['import_source_id' => $this->source->getId(), 'image' => $image])
+            ->setQueryParam('log', false)
+            ->getArrays();
+
+        foreach ($tmp as $v) {
+            $output[$v['image']] = $v['partner_item_id'];
+        }
+
+        return $output;
+    }
+
+    protected $svaComponents;
+    protected $sva;
+
+    protected function prepareSva()
     {
         $this->svaComponents = $this->app->managers->catalog->getSvaComponents();
-        $this->svaData = [];
+        $this->sva = [];
 
         foreach ($this->svaComponents as $entityClass) {
             /** @var string|Entity $entityClass */
@@ -847,37 +629,41 @@ class Import
             $entity = $manager->getEntity();
             $table = $entity->getTable();
 
-            $this->svaData[$entity->getPk()] = [
+            list($nameToId, $uriToId) = $this->app->utils->attrs->getNameToIdAndUriToId($entityClass, true);
+
+            if ($termsManager = $manager->getTermsManager()) {
+                $where = isset($termsManager->getEntity()->getColumns()['lang']) ? ['lang' => $this->langs] : null;
+                $termNameToId = $this->app->utils->attrs->getTermNameToAttrId($termsManager->copy(true)->setWhere($where));
+            } else {
+                $termNameToId = [];
+            }
+
+            $this->sva[$entity->getPk()] = [
                 'manager' => $manager,
                 'entity' => $manager->getEntity(),
                 'method' => 'get' . Strings::underscoreToCamelCase($table, false) . 'ByRow',
-                'nameToId' => $this->app->utils->attrs->getNameToId($entityClass, true),
-                'termNameToId' => ($termsManager = $manager->getTermsManager())
-                    ? $termsManager->getValueToComponentId(
-                        isset($termsManager->getEntity()->getColumns()['lang']) ? ['lang' => $this->langs] : null
-                    )
-                    : [],
-                'uriToId' => $this->app->utils->attrs->getUriToId($entityClass),
+                'nameToId' => $nameToId,
+                'termNameToId' => $termNameToId,
+                'uriToId' => $uriToId,
                 'processNew' => !!$this->app->config->import->$table(false)
             ];
         }
     }
 
-    protected function svaRetrieve($row)
+    protected function retrieveSva($row)
     {
         $output = [];
 
-        foreach ($this->svaData as $pk => &$data) {
+        foreach ($this->sva as $pk => &$data) {
             /** @var Entity[]|Manager[] $data */
 
             if ($rawNameOrId = $this->{$data['method']}($row)) {
                 $id = 0;
 
-                $rawNameOrId = trim($rawNameOrId);
-
-                if (is_numeric($rawNameOrId)) {
+                if (is_int($rawNameOrId)) {
                     $id = $rawNameOrId;
                 } else {
+                    $rawNameOrId = trim($rawNameOrId);
                     $nameOrId = $data['entity']->normalizeText($rawNameOrId);
 
                     if (isset($data['nameToId'][$nameOrIdLower = mb_strtolower($nameOrId)])) {
@@ -890,7 +676,7 @@ class Import
                         $data['nameToId'][$nameOrIdLower] = $id;
                     } else {
                         try {
-                            foreach ($this->svaData as $data2) {
+                            foreach ($this->sva as $data2) {
                                 if (isset($data2['uriToId'][$uri])) {
                                     $uri = $uriTable;
                                     break;
@@ -945,7 +731,7 @@ class Import
                         return (int)$modifies[$from]['value'];
                     }
 
-                    if ($this->svaData[$pk]['processNew']) {
+                    if ($this->sva[$pk]['processNew']) {
                         return $from;
                     }
                 }
@@ -959,14 +745,14 @@ class Import
 
                     if ($source = trim($row[$i])) {
                         if ($this->isRuLang) {
-                            foreach ($this->svaData[$pk]['nameToId'] as $value => $id) {
+                            foreach ($this->sva[$pk]['nameToId'] as $value => $id) {
                                 if (false !== mb_stripos($source, $value)) {
                                     return (int)$id;
                                 }
                             }
                         }
 
-                        foreach ($this->svaData[$pk]['termNameToId'] as $term => $id) {
+                        foreach ($this->sva[$pk]['termNameToId'] as $term => $id) {
                             if (false !== mb_stripos($source, $term)) {
                                 return (int)$id;
                             }
@@ -1023,12 +809,12 @@ class Import
     }
 
     protected $mvaComponents;
-    protected $mvaData;
+    protected $mva;
 
-    protected function prepareMvaData()
+    protected function prepareMva()
     {
         $this->mvaComponents = $this->app->managers->catalog->getMvaComponents();
-        $this->mvaData = [];
+        $this->mva = [];
 
         foreach ($this->mvaComponents as $entityClass) {
             /** @var string|Entity $entityClass */
@@ -1038,37 +824,42 @@ class Import
             $entity = $manager->getEntity();
             $table = $entity->getTable();
 
-            $this->mvaData[$entity->getPk()] = [
-                'entity' => $manager->getEntity(),
+            list($nameToId, $uriToId) = $this->app->utils->attrs->getNameToIdAndUriToId($manager->copy(true), true);
+
+            if ($termsManager = $manager->getTermsManager()) {
+                $where = isset($termsManager->getEntity()->getColumns()['lang']) ? ['lang' => $this->langs] : null;
+                $termNameToId = $this->app->utils->attrs->getTermNameToAttrId($termsManager->copy(true)->setWhere($where));
+            } else {
+                $termNameToId = [];
+            }
+
+            $this->mva[$entity->getPk()] = [
+                'entity' => $entity,
                 'manager' => $manager,
                 'method' => 'get' . Strings::underscoreToCamelCase($entity->getTable()) . 'sByRow',
-                'nameToId' => $this->app->utils->attrs->getNameToId($entityClass, true),
-                'termNameToId' => ($termsManager = $manager->getTermsManager())
-                    ? $termsManager->getValueToComponentId(
-                        isset($termsManager->getEntity()->getColumns()['lang']) ? ['lang' => $this->langs] : null
-                    )
-                    : [],
-                'uriToId' => $this->app->utils->attrs->getUriToId($entityClass),
+                'nameToId' => $nameToId,
+                'termNameToId' => $termNameToId,
+                'uriToId' => $uriToId,
                 'imageToArray' => [],
                 'processNew' => !!$this->app->config->import->$table(false)
             ];
         }
     }
 
-    protected function mvaRetrieve($row, $image)
+    protected function retrieveMva($row, $image)
     {
-        foreach ($this->mvaData as $pk => $data) {
+        foreach ($this->mva as $pk => $data) {
             if ($tmp = $this->{$data['method']}($row)) {
-                if (!isset($this->mvaData[$pk]['imageToArray'][$image])) {
-                    $this->mvaData[$pk]['imageToArray'][$image] = [];
+                if (!isset($this->mva[$pk]['imageToArray'][$image])) {
+                    $this->mva[$pk]['imageToArray'][$image] = [];
                 }
 
-                $this->mvaData[$pk]['imageToArray'][$image] = array_merge($this->mvaData[$pk]['imageToArray'][$image], $tmp);
+                $this->mva[$pk]['imageToArray'][$image] = array_merge($this->mva[$pk]['imageToArray'][$image], $tmp);
             }
         }
     }
 
-    protected function insertMvaAttrs()
+    protected function insertMva()
     {
         $itemPk = $this->app->managers->items->getEntity()->getPk();
 
@@ -1083,7 +874,7 @@ class Import
 
                 $entityPk = $entity->getPk();
 
-                $data = $this->mvaData[$entityPk];
+                $data = $this->mva[$entityPk];
 
                 if (count($data)) {
                     $entityTable = $entity->getTable();
@@ -1098,68 +889,64 @@ class Import
                             continue;
                         }
 
-                        $rawArray = array_map(function ($i) {
-                            return trim($i);
-                        }, $rawArray);
+                        $rawArray = array_unique($rawArray, SORT_REGULAR);
 
-                        $array = array_map(function ($i) {
-                            return mb_strtolower($i);
-                        }, $rawArray);
-
-                        $array = array_combine($rawArray, $array);
-                        $array = array_unique($array);
-
-                        foreach ($array as $rawNameOrId => $nameOrId) {
+                        foreach ($rawArray as $rawNameOrId) {
                             $id = null;
 
-                            if (is_numeric($nameOrId)) {
-                                $id = $nameOrId;
-                            } elseif (isset($data['nameToId'][$nameOrId])) {
-                                $id = $data['nameToId'][$nameOrId];
-                            } elseif (isset($data['uriToId'][$newUri = $entity::normalizeUri($nameOrId)])) {
-                                $id = $data['uriToId'][$newUri];
-                                $this->mvaData[$entityPk]['nameToId'][$nameOrId] = $id;
+                            if (is_int($rawNameOrId)) {
+                                $id = $rawNameOrId;
                             } else {
-                                try {
-                                    while (true) {
-                                        foreach ($this->svaData as $data2) {
-                                            if (isset($data2['nameToId'][$nameOrId])) {
-                                                break 2;
+                                $rawNameOrId = trim($rawNameOrId);
+                                $nameOrId = mb_strtolower($rawNameOrId);
+
+                                if (isset($data['nameToId'][$nameOrId])) {
+                                    $id = $data['nameToId'][$nameOrId];
+                                } elseif (isset($data['uriToId'][$newUri = $entity->normalizeUri($nameOrId)])) {
+                                    $id = $data['uriToId'][$newUri];
+                                    $this->mva[$entityPk]['nameToId'][$nameOrId] = $id;
+                                } else {
+                                    try {
+                                        while (true) {
+                                            foreach ($this->sva as $data2) {
+                                                if (isset($data2['nameToId'][$nameOrId])) {
+                                                    break 2;
+                                                }
                                             }
-                                        }
 
-                                        foreach ($this->mvaData as $data2) {
-                                            if (isset($data2['nameToId'][$nameOrId])) {
-                                                break 2;
+                                            foreach ($this->mva as $data2) {
+                                                if (isset($data2['nameToId'][$nameOrId])) {
+                                                    break 2;
+                                                }
                                             }
+
+                                            /** @var ItemAttr $object */
+                                            $object = new $entityClass(['name' => $rawNameOrId]);
+                                            $id = $manager->insertOne($object);
+                                            $this->mva[$entityPk]['uriToId'][$object->getUri()] = $id;
+                                            $this->mva[$entityPk]['nameToId'][$nameOrId] = $id;
+
+                                            break;
                                         }
+                                    } catch (\Exception $ex) {
+                                        $this->app->services->logger->makeException($ex);
 
-                                        /** @var ItemAttr $object */
-                                        $object = new $entityClass(['name' => $rawNameOrId]);
-                                        $id = $manager->insertOne($object);
-                                        $this->mvaData[$entityPk]['uriToId'][$object->getUri()] = $id;
-                                        $this->mvaData[$entityPk]['nameToId'][$nameOrId] = $id;
+                                        if (Exception::_check($ex, 'Duplicate entry')) {
+                                            $tmp = $this->app->storage->mysql->selectOne($entityTable, new Query([
+                                                'columns' => $entityPk,
+                                                'where' => ['uri' => $newUri]
+                                            ]));
 
-                                        break;
-                                    }
-                                } catch (\Exception $ex) {
-                                    $this->app->services->logger->makeException($ex);
-
-                                    if (Exception::_check($ex, 'Duplicate entry')) {
-                                        $tmp = $this->app->storage->mysql->selectOne($entityTable, new Query([
-                                            'columns' => $entityPk,
-                                            'where' => ['uri' => $newUri]
-                                        ]));
-
-                                        if ($tmp) {
-                                            $id = $tmp[$entityPk];
-                                            $this->mvaData[$entityPk]['uriToId'][$newUri] = $id;
-                                            $this->mvaData[$entityPk]['nameToId'][$nameOrId] = $id;
+                                            if ($tmp) {
+                                                $id = $tmp[$entityPk];
+                                                $this->mva[$entityPk]['uriToId'][$newUri] = $id;
+                                                $this->mva[$entityPk]['nameToId'][$nameOrId] = $id;
+                                            } else {
+                                                $this->log('Can\'t figure out ' . $entityTable . ' id in case of duplicate');
+                                            }
                                         } else {
-                                            $this->log('Can\'t figure out ' . $entityTable . ' id in case of duplicate');
+                                            $this->log('Can\'t figure out ' . $entityTable . ' id');
                                         }
-                                    } else {
-                                        $this->log('Can\'t figure out ' . $entityTable . ' id');
                                     }
                                 }
                             }
@@ -1173,12 +960,12 @@ class Import
                         }
                     }
 
-                    $aff = $insert ? $manager->getMvaLinkManager()->insertMany($insert, ['ignore' => true, 'log' => false]) : 0;
+                    $aff = $insert ? $manager->getMvaLinkManager()->insertMany($insert, ['ignore' => true, 'log' => true]) : 0;
                 } else {
                     $aff = 0;
                 }
 
-                $this->log('Affected ' . $manager->getMvaLinkManager()->getEntity()->getTable() . ': ' . $aff);
+                $this->log('AFF ' . $manager->getMvaLinkManager()->getEntity()->getTable() . ': ' . $aff);
             } catch (\Exception $ex) {
                 $this->log('Error on mva[' . $manager->getMvaLinkManager()->getEntity()->getTable() . '] insert: ' . $ex->getMessage());
                 $this->app->services->logger->makeException($ex);
@@ -1201,11 +988,9 @@ class Import
         if (isset($this->sources[$pk])) {
             foreach ((array)$this->sources[$pk] as $c) {
                 if (isset($this->indexes[$c])) {
-                    $i = $this->indexes[$c];
-
-                    if ($source = trim($row[$i])) {
+                    if ($source = trim($row[$this->indexes[$c]])) {
                         if ($this->isRuLang) {
-                            foreach ($this->mvaData[$pk]['nameToId'] as $value => $id) {
+                            foreach ($this->mva[$pk]['nameToId'] as $value => $id) {
                                 if (false !== mb_stripos($source, $value)) {
                                     $output[] = $id;
                                 }
@@ -1213,7 +998,7 @@ class Import
                         }
 
                         if (0 == count($output)) {
-                            foreach ($this->mvaData[$pk]['termNameToId'] as $term => $id) {
+                            foreach ($this->mva[$pk]['termNameToId'] as $term => $id) {
                                 if (false !== mb_stripos($source, $term)) {
                                     $output[] = $id;
                                 }
@@ -1255,6 +1040,19 @@ class Import
     protected function getNameByRow($row)
     {
         return trim($row[$this->indexes[$this->mappings['name']['column']]]);
+    }
+
+    protected function getImageNoCheckNoDownloadByRow($row, &$count = 1)
+    {
+        $images = array_map('trim', explode(',', $row[$this->indexes[$this->mappings['image']['column']]]));
+
+        $first = array_shift($images);
+
+        $image = Image::getHash($first);
+
+        $count += count($images);
+
+        return $image;
     }
 
     protected function getImageByRow($row, &$count = 1)
@@ -1372,10 +1170,13 @@ class Import
 
     protected function _insertItems()
     {
-        $this->log('***Import Progress***')
-            ->log('PASSED items = ' . $this->passedTotal)
-            ->log('SKIPPED items = ' . $this->skippedTotal)
-            ->log('SKIPPED by updated at items = ' . $this->skippedByUpdatedAtTotal);
+        $this->log('-----------PROGRESS-----------')
+            ->log('PASSED = ' . $this->passed)
+            ->log('SKIPPED by unique key = ' . $this->skippedByUniqueKey)
+            ->log('SKIPPED by updated at = ' . $this->skippedByUpdatedAt)
+            ->log('SKIPPED by other = ' . $this->skippedByOther)
+            ->log('SKIPPED = ' . ($this->skippedByOther + $this->skippedByUniqueKey + $this->skippedByUpdatedAt))
+            ->log('------------------------------');
 
         if ((!$this->values) || (!$this->bindValues) || (!$this->index)) {
             return false;
@@ -1404,13 +1205,13 @@ class Import
 
         $onDuplicateClosure = function ($column, $value) use ($db) {
             return $db->quote($column) . ' = IF(' . implode(', ', [
-                    //if duplicate on image - then
                     $db->quote('image') . ' = VALUES(' . $db->quote('image') . ')',
-                    //ignore (do nothing)
-//                    $db->quote($column),
+                    //if duplicate on image - then
                     'IF(' . implode(', ', [
                         $db->quote('partner_item_id') . ' = VALUES(' . $db->quote('partner_item_id') . ')',
+                        //update
                         $value,
+                        //ignore (do nothing)
                         $db->quote($column)
                     ]) . ')',
                     //update
@@ -1460,7 +1261,7 @@ class Import
     {
         try {
             $aff = $this->_insertItems();
-            $this->log('Affected items: ' . (int)$aff);
+            $this->log('AFF item: ' . (int)$aff);
         } catch (\Exception $ex) {
             $this->app->services->logger->makeException($ex);
         }
@@ -1579,6 +1380,18 @@ class Import
      */
     protected $fixWhere;
 
+    /**
+     * @todo check & fix:
+     *       1) source + id - MAIN(!) unique pair (not image)
+     *       2) image should belongs to (source + id) item (as all rest fields)
+     *       3) if item exists - do not check image (file_exists($hash)) - compare hashes only, and if not equal -
+     *       update hash & download
+     *
+     * @param int $offset
+     * @param int $length
+     *
+     * @return bool
+     */
     protected function import(int $offset = 0, int $length = 9999999): bool
     {
         try {
@@ -1589,88 +1402,221 @@ class Import
 
             $this->isRuLang = in_array('ru', $this->langs);
 
-            $this->prepareSvaData();
-
-            if ($this->mvaProcessorV2) {
-                $this->prepareMvaData();
-            }
+            $this->prepareSva();
+            $this->prepareMva();
 
             $this->index = 0;
             $this->bindValues = [];
-            $this->passedTotal = 0;
-            $this->skippedTotal = 0;
-            $this->skippedByUpdatedAtTotal = 0;
+            $this->passed = 0;
+            $this->skippedByUniqueKey = 0;
+            $this->skippedByUpdatedAt = 0;
+            $this->skippedByOther = 0;
             $this->startIndex = $offset;
             $this->endIndex = $offset + $length - 1;
 
             $this->partnerType = ImportSource::TYPE_PARTNER == $this->source->getType();
+            $this->isCheckUpdatedAt = $this->isCheckUpdatedAt && isset($this->mappings['partner_updated_at']['column']);
 
-            if ($this->isCheckUpdatedAt && isset($this->mappings['partner_updated_at']['column'])) {
-                $rows = [];
+            $rows = [];
 
-                $this->walkFilteredFile(function ($row, $k) use (&$rows) {
-                    if ($k < $this->startIndex) {
-                        return true;
-                    }
-
-                    if ($k > $this->endIndex) {
-                        return false;
-                    }
-
-                    $rows[$this->getPartnerItemIdByRow($row)] = $row;
-
+            $this->walkFilteredFile(function ($row, $k) use (&$rows) {
+                if ($k < $this->startIndex) {
                     return true;
-                }, $this->defaultAllowModifyOnly);
+                }
 
-                $db = $this->app->storage->mysql;
+                if ($k > $this->endIndex) {
+                    return false;
+                }
 
-                foreach (array_chunk($rows, self::LIMIT, true) as $rows) {
-                    $partnerItemIdToOldPartnerUpdatedAt = $this->getPartnerItemIdToOldPartnerUpdatedAtByRows(array_keys($rows));
+                $rows[] = $row;
 
-                    foreach ($rows as $partnerItemId => $row) {
-                        if (isset($partnerItemIdToOldPartnerUpdatedAt[$partnerItemId])) {
-                            $oldUpdatedAt = $partnerItemIdToOldPartnerUpdatedAt[$partnerItemId];
-                            $newUpdatedAt = $this->getPartnerUpdatedAtByRow($row);
+                return true;
+            }, $this->defaultAllowModifyOnly);
 
-                            if ($oldUpdatedAt == $newUpdatedAt) {
-                                $this->log('[SKIPPED updated_at] partner_id=' . $partnerItemId . ' old=' . $oldUpdatedAt . ' new=' . $newUpdatedAt);
-                                $this->skippedByUpdatedAtTotal++;
-                                continue;
-                            }
+            foreach (array_chunk($rows, self::LIMIT) as $rows) {
+                $partnerItemId = [];
+                $image = [];
+
+                foreach ($rows as $k => $row) {
+                    //@todo validate(filter)
+                    $tmp = $this->getPartnerItemIdByRow($row);
+                    $partnerItemId[] = $tmp;
+                    $rows[$k]['_partner_item_id'] = $tmp;
+                    $imageCount = null;
+                    $tmp = $this->getImageNoCheckNoDownloadByRow($row, $imageCount);
+                    $image[] = $tmp;
+                    $rows[$k]['_image'] = $tmp;
+                    $rows[$k]['_image_count'] = $imageCount;
+                }
+
+                if ($this->isCheckUpdatedAt) {
+                    $partnerItemIdToPartnerUpdatedAt = $this->getPartnerUpdatedAtByPartnerItemId($partnerItemId);
+                } else {
+                    $partnerItemIdToPartnerUpdatedAt = [];
+                }
+
+                $imageToPartnerItemId = $this->getPartnerItemIdByImage($image);
+
+                foreach ($rows as $row) {
+                    if (isset($imageToPartnerItemId[$row['_image']])) {
+                        if ($imageToPartnerItemId[$row['_image']] != $row['_partner_item_id']) {
+                            $this->retrieveMva($row, $row['_image']);
+                            $this->log('[SKIPPED unique key] partner_id=' . $row['_partner_item_id'] . ' image=' . $row['_image']);
+                            $this->skippedByUniqueKey++;
+                            continue;
                         }
+                    } else {
+                        // force download
+                        unset($row['_image'], $row['_image_count']);
+                    }
 
-                        if (!$this->importRow($row, $partnerItemId)) {
-                            break 2;
+                    if (isset($partnerItemIdToPartnerUpdatedAt[$row['_partner_item_id']])) {
+                        $row['_partner_updated_at'] = $this->getPartnerUpdatedAtByRow($row);
+
+                        if ($partnerItemIdToPartnerUpdatedAt[$row['_partner_item_id']] <= $row['_partner_updated_at']) {
+                            $this->log('[SKIPPED updated_at] partner_id=' . $row['_partner_item_id'] . ' updated_at=' . $row['_partner_updated_at']);
+                            $this->skippedByUpdatedAt++;
+                            continue;
                         }
+                    }
+
+                    if (!$this->importRow($row)) {
+                        break 2;
                     }
                 }
-            } else {
-                $this->walkFilteredFile(function ($row, $k) {
-                    if ($k < $this->startIndex) {
-                        return true;
-                    }
-
-                    if ($k > $this->endIndex) {
-                        return false;
-                    }
-
-                    return $this->importRow($row);
-                }, $this->defaultAllowModifyOnly);
             }
 
             if ($this->index) {
                 $this->insertItems();
             }
 
-            if ($this->mvaProcessorV2) {
-                $this->insertMvaAttrs();
-            }
+            $this->insertMva();
 
             return true;
         } catch (\Exception $ex) {
             $this->app->services->logger->makeException($ex);
             return false;
         }
+    }
+
+    /**
+     * @param      $row
+     *
+     * @return bool
+     */
+    protected function importRow($row)
+    {
+        $this->sport = null;
+        $this->sizePlus = null;
+        $this->tags = [];
+
+        $ok = false;
+
+        $values = [];
+
+        while (true) {
+            if (!$values['partner_item_id'] = array_key_exists('_partner_item_id', $row) ? $row['_partner_item_id'] : $this->getPartnerItemIdByRow($row)) {
+                break;
+            }
+
+            $values = array_merge($values, $this->retrieveSva($row));
+
+            if (!$values['category_id'] || !$values['brand_id']) {
+                $this->log('[SKIPPED category or brand] partner_id=' . $values['partner_item_id']);
+                break;
+            }
+
+            if (!$values['name'] = $this->getNameByRow($row)) {
+                $this->log('[SKIPPED name] partner_id=' . $values['partner_item_id']);
+                break;
+            }
+
+            if (!$values['price'] = $this->getPriceByRow($row)) {
+                $this->log('[SKIPPED price] partner_id=' . $values['partner_item_id']);
+                break;
+            }
+
+            if ($this->partnerType && !$values['partner_link'] = $this->getPartnerLinkByRow($row)) {
+                $this->log('[SKIPPED link] partner_id=' . $values['partner_item_id']);
+                break;
+            }
+
+            $values['import_source_id'] = $this->getImportSourceByRow($row);
+            $values['old_price'] = $this->getOldPriceByRow($row);
+            $values['is_in_stock'] = $this->getIsInStockByRow($row);
+            $values['entity'] = $this->getEntityByRow($row);
+            $values['is_sport'] = $this->sport ? 1 : 0;
+            $values['is_size_plus'] = $this->sizePlus ? 1 : 0;
+            $values['partner_updated_at'] = array_key_exists('_partner_updated_at', $row) ? $row['_partner_updated_at'] : $this->getPartnerUpdatedAtByRow($row);
+
+            foreach (array_diff($this->itemColumns, array_keys($values)) as $dbColumn) {
+                if (isset($this->mappings[$dbColumn])) {
+                    $map = $this->mappings[$dbColumn];
+
+                    $value = trim($row[$this->indexes[$map['column']]]);
+
+                    if (array_key_exists('modify', $map) && array_key_exists($value, $modifies = $map['modify']) && null !== $modifies[$value]['value']) {
+                        $value = $modifies[$value]['value'];
+                    }
+
+                    $values[$dbColumn] = $value;
+                }
+            }
+
+            foreach ($this->requiredColumns as $dbColumn) {
+                if (isset($values[$dbColumn]) && !mb_strlen($values[$dbColumn])) {
+                    $this->log($dbColumn . '\' value is empty[' . var_export($values[$dbColumn], true) . '] ...ignoring record');
+                    $this->log('[SKIPPED required ' . $dbColumn . '] partner_id=' . $values['partner_item_id']);
+                    break;
+                }
+            }
+
+            $imageCount = null;
+
+            if (!$values['image'] = array_key_exists('_image', $row) ? $row['_image'] : $this->getImageByRow($row, $imageCount)) {
+                $this->log('[SKIPPED image] partner_id=' . $values['partner_item_id']);
+                break;
+            }
+
+            $values['image_count'] = array_key_exists('_image_count', $row) ? $row['_image_count'] : $imageCount;
+
+            if ($this->tags) {
+                $this->mva['tag_id']['imageToArray'][$values['image']] = array_unique($this->tags);
+            }
+
+            $this->retrieveMva($row, $values['image']);
+
+            $ok = true;
+
+            break;
+        }
+
+        if ($ok) {
+            $this->log('[PASSED] partner_id=' . $values['partner_item_id']);
+
+            $this->values = $values;
+
+            foreach ($values as $v) {
+                $this->bindValues[] = $v;
+            }
+
+            $this->passed++;
+            $this->index++;
+        } else {
+            $this->skippedByOther++;
+        }
+
+        if (self::LIMIT == $this->index) {
+            $this->insertItems();
+            $this->index = 0;
+            $this->bindValues = [];
+
+            if ($this->app->isDev()) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     public function run(int $offset = 0, int $length = 9999999)
@@ -1699,24 +1645,15 @@ class Import
 //            ->setCreatedAtFrom($ts = time() - 1)
 //            ->setOrBetweenCreatedAndUpdated(true)
 //            ->setUpdatedAtFrom($ts)
-            ->setPartnerUpdatedAtFrom($this->microtime = microtime(true));
+            ->setPartnerUpdatedAtFrom($this->microtime = (int)microtime(true));
 
         $isOk = $this->import($offset, $length);
 
         $this->updateHistory($isOk);
 
         if (true || !$this->app->isDev()) {
-//            $this->app->utils->items->doDeleteItemsWithInvalidCategories($this->fixWhere);
-//            $this->app->utils->items->doDeleteWithNonExistingCategories();
-//            $this->app->utils->items->doDeleteItemsWithInvalidBrands($this->fixWhere);
-//            $this->app->utils->items->doDeleteWithNonExistingBrands();
-            $this->app->utils->items->doFixWithNonExistingAttrs();
-
-            if (!$this->mvaProcessorV2) {
-                $this->app->utils->attrs->doAddMvaByInclusions($this->fixWhere);
-            }
-
-            //@todo flush ->setOrBetweenCreatedAndUpdated(true)->setUpdatedAtFrom($ts)
+            $this->app->utils->items->doFixWithNonExistingAttrs($this->fixWhere);
+//            $this->app->utils->attrs->doAddMvaByInclusions($this->fixWhere);
             $this->app->utils->items->doFixItemsCategories($this->fixWhere);
         }
 
