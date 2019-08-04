@@ -23,12 +23,6 @@ class Catalog extends Entity
         'ix_params' => ['params_hash']
     ];
 
-    /**
-     * @param $v
-     *
-     * @return Entity|Catalog
-     * @throws \SNOWGIRL_CORE\Exception\EntityAttr\Required
-     */
     public function setId($v)
     {
         return $this->setPageCatalogId($v);
@@ -39,12 +33,6 @@ class Catalog extends Entity
         return $this->getPageCatalogId();
     }
 
-    /**
-     * @param $v
-     *
-     * @return Entity|Catalog
-     * @throws \SNOWGIRL_CORE\Exception\EntityAttr\Required
-     */
     public function setPageCatalogId($v)
     {
         return $this->setRequiredAttr('page_catalog_id', (int)$v);
@@ -55,12 +43,6 @@ class Catalog extends Entity
         return (int)$this->getRawAttr('page_catalog_id');
     }
 
-    /**
-     * @param $v
-     *
-     * @return Entity|Catalog
-     * @throws \SNOWGIRL_CORE\Exception\EntityAttr\Required
-     */
     public function setName($v)
     {
         return $this->setRequiredAttr('name', self::normalizeText($v));
@@ -71,15 +53,9 @@ class Catalog extends Entity
         return $this->getRawAttr('name');
     }
 
-    /**
-     * @param $v
-     *
-     * @return Entity|Catalog
-     * @throws \SNOWGIRL_CORE\Exception\EntityAttr\Required
-     */
     public function setUri($v)
     {
-        return $this->setRequiredAttr('uri', self::normalizeUri($v));
+        return $this->setRequiredAttr('uri', $this->normalizeUri($v));
     }
 
     public function getUri()
@@ -87,12 +63,6 @@ class Catalog extends Entity
         return $this->getRawAttr('uri');
     }
 
-    /**
-     * @param $v
-     *
-     * @return Entity|Catalog
-     * @throws \SNOWGIRL_CORE\Exception\EntityAttr\Required
-     */
     public function setUriHash($v)
     {
         return $this->setRequiredAttr('uri_hash', self::normalizeHash($v));
@@ -103,11 +73,6 @@ class Catalog extends Entity
         return $this->getRawAttr('uri_hash');
     }
 
-    /**
-     * @param $v
-     *
-     * @return Catalog
-     */
     public function setParams($v)
     {
         return $this->setRawAttr('params', self::normalizeJson($v, true));
@@ -119,12 +84,6 @@ class Catalog extends Entity
         return $array ? self::jsonToArray($v) : $v;
     }
 
-    /**
-     * @param $k
-     * @param $v
-     *
-     * @return Catalog
-     */
     public function addParam($k, $v)
     {
         $params = $this->getParams(true);
@@ -133,12 +92,6 @@ class Catalog extends Entity
         return $this;
     }
 
-    /**
-     * @param $v
-     *
-     * @return Entity|Catalog
-     * @throws \SNOWGIRL_CORE\Exception\EntityAttr\Required
-     */
     public function setParamsHash($v)
     {
         return $this->setRequiredAttr('params_hash', self::normalizeHash($v, true));
@@ -149,11 +102,6 @@ class Catalog extends Entity
         return $this->getRawAttr('params_hash');
     }
 
-    /**
-     * @param $v
-     *
-     * @return Catalog
-     */
     public function setMeta($v)
     {
         return $this->setRawAttr('meta', self::normalizeJson($v, true));
@@ -165,12 +113,6 @@ class Catalog extends Entity
         return $array ? self::jsonToArray($v) : $v;
     }
 
-    /**
-     * @param $k
-     * @param $v
-     *
-     * @return Catalog
-     */
     public function addMeta($k, $v)
     {
         $meta = $this->getMeta(true);

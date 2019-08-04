@@ -48,10 +48,10 @@ class Catalog extends Manager
 
         $output = parent::onInsert($entity);
 
-        $entity->setUriHash($this->entity->normalizeHash($entity->getUri()));
+        $entity->setUriHash($entity->normalizeHash($entity->getUri()));
 
         if ($params = $entity->getParams()) {
-            $entity->setParamsHash($this->entity->normalizeHash($params));
+            $entity->setParamsHash($entity->normalizeHash($params));
         }
 
         return $output;
@@ -64,11 +64,11 @@ class Catalog extends Manager
         $output = parent::onUpdate($entity);
 
         if ($entity->isAttrChanged('uri')) {
-            $entity->setUriHash($this->entity->normalizeHash($entity->getUri()));
+            $entity->setUriHash($entity->normalizeHash($entity->getUri()));
         }
 
         if ($entity->isAttrChanged('params')) {
-            $entity->setParamsHash($this->entity->normalizeHash($entity->getParams()));
+            $entity->setParamsHash($entity->normalizeHash($entity->getParams()));
         }
 
         return $output;

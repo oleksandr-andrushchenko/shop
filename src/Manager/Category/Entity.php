@@ -160,7 +160,7 @@ class Entity extends Manager
     {
         $this->createTableAndFill();
 
-        $where = $fixWhere ? $fixWhere->get() : [];
+        $where = $fixWhere->get();
         $categories = $this->app->managers->categories->clear();
 
         foreach ($this->getActiveNonEmptyObjects() as $entity) {

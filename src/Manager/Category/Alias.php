@@ -22,11 +22,11 @@ class Alias extends Manager
         $output = parent::onInsert($entity);
 
         if (!$entity->getUri()) {
-            $entity->setUri(CategoryAliasEntity::normalizeUri($entity->getName()));
+            $entity->setUri($entity->normalizeUri($entity->getName()));
         }
 
         if ($entity->hasAttr('name_hash') && !$entity->issetAttr('name_hash')) {
-            $entity->set('name_hash', CategoryAliasEntity::normalizeHash($entity->getName()));
+            $entity->set('name_hash', $entity->normalizeHash($entity->getName()));
         }
 
         return $output;
@@ -39,9 +39,9 @@ class Alias extends Manager
         $output = parent::onUpdate($entity);
 
         if ($entity->isAttrChanged('name')) {
-            if ($entity->isAttrChanged('uri') && ($entity->getPrevAttr('uri') == CategoryAliasEntity::normalizeUri($entity->getPrevAttr('name')))) {
+            if ($entity->isAttrChanged('uri') && ($entity->getPrevAttr('uri') == $entity->normalizeUri($entity->getPrevAttr('name')))) {
                 $entity->setUri($entity->getName());
-            } elseif ($entity->getUri() == CategoryAliasEntity::normalizeUri($entity->getPrevAttr('name'))) {
+            } elseif ($entity->getUri() == $entity->normalizeUri($entity->getPrevAttr('name'))) {
                 $entity->setUri($entity->getName());
             }
         }

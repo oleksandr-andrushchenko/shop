@@ -2,10 +2,11 @@
 
 namespace SNOWGIRL_SHOP\Manager\Item;
 
+use APP\App\Console;
+use APP\App\Web;
 use SNOWGIRL_CORE\Entity;
 use SNOWGIRL_CORE\Manager;
 use SNOWGIRL_CORE\Exception;
-use SNOWGIRL_CORE\App;
 use SNOWGIRL_SHOP\Catalog\URI;
 use SNOWGIRL_SHOP\Entity\Item\Attr as ItemAttrEntity;
 use SNOWGIRL_SHOP\Manager\Item\Attr\DataProvider;
@@ -18,7 +19,7 @@ use SNOWGIRL_CORE\URI\Manager as UriManager;
 /**
  * Class Attr
  *
- * @property App app
+ * @property Web|Console app
  * @method Attr copy($clear = false)
  * @method Attr clear()
  * @method Attr setOrder($orders)
@@ -62,9 +63,9 @@ abstract class Attr extends Manager
         $output = parent::onUpdate($entity);
 
         if ($entity->isAttrChanged('name')) {
-            if ($entity->isAttrChanged('uri') && ($entity->getPrevAttr('uri') == Entity::normalizeUri($entity->getPrevAttr('name')))) {
+            if ($entity->isAttrChanged('uri') && ($entity->getPrevAttr('uri') == $entity->normalizeUri($entity->getPrevAttr('name')))) {
                 $entity->setUri($entity->getName());
-            } elseif ($entity->getUri() == Entity::normalizeUri($entity->getPrevAttr('name'))) {
+            } elseif ($entity->getUri() == $entity->normalizeUri($entity->getPrevAttr('name'))) {
                 $entity->setUri($entity->getName());
             }
         }
@@ -95,7 +96,7 @@ abstract class Attr extends Manager
             $vars[] = $tmp;
         }
 
-        if ($tmp = ItemAttrEntity::normalizeUri($entity->getName())) {
+        if ($tmp = $entity->normalizeUri($entity->getName())) {
             $vars[] = $tmp;
             $vars[] = $tmp . '-' . $entity->getTable();
             $vars[] = $entity->getTable() . '-' . $tmp;
@@ -104,7 +105,7 @@ abstract class Attr extends Manager
         if ($this->checkUri) {
             if (0 < count($vars)) {
                 $manager = new UriManager($this->app);
-                $components = PageCatalogManager::getComponentsOrderByRdbmsKey();
+                $components = $this->app->managers->catalog->getComponentsOrderByRdbmsKey();
 
                 foreach ($vars as $var) {
                     if (!$manager->getEntitiesBySlug($var, $components)) {

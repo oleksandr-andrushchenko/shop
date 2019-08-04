@@ -321,7 +321,7 @@ class Item extends Entity
 
     public function getCreatedAt($datetime = false)
     {
-        return $datetime ? self::timeToDatetime((int)$this->getRawAttr('created_at')) : (int)$this->getRawAttr('created_at');
+        return $datetime ? self::timeToDatetime($this->getRawAttr('created_at')) : $this->getRawAttr('created_at');
     }
 
     public function setPartnerUpdatedAt($v)

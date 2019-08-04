@@ -80,7 +80,7 @@ class Alias extends \SNOWGIRL_SHOP\Entity\Item\Attr\Alias
 
     public function setUri($v)
     {
-        return $this->setRequiredAttr('uri', static::normalizeUri($v));
+        return $this->setRequiredAttr('uri', $this->normalizeUri($v));
     }
 
     public function getUri()
@@ -95,8 +95,7 @@ class Alias extends \SNOWGIRL_SHOP\Entity\Item\Attr\Alias
 
     public function getCreatedAt($datetime = false)
     {
-        $v = $this->getRawAttr('created_at');
-        return $datetime ? self::timeToDatetime($v) : $v;
+        return $datetime ? self::timeToDatetime($this->getRawAttr('created_at')) : $this->getRawAttr('created_at');
     }
 
     public function setUpdatedAt($v)
@@ -106,7 +105,6 @@ class Alias extends \SNOWGIRL_SHOP\Entity\Item\Attr\Alias
 
     public function getUpdatedAt($datetime = false)
     {
-        $v = $this->getRawAttr('updated_at');
-        return $datetime ? self::timeToDatetime($v) : $v;
+        return $datetime ? self::timeToDatetime($this->getRawAttr('updated_at')) : $this->getRawAttr('updated_at');
     }
 }

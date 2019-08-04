@@ -179,11 +179,6 @@ class Custom extends Entity
         return $this;
     }
 
-    /**
-     * @param $v
-     *
-     * @return Custom
-     */
     public function setCreatedAt($v)
     {
         return $this->setRawAttr('created_at', self::normalizeTime($v));
@@ -191,15 +186,9 @@ class Custom extends Entity
 
     public function getCreatedAt($datetime = false)
     {
-        $v = $this->getRawAttr('created_at');
-        return $datetime ? self::timeToDatetime($v) : $v;
+        return $datetime ? self::timeToDatetime($this->getRawAttr('created_at')) : $this->getRawAttr('created_at');
     }
 
-    /**
-     * @param $v
-     *
-     * @return Custom
-     */
     public function setUpdatedAt($v)
     {
         return $this->setRawAttr('updated_at', self::normalizeTime($v, true));
@@ -207,7 +196,6 @@ class Custom extends Entity
 
     public function getUpdatedAt($datetime = false)
     {
-        $v = $this->getRawAttr('updated_at');
-        return $datetime ? self::timeToDatetime($v) : $v;
+        return $datetime ? self::timeToDatetime($this->getRawAttr('updated_at')) : $this->getRawAttr('updated_at');
     }
 }

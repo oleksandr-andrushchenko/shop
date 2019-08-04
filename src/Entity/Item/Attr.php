@@ -37,7 +37,7 @@ abstract class Attr extends Entity
 
     public function setUri($v)
     {
-        return $this->setRequiredAttr('uri', static::normalizeUri($v));
+        return $this->setRequiredAttr('uri', $this->normalizeUri($v));
     }
 
     public function getUri()
@@ -53,7 +53,7 @@ abstract class Attr extends Entity
      */
     public function setName($v)
     {
-        return $this->setRequiredAttr('name', static::normalizeText($v));
+        return $this->setRequiredAttr('name', $this->normalizeText($v));
     }
 
     public function getName()
@@ -67,6 +67,6 @@ abstract class Attr extends Entity
      */
     public function getCatalogUri()
     {
-        return new URI([static::getPk() => $this->getId()]);
+        return new URI([$this->getPk() => $this->getId()]);
     }
 }
