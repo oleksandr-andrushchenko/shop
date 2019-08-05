@@ -2,6 +2,7 @@
 
 namespace SNOWGIRL_SHOP\Controller\Admin;
 
+use SNOWGIRL_CORE\Service\Storage\Query\Expr;
 use SNOWGIRL_SHOP\App\Web as App;
 use SNOWGIRL_CORE\Controller\Admin\PrepareServicesTrait;
 use SNOWGIRL_SHOP\Entity\Page\Catalog\Custom as PageCatalogCustom;
@@ -34,6 +35,10 @@ class CatalogAction
             ->setOffset(($page - 1) * $size)
             ->setLimit($size)
             ->calcTotal(true);
+
+//        if (rdbms) {
+            $manager->addOrder(new Expr('ABS(JSON_EXTRACT(' . $app->storage->mysql->quote('meta') . ', \'$.count\')) DESC'));
+//        }
 
 //        if ($content->searchTerm) {
 //            $objects = $manager->getObjectsByQuery($content->searchTerm);
