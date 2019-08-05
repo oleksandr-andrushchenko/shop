@@ -67,12 +67,14 @@ $this->getLayout()
 <table class="table">
     <colgroup>
         <col width="10%">
-        <col width="30%">
+        <col width="5%">
+        <col width="25%">
         <col width="60%">
     </colgroup>
     <thead>
     <tr>
         <th>Страница <span class="glyphicon glyphicon-link"></span></th>
+        <th>Кол-во</th>
         <th>SEO значения</th>
         <th>SEO статьи</th>
     </tr>
@@ -88,6 +90,7 @@ $this->getLayout()
                     <?php echo htmlspecialchars($pageCatalog->getName()) ?>
                 </a>
             </td>
+            <td><?php echo $pageCatalog->getMetaKey('count') ?></td>
             <td>
                 <?php foreach (['meta_title', 'meta_description', 'h1'] as $attr) { ?>
                     <?php if ($this->app->rbac->hasPerm(RBAC::PERM_MODIFY_CATALOG_META)) { ?>
