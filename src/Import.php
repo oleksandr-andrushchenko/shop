@@ -1063,7 +1063,7 @@ class Import
 
         $error = null;
 
-        if (!$image = Image::download($first, null, $error)) {
+        if (!$image = Image::download($first, null, true, $error)) {
             $this->log($first . ': ' . $error, Logger::TYPE_ERROR);
             return false;
         }
@@ -1078,7 +1078,7 @@ class Import
                     $newImage = $part . ($count + 1);
                 }
 
-                if (Image::download($im, $newImage, $error)) {
+                if (Image::download($im, $newImage, true, $error)) {
                     $count++;
                 } else {
                     $this->log($im . ': ' . $error, Logger::TYPE_ERROR);
@@ -1470,6 +1470,7 @@ class Import
                     } else {
                         // force download
                         unset($row['_image'], $row['_image_count']);
+
                     }
 
                     if (isset($partnerItemIdToPartnerUpdatedAt[$row['_partner_item_id']])) {
