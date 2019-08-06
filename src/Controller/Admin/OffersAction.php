@@ -22,11 +22,11 @@ class OffersAction
         $view = $app->views->getLayout(true);
 
         $content = $view->setContentByTemplate('@shop/admin/offers.phtml', [
-            'vendors' => $app->managers->vendors->clear()->getObjects(),
+            'vendors' => $app->managers->vendors->clear()->addOrder(['is_active' => SORT_DESC])->getObjects(),
             'vendorClasses' => $app->managers->vendors->getAdapterClasses(true),
             'importClasses' => $app->managers->sources->getImportClasses(true),
             'sourceTypes' => ImportSource::getColumns()['type']['range'],
-            'importSources' => $app->managers->sources->clear()->getObjects()
+            'importSources' => $app->managers->sources->clear()->addOrder(['is_cron' => SORT_DESC])->getObjects()
         ]);
 
         $content->addParams($app->request->getParams());
