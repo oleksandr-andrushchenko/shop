@@ -1566,14 +1566,6 @@ class Import
                 }
             }
 
-            foreach ($this->requiredColumns as $dbColumn) {
-                if (isset($values[$dbColumn]) && !mb_strlen($values[$dbColumn])) {
-                    $this->log($dbColumn . '\' value is empty[' . var_export($values[$dbColumn], true) . '] ...ignoring record');
-                    $this->log('[SKIPPED required ' . $dbColumn . '] partner_id=' . $values['partner_item_id']);
-                    break;
-                }
-            }
-
             $imageCount = null;
 
             if (!$values['image'] = array_key_exists('_image', $row) ? $row['_image'] : $this->getImageByRow($row, $imageCount)) {
@@ -1582,6 +1574,14 @@ class Import
             }
 
             $values['image_count'] = array_key_exists('_image_count', $row) ? $row['_image_count'] : $imageCount;
+
+            foreach ($this->requiredColumns as $dbColumn) {
+                if (isset($values[$dbColumn]) && !mb_strlen($values[$dbColumn])) {
+                    $this->log($dbColumn . '\' value is empty[' . var_export($values[$dbColumn], true) . '] ...ignoring record');
+                    $this->log('[SKIPPED required ' . $dbColumn . '] partner_id=' . $values['partner_item_id']);
+                    break;
+                }
+            }
 
             if ($this->tags) {
                 $this->mva['tag_id']['imageToArray'][$values['image']] = array_unique($this->tags);
