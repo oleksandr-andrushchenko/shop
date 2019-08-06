@@ -629,7 +629,7 @@ class Import
             $entity = $manager->getEntity();
             $table = $entity->getTable();
 
-            list($nameToId, $uriToId) = $this->app->utils->attrs->getNameToIdAndUriToId($entityClass, true);
+            list($nameToId, $uriToId) = $this->app->utils->attrs->getNameToIdAndUriToId($manager->copy(true), true);
 
             if ($termsManager = $manager->getTermsManager()) {
                 $where = isset($termsManager->getEntity()->getColumns()['lang']) ? ['lang' => $this->langs] : null;
@@ -639,8 +639,8 @@ class Import
             }
 
             $this->sva[$entity->getPk()] = [
+                'entity' => $entity,
                 'manager' => $manager,
-                'entity' => $manager->getEntity(),
                 'method' => 'get' . Strings::underscoreToCamelCase($table, false) . 'ByRow',
                 'nameToId' => $nameToId,
                 'termNameToId' => $termNameToId,
