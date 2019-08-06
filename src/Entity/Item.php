@@ -5,6 +5,7 @@ namespace SNOWGIRL_SHOP\Entity;
 use SNOWGIRL_CORE\Entity;
 
 /**
+ * @todo !! add UK on partner_link (partner_link_hash)
  * Class Item
  *
  * @package SNOWGIRL_SHOP\Entity
