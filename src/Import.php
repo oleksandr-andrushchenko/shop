@@ -1544,6 +1544,15 @@ class Import
                 break;
             }
 
+            $imageCount = null;
+
+            if (!$values['image'] = array_key_exists('_image', $row) ? $row['_image'] : $this->getImageByRow($row, $imageCount)) {
+                $this->log('[SKIPPED image] partner_id=' . $values['partner_item_id']);
+                break;
+            }
+
+            $values['image_count'] = array_key_exists('_image_count', $row) ? $row['_image_count'] : $imageCount;
+
             $values['import_source_id'] = $this->getImportSourceByRow($row);
             $values['old_price'] = $this->getOldPriceByRow($row);
             $values['is_in_stock'] = $this->getIsInStockByRow($row);
@@ -1565,15 +1574,6 @@ class Import
                     $values[$dbColumn] = $value;
                 }
             }
-
-            $imageCount = null;
-
-            if (!$values['image'] = array_key_exists('_image', $row) ? $row['_image'] : $this->getImageByRow($row, $imageCount)) {
-                $this->log('[SKIPPED image] partner_id=' . $values['partner_item_id']);
-                break;
-            }
-
-            $values['image_count'] = array_key_exists('_image_count', $row) ? $row['_image_count'] : $imageCount;
 
             foreach ($this->requiredColumns as $dbColumn) {
                 if (isset($values[$dbColumn]) && !mb_strlen($values[$dbColumn])) {
