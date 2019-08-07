@@ -1061,6 +1061,11 @@ class Import
 
         $first = array_shift($images);
 
+        if (!$first) {
+            $this->log('empty image', Logger::TYPE_ERROR);
+            return false;
+        }
+
         $error = null;
 
         if (!$image = Image::download($first, null, true, $error)) {
@@ -1643,6 +1648,8 @@ class Import
         $this->createHistory($fileUniqueHash);
         $this->setOutOfStock();
 
+
+        //@todo fixWhere (smth instead of partner_update_at)
         $this->fixWhere = (new FixWhere($this->app))
             ->setSources([$this->source])
 //            ->setCreatedAtFrom($ts = time() - 1)
@@ -1656,6 +1663,8 @@ class Import
 
         if (true || !$this->app->isDev()) {
             $this->app->utils->items->doFixWithNonExistingAttrs($this->fixWhere);
+            $aff = $this->app->utils->attrs->doDeleteNonExistingItemsMva($fixWhere);
+            $this->output('updated with invalid mva: ' . $aff);
 //            $this->app->utils->attrs->doAddMvaByInclusions($this->fixWhere);
             $this->app->utils->items->doFixItemsCategories($this->fixWhere);
         }
