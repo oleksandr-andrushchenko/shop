@@ -270,10 +270,6 @@ class Item extends Util
         $this->output('updated with invalid countries: ' . $tmp);
         $aff += $tmp;
 
-        $tmp = $this->app->utils->attrs->doDeleteNonExistingItemsMva($fixWhere);
-        $this->output('updated with invalid mva: ' . $tmp);
-        $aff += $tmp;
-
         return $aff;
     }
 
