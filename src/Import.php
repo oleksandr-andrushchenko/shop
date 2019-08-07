@@ -1383,11 +1383,6 @@ class Import
     }
 
     /**
-     * @var FixWhere
-     */
-    protected $fixWhere;
-
-    /**
      * @todo check & fix:
      *       1) source + id - MAIN(!) unique pair (not image)
      *       2) image should belongs to (source + id) item (as all rest fields)
@@ -1650,7 +1645,7 @@ class Import
 
 
         //@todo fixWhere (smth instead of partner_update_at)
-        $this->fixWhere = (new FixWhere($this->app))
+        $fixWhere = (new FixWhere($this->app))
             ->setSources([$this->source])
 //            ->setCreatedAtFrom($ts = time() - 1)
 //            ->setOrBetweenCreatedAndUpdated(true)
@@ -1662,11 +1657,11 @@ class Import
         $this->updateHistory($isOk);
 
         if (true || !$this->app->isDev()) {
-            $this->app->utils->items->doFixWithNonExistingAttrs($this->fixWhere);
+            $this->app->utils->items->doFixWithNonExistingAttrs($fixWhere);
             $aff = $this->app->utils->attrs->doDeleteNonExistingItemsMva($fixWhere);
             $this->output('updated with invalid mva: ' . $aff);
-//            $this->app->utils->attrs->doAddMvaByInclusions($this->fixWhere);
-            $this->app->utils->items->doFixItemsCategories($this->fixWhere);
+//            $this->app->utils->attrs->doAddMvaByInclusions($fixWhere);
+            $this->app->utils->items->doFixItemsCategories($fixWhere);
         }
 
         return $isOk;
