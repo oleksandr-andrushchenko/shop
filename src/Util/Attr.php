@@ -26,7 +26,7 @@ class Attr extends Util
 {
     public function doDeleteNonExistingItemsMva(FixWhere $fixWhere)
     {
-        $affGlobal = 0;
+        $aff = 0;
 
         $db = $this->app->services->rdbms;
 
@@ -42,7 +42,7 @@ class Attr extends Util
             $linkManager = $manager->getMvaLinkManager();
             $linkTable = $linkManager->getEntity()->getTable();
 
-            $aff1 = $db->req(implode(' ', [
+            $affTmp1 = $db->req(implode(' ', [
                 'DELETE ' . $db->quote('ia'),
                 'FROM ' . $db->quote($linkTable) . ' ' . $db->quote('ia'),
                 'LEFT JOIN ' . $db->quote($table) . ' a USING (' . $db->quote($pk) . ')',
@@ -60,16 +60,15 @@ class Attr extends Util
                 $db->makeWhereSQL($where, $query->params)
             ]);
 
-            $aff2 = $db->req($query)->affectedRows();
+            $affTmp2 = $db->req($query)->affectedRows();
 
-            $aff = $aff1 + $aff2;
+            $affTmp = $affTmp1 + $affTmp2;
 
-            $this->output($aff . '[' . $aff1 . '+' . $aff2 . '] ' . $table . ' attrs deleted');
-
-            $affGlobal += $aff;
+            $this->output($affTmp . '[' . $affTmp1 . '+' . $affTmp2 . '] ' . $table . ' attrs deleted');
+            $aff += $affTmp;
         }
 
-        return $affGlobal;
+        return $aff;
     }
 
     public function getIdToName($entity, $isLowercase = false): array
@@ -280,13 +279,13 @@ class Attr extends Util
 
     public function doInMongoTransfer(array $attrs = [])
     {
+        $aff = 0;
+
         /** @var Mysql $rdbms */
         $rdbms = $this->app->services->rdbms;
 
         /** @var Mongo $nosql */
         $nosql = $this->app->services->nosql;
-
-        $affGlobal = 0;
 
         foreach (array_merge(
                      $this->app->managers->catalog->getMvaComponents(),
@@ -314,7 +313,7 @@ class Attr extends Util
 
             $columns = array_keys($entity->getColumns());
 
-            $aff = 0;
+            $affTmp = 0;
 
             (new WalkChunk2(1000))
                 ->setFnGet(function ($lastId, $size) use ($rdbms, $pk, $table, $columns) {
@@ -332,7 +331,7 @@ class Attr extends Util
 
                     return $rdbms->req($query)->reqToArrays();
                 })
-                ->setFnDo(function ($items) use ($nosql, $entity, $pk, $table, &$aff) {
+                ->setFnDo(function ($items) use ($nosql, $entity, $pk, $table, &$affTmp) {
                     $items = array_map(function ($item) use ($pk, $entity) {
                         $item = array_filter($item, function ($v) {
                             return null !== $v;
@@ -365,16 +364,16 @@ class Attr extends Util
                         return $item;
                     }, $items);
 
-                    $aff += $nosql->insertMany($table, $items);
+                    $affTmp += $nosql->insertMany($table, $items);
 
                     return ($last = array_pop($items)) ? $last[$pk] : false;
                 })
                 ->run();
 
-            $this->output($table . ' aff=' . $aff);
-            $affGlobal += $aff;
+            $this->output($table . ' aff=' . $affTmp);
+            $aff += $affTmp;
         }
 
-        return $affGlobal;
+        return $aff;
     }
 }
