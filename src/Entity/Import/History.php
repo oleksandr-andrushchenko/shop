@@ -15,6 +15,7 @@ class History extends Entity
         'import_source_id' => ['type' => self::COLUMN_INT, self::REQUIRED, 'entity' => __NAMESPACE__ . '\Source'],
         'file_unique_hash' => ['type' => self::COLUMN_TEXT],
         'is_ok' => ['type' => self::COLUMN_INT, self::REQUIRED],
+        //@todo add statisstics (total in file, passed, skipped etc.)
         'created_at' => ['type' => self::COLUMN_TIME, self::REQUIRED],
         'updated_at' => ['type' => self::COLUMN_TIME, 'default' => null]
     ];

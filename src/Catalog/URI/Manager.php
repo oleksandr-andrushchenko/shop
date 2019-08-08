@@ -12,7 +12,6 @@ use SNOWGIRL_CORE\App;
 use SNOWGIRL_SHOP\Catalog\URI;
 use SNOWGIRL_SHOP\Manager\Builder as Managers;
 use SNOWGIRL_SHOP\Entity\Page\Catalog as PageCatalog;
-use SNOWGIRL_SHOP\Manager\Page\Catalog as PageCatalogManager;
 use SNOWGIRL_CORE\Helper\Arrays;
 use SNOWGIRL_CORE\Entity\Redirect;
 
@@ -62,7 +61,7 @@ class Manager
 
     protected function getComponentsTableToPk()
     {
-        $components = PageCatalogManager::getComponentsOrderByRdbmsKey();
+        $components = $this->managers->catalog->getComponentsOrderByRdbmsKey();
 
         return Arrays::mapByKeyValueMaker($components, function ($k, $entity) {
             false && $k;
@@ -254,7 +253,7 @@ class Manager
             ->getObject();
 
         if ($page) {
-            $tmp = PageCatalogManager::getCatalogUri($page);
+            $tmp = $this->managers->catalog->getCatalogUri($page);
 
             //@todo....
 //            foreach ($this->normalizedParams as $k => $v) {

@@ -1659,7 +1659,7 @@ class Import
         if (true || !$this->app->isDev()) {
             $this->app->utils->items->doFixWithNonExistingAttrs($fixWhere);
             $aff = $this->app->utils->attrs->doDeleteNonExistingItemsMva($fixWhere);
-            $this->output('updated with invalid mva: ' . $aff);
+            $this->log('updated with invalid mva: ' . $aff);
 //            $this->app->utils->attrs->doAddMvaByInclusions($fixWhere);
             $this->app->utils->items->doFixItemsCategories($fixWhere);
         }

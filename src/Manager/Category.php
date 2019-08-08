@@ -549,7 +549,7 @@ class Category extends Attr
         foreach ($ids as $id) {
             $tmp[] = '<li class="dd-item dd3-item" data-id="' . $id . '">';
             $tmp[] = '<div class="dd-handle dd3-handle" title="Переместить"></div>';
-            $tmp[] = '<div class="dd3-content">' . $id . ' &mdash; ' . $this->menuItems[$id]->getName() . '</div>';
+            $tmp[] = '<div class="dd3-content">' . $id . ' &mdash; ' . $this->menuItems[$id]->getBreadcrumb() . ' [' . $this->menuItems[$id]->getName() . ']</div>';
             $tmp[] = $this->makeAdminTreeHtml($this->getDirectChildrenId($id));
             $tmp[] = '</li>';
         }
