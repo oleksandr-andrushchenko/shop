@@ -10,7 +10,7 @@ use SNOWGIRL_SHOP\Entity\Category;
     <div class="col-xs-4 col-mb-<?php echo $this->tmpMap[$i] ?>">
         <a href="<?php echo $this->getLink($category) ?>" class="category<?php echo ($img = $category->getImage()) ? ' image' : '' ?>">
             <?php if ($img) { ?>
-                <div class="category-cover" style="background-image:url(<?php echo $this->app->images->get($img)->getLink() ?>)"></div>
+                <div class="category-cover" style="background-image:url(<?php echo $this->app->images->getLinkByFile($img) ?>)"></div>
             <?php } ?>
             <div class="category-caption">
                 <span class="category-title h1"><?php echo $category->getBreadcrumb() ?: $category->getName() ?></span>

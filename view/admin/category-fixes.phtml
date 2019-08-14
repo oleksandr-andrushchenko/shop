@@ -123,7 +123,7 @@ $manager = $this->app->managers->categories;
                     <?php foreach ($this->itemItems[$item->getId()] as $itemItem) { ?>
                         <div class="easyzoom easyzoom--adjacent">
                             <a class="img-wrapper"
-                               href="<?php echo $tmp = $this->app->images->get($itemItem->getImage())->getLink() ?>"
+                               href="<?php echo $tmp = $this->app->images->getLinkByFile($itemItem->getImage()) ?>"
                                title="<?php echo $itemItem->getName() ?>">
                                 <img src="<?php echo $tmp ?>">
                             </a>

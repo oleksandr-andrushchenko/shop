@@ -4,7 +4,7 @@ use SNOWGIRL_CORE\View;
 use SNOWGIRL_CORE\Script\Css;
 use SNOWGIRL_CORE\Script\Js;
 use SNOWGIRL_SHOP\Entity\Item;
-use SNOWGIRL_CORE\Image;
+use SNOWGIRL_CORE\Images;
 use SNOWGIRL_CORE\Helper;
 use SNOWGIRL_SHOP\Catalog\URI;
 use SNOWGIRL_SHOP\Catalog\SEO;
@@ -75,8 +75,9 @@ if ((!$item->get('archive')) && $item->isInStock()) {
             <ul class="item-thumbnails">
                 <?php foreach ($this->images as $image) { ?>
                     <li>
-                        <a href="<?php echo $image->getLink() ?>" data-standard="<?php echo $image->getLink() ?>">
-                            <?php echo $this->app->views->image($image, Image::FORMAT_NONE, 0, [
+                        <a href="<?php echo $link = $this->app->images->getLink($image) ?>"
+                           data-standard="<?php echo $link ?>">
+                            <?php echo $this->app->views->image($image, Images::FORMAT_NONE, 0, [
                                 'alt' => 'Фото ' . $item->getName(),
 //                                'title' => 'Купить ' . $item->getName(),
                                 'itemprop' => 'image'
@@ -99,8 +100,8 @@ if ((!$item->get('archive')) && $item->isInStock()) {
             <?php } ?>
 
             <div class="item-image-zoom easyzoom easyzoom--overlay">
-                <a href="<?php echo $this->app->images->get($item->getImage())->getLink() ?>">
-                    <?php echo $this->app->views->image($item->getImage(), Image::FORMAT_NONE, 0, [
+                <a href="<?php echo $this->app->images->getLinkByFile($item->getImage()) ?>">
+                    <?php echo $this->app->views->image($item->getImage(), Images::FORMAT_NONE, 0, [
                         'alt' => 'Фото ' . $item->getName(),
 //                        'title' => 'Купить ' . $item->getName(),
                         'class' => 'item-image'
@@ -137,7 +138,8 @@ if ((!$item->get('archive')) && $item->isInStock()) {
                             <span class="item-cart-sizes">
                                 <?php echo $this->noIndexOpen() ?>Размер<?php echo $this->noIndexClose() ?>
                                 <?php foreach ($this->attrs['size_id'] as $i => $size) { ?>
-                                    <button type="button" class="btn btn-default btn-size" data-id="<?php echo $size->getId() ?>">
+                                    <button type="button" class="btn btn-default btn-size"
+                                            data-id="<?php echo $size->getId() ?>">
                                         <?php echo $size->getName() ?>
                                     </button>
                                 <?php } ?>
@@ -153,7 +155,7 @@ if ((!$item->get('archive')) && $item->isInStock()) {
                             <button type="button" class="btn btn-default btn-quantity-inc">+</button>
                             </span>
 
-                            <span class="item-cart-buttons">
+                        <span class="item-cart-buttons">
                                 <button type="button" class="btn btn-lg btn-primary btn-add-to-cart">
                                     В корзину
                                 </button>
@@ -163,7 +165,8 @@ if ((!$item->get('archive')) && $item->isInStock()) {
                            class="btn btn-lg btn-info btn-details" target="_blank" rel="nofollow">
                             Еще детали
                         </a>
-                        <a href="<?php echo $tmp ?>" class="btn btn-lg btn-primary btn-buy" target="_blank" rel="nofollow">
+                        <a href="<?php echo $tmp ?>" class="btn btn-lg btn-primary btn-buy" target="_blank"
+                           rel="nofollow">
                             Купить товар
                         </a>
                     <?php } ?>
@@ -176,7 +179,7 @@ if ((!$item->get('archive')) && $item->isInStock()) {
                     <a href="<?php echo $this->app->managers->vendors->getGoLink($vendor) ?>"
                        rel="nofollow" target="_blank">
                         <?php if ($vendorImage = $vendor->getImage()) { ?>
-                            <?php echo $this->app->views->getImage($vendorImage, Image::FORMAT_HEIGHT, 50, [
+                            <?php echo $this->app->views->getImage($vendorImage, Images::FORMAT_HEIGHT, 50, [
                                 'alt' => $vendor->getName(),
                                 'title' => 'Предоставляет ' . $vendor->getName()
                             ]) ?>

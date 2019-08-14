@@ -4,7 +4,7 @@ use SNOWGIRL_CORE\Script\Css;
 use SNOWGIRL_CORE\Script\Js;
 use SNOWGIRL_SHOP\Entity\Item;
 use SNOWGIRL_SHOP\Entity\Size;
-use SNOWGIRL_CORE\Image;
+use SNOWGIRL_CORE\Images;
 
 /** @var View $this */
 /** @var Item $item */
@@ -28,7 +28,7 @@ $this->getLayout()
             $size = $sizes[$item->getRawVar('size')];
             ?>
             <div class="item">
-                <?php echo $this->app->views->image($item->getImage(), Image::FORMAT_NONE, 0, [
+                <?php echo $this->app->views->image($item->getImage(), Images::FORMAT_NONE, 0, [
                     'alt' => $item->getName(),
                     'class' => 'item-image'
                 ]) ?>

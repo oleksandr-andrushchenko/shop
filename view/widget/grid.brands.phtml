@@ -11,7 +11,7 @@ use SNOWGIRL_CORE\Image;
     <div class="col-xs-3 col-mb-2 col-sm-1">
         <a href="<?php echo $this->getLink($brand) ?>" class="brand<?php echo ($img = $brand->getImage()) ? ' image' : '' ?>">
             <?php if ($img) { ?>
-                <div class="brand-cover" style="background-image:url(<?php echo $this->app->images->get($img)->getLink() ?>)"></div>
+                <div class="brand-cover" style="background-image:url(<?php echo $this->app->images->getLinkByFile($img) ?>)"></div>
             <?php } ?>
             <?php if (!$img) { ?>
                 <div class="brand-caption">

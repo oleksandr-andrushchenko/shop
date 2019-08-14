@@ -98,7 +98,7 @@ $this->getLayout()
             <td data-key="image">
                 <div class="easyzoom easyzoom--adjacent">
                     <a class="img-wrapper"
-                       href="<?php echo $tmp = $this->app->images->get($item->getImage())->getLink() ?>">
+                       href="<?php echo $tmp = $this->app->images->getLinkByFile($item->getImage()) ?>">
                         <img src="<?php echo $tmp ?>">
                     </a>
                 </div>

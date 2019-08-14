@@ -2,7 +2,7 @@
 
 use SNOWGIRL_CORE\View;
 use SNOWGIRL_SHOP\Entity\Item;
-use SNOWGIRL_CORE\Image;
+use SNOWGIRL_CORE\Images;
 use SNOWGIRL_CORE\Helper;
 use SNOWGIRL_SHOP\Entity\Brand;
 use SNOWGIRL_SHOP\Entity\Vendor;
@@ -54,7 +54,7 @@ $brandName = htmlspecialchars($brand->getName());
 
     <a <?php echo $linkAttr ?> itemprop="url" class="link-image">
         <?php if ($vendorImage = $vendor->getImage()) { ?>
-            <?php echo $this->app->views->getImage($vendorImage, Image::FORMAT_HEIGHT, 25, [
+            <?php echo $this->app->views->getImage($vendorImage, Images::FORMAT_HEIGHT, 25, [
                 'alt' => $vendor->getName(),
                 'title' => 'Предоставляет ' . $vendor->getName(),
                 'class' => 'll vendor'
@@ -74,7 +74,7 @@ $brandName = htmlspecialchars($brand->getName());
         <?php } ?>
 
         <div class="image">
-            <?php echo $this->app->views->getImage($item->getImage(), Image::FORMAT_WIDTH, 227, [
+            <?php echo $this->app->views->getImage($item->getImage(), Images::FORMAT_WIDTH, 227, [
                 'alt' => 'Фото ' . $item->getName(),
                 'title' => 'Смотреть ' . $item->getName(),
                 'itemprop' => 'image'

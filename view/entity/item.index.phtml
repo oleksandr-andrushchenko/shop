@@ -1,7 +1,7 @@
 <?php
 use SNOWGIRL_CORE\View;
 use SNOWGIRL_SHOP\Entity\Item;
-use SNOWGIRL_CORE\Image;
+use SNOWGIRL_CORE\Images;
 use SNOWGIRL_CORE\Helper;
 use SNOWGIRL_SHOP\Entity\Brand;
 
@@ -24,7 +24,7 @@ $brand = $this->app->managers->items->getBrand($item);
         <?php } ?>
 
         <div class="image">
-            <?php echo $this->app->views->image($item->getImage(), Image::FORMAT_WIDTH, 227, [
+            <?php echo $this->app->views->image($item->getImage(), Images::FORMAT_WIDTH, 227, [
                 'alt' => 'Фото ' . $item->getName(),
                 'title' => 'Смотреть ' . $item->getName()
             ]) ?>

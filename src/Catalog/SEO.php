@@ -735,11 +735,11 @@ class SEO
 
         //@todo change when categories (or categories-tags pairs or other combinations) has images...
         if (($item = $this->uri->getSRC()->getFirstItem(true)) && ($image = $this->app->images->get($item->getImage()))) {
-            $view->addMetaProperty('og:image', $imageLink = $image->getLink())
+            $view->addMetaProperty('og:image', $imageLink = $this->app->images->getLink($image))
                 ->addMetaProperty('og:image:secure_url', $imageLink)
-                ->addMetaProperty('og:image:type', $image->getMime())
-                ->addMetaProperty('og:image:width', $image->getWidth())
-                ->addMetaProperty('og:image:height', $image->getHeight())
+                ->addMetaProperty('og:image:type', $this->app->images->getMime($image))
+                ->addMetaProperty('og:image:width', $this->app->images->getWidth($image))
+                ->addMetaProperty('og:image:height', $this->app->images->getHeight($image))
                 ->addMetaProperty('og:image:alt', 'Фото ' . $this->app->managers->items->getCategory($item)->getName())
                 ->addMetaProperty('og:image:user_generated', 'false')
                 ->addHeadLink('image', $imageLink);
