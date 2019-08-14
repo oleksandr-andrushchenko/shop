@@ -7,7 +7,6 @@ use SNOWGIRL_SHOP\App\Web;
 use SNOWGIRL_SHOP\App\Console;
 use SNOWGIRL_CORE\Entity;
 use SNOWGIRL_CORE\Exception;
-use SNOWGIRL_CORE\Helper;
 use SNOWGIRL_CORE\Helper\Arrays;
 use SNOWGIRL_CORE\Helper\Strings;
 use SNOWGIRL_CORE\Helper\FS;
@@ -177,8 +176,8 @@ class Import
             if (!file_exists($file2)) {
                 $this->log('downloading file...');
 
-                Helper::runShell(implode(' ', [
-                    'wget',
+                shell_exec(implode(' ', [
+                    'wget --quiet',
                     '--output-document=' . $file2,
                     '"' . $this->source->getFile() . '"',
                     '> /dev/null'
@@ -1048,7 +1047,7 @@ class Import
 
         $first = array_shift($images);
 
-        $image = Image::getHash($first);
+        $image = $this->app->images->getHash($first);
 
         $count += count($images);
 
@@ -1068,7 +1067,7 @@ class Import
 
         $error = null;
 
-        if (!$image = Image::download($first, null, true, $error)) {
+        if (!$image = $this->app->images->downloadWithWget($first, null, $error)) {
             $this->log($first . ': ' . $error, Logger::TYPE_ERROR);
             return false;
         }
@@ -1083,7 +1082,7 @@ class Import
                     $newImage = $part . ($count + 1);
                 }
 
-                if (Image::download($im, $newImage, true, $error)) {
+                if ($this->app->images->downloadWithWget($im, $newImage, $error)) {
                     $count++;
                 } else {
                     $this->log($im . ': ' . $error, Logger::TYPE_ERROR);
