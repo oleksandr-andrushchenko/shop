@@ -43,6 +43,12 @@ class Catalog extends Entity
         return (int)$this->getRawAttr('page_catalog_id');
     }
 
+    /**
+     * @param $v
+     *
+     * @return Catalog
+     * @throws \SNOWGIRL_CORE\Exception\EntityAttr\Required
+     */
     public function setName($v)
     {
         return $this->setRequiredAttr('name', self::normalizeText($v));
@@ -53,6 +59,12 @@ class Catalog extends Entity
         return $this->getRawAttr('name');
     }
 
+    /**
+     * @param $v
+     *
+     * @return Catalog
+     * @throws \SNOWGIRL_CORE\Exception\EntityAttr\Required
+     */
     public function setUri($v)
     {
         return $this->setRequiredAttr('uri', $this->normalizeUri($v));
@@ -80,8 +92,7 @@ class Catalog extends Entity
 
     public function getParams($array = false)
     {
-        $v = $this->getRawAttr('params');
-        return $array ? self::jsonToArray($v) : $v;
+        return $array ? self::jsonToArray($this->getRawAttr('params')) : $this->getRawAttr('params');
     }
 
     public function addParam($k, $v)
@@ -109,8 +120,7 @@ class Catalog extends Entity
 
     public function getMeta($array = false)
     {
-        $v = $this->getRawAttr('meta');
-        return $array ? self::jsonToArray($v) : $v;
+        return $array ? self::jsonToArray($this->getRawAttr('meta')) : $this->getRawAttr('meta');
     }
 
     public function addMeta($k, $v)

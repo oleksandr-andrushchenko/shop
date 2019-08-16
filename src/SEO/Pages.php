@@ -5,25 +5,22 @@ namespace SNOWGIRL_SHOP\SEO;
 use SNOWGIRL_CORE\Entity;
 use SNOWGIRL_CORE\Service\Logger;
 use SNOWGIRL_SHOP\Catalog\URI;
-use SNOWGIRL_SHOP\Entity\Page\Catalog as PageCatalog;
-use SNOWGIRL_SHOP\Manager\Page\Catalog as PageCatalogManager;
+use SNOWGIRL_SHOP\Catalog\SRC;
+use SNOWGIRL_SHOP\Catalog\SEO;
 use SNOWGIRL_SHOP\Entity\Category;
 use SNOWGIRL_SHOP\Entity\Item;
 use SNOWGIRL_SHOP\Entity\Size;
 use SNOWGIRL_SHOP\Entity\Tag;
-use SNOWGIRL_SHOP\Catalog\SRC as CatalogSRC;
-use SNOWGIRL_SHOP\Catalog\SEO as CatalogSEO;
 use SNOWGIRL_CORE\Helper\Arrays;
 use SNOWGIRL_CORE\Helper\Classes;
 use SNOWGIRL_SHOP\Entity\Category\Child as CategoryChild;
 use SNOWGIRL_SHOP\Entity\Item\Attr as ItemAttr;
 use SNOWGIRL_SHOP\Entity\Item\Attr\Alias as ItemAttrAlias;
-use SNOWGIRL_SHOP\SEO;
 
 /**
  * @todo    ... test & fix
  * Class Pages
- * @property SEO seo
+ * @property \SNOWGIRL_SHOP\SEO seo
  * @package SNOWGIRL_SHOP\SEO
  */
 class Pages extends \SNOWGIRL_CORE\SEO\Pages
@@ -32,28 +29,30 @@ class Pages extends \SNOWGIRL_CORE\SEO\Pages
     protected $mvaComponents;
     protected $types;
     protected $itemTable;
+    protected $catalogTable;
 
     protected function initialize()
     {
-        $this->components = PageCatalogManager::getComponentsOrderByRdbmsKey();
-        $this->mvaComponents = PageCatalogManager::getMvaComponents();
+        $this->components = $this->seo->getApp()->managers->catalog->getComponentsOrderByRdbmsKey();
+        $this->mvaComponents = $this->seo->getApp()->managers->catalog->getMvaComponents();
         $this->types = URI::TYPE_PARAMS;
-        $this->itemTable = Item::getTable();
+        $this->itemTable = $this->seo->getApp()->managers->items->getEntity()->getTable();
+        $this->catalogTable = $this->seo->getApp()->managers->catalog->getEntity()->getTable();
 
         return $this;
     }
 
     public function update()
     {
-        $this->seo->getApp()->services->rdbms->truncateTable(PageCatalog::getTable());
+        $this->seo->getApp()->services->rdbms->truncateTable($this->catalogTable);
 
-        $aliases = $this->seo->getApp()->config->catalog->aliases(false);
+        $this->generateCatalogPages(false);
 
-        $this->generateCatalogPages(false, !$aliases);
-
-        if ($aliases) {
-            $this->generateCatalogPages(true, $aliases);
+        if ($this->seo->getApp()->config->catalog->aliases(false)) {
+            $this->generateCatalogPages(true);
         }
+
+        $this->seo->getApp()->utils->catalog->doIndexFtdbms();
 
         return true;
     }
@@ -64,8 +63,10 @@ class Pages extends \SNOWGIRL_CORE\SEO\Pages
      *
      * @return bool
      */
-    protected function generateCatalogPages($aliases = false, $ftdbms = true)
+    protected function generateCatalogPages($aliases = false)
     {
+        $aff = 0;
+
         $this->log(__FUNCTION__ . '...');
 
         $this->seo->getApp()->managers->categories->syncTree();
@@ -73,6 +74,8 @@ class Pages extends \SNOWGIRL_CORE\SEO\Pages
         $db = $this->seo->getApp()->services->rdbms;
 
         $components = $this->components;
+        $types = $this->types;
+
         $mvaComponents = $this->mvaComponents;
 
         if ($aliases) {
@@ -89,20 +92,21 @@ class Pages extends \SNOWGIRL_CORE\SEO\Pages
             $mvaComponents = $this->replaceWithAliases($mvaComponents);
         }
 
-        $typesColumns = CatalogSRC::getTypesToColumns();
-        $typesTexts = CatalogSEO::getTypesToTexts();
+        $typesColumns = SRC::getTypesToColumns();
+        $typesTexts = SEO::getTypesToTexts();
 
-        $componentsAndTypes = array_merge($components, $this->types);
+        $componentsAndTypes = array_merge($components, $types);
 
         $aliasPostfix = '\\Alias';
 
-        $combinations = array_filter(Arrays::getUniqueCombinations($componentsAndTypes), function ($combination) use ($aliasPostfix, $aliases) {
+
+        $combinations = array_filter($combinations, function ($combination) use ($aliasPostfix, $aliases, $types) {
             if (in_array(Size::class, $combination) || in_array(Size::class . $aliasPostfix, $combination)) {
                 return false;
             }
 
             //if non-type and no have category
-            if (0 == count(array_intersect($combination, $this->types))) {
+            if (0 == count(array_intersect($combination, $types))) {
                 if (!in_array(Category::class, $combination) && !in_array(Category::class . $aliasPostfix, $combination)) {
                     return false;
                 }
@@ -119,7 +123,7 @@ class Pages extends \SNOWGIRL_CORE\SEO\Pages
 
             if ($aliases) {
                 //remove this when types have aliases too
-                if (0 == count(array_diff($combination, $this->types))) {
+                if (0 == count(array_diff($combination, $types))) {
                     return false;
                 }
 
@@ -151,9 +155,6 @@ class Pages extends \SNOWGIRL_CORE\SEO\Pages
             'params_hash' => 'MD5(' . $db->quote('params') . ')',
             'meta' => 'CONCAT(\'{"count":\', ' . $db->quote('cnt') . ', ' . $db->quote('meta_add') . ', \'}\')'
         ];
-
-        //'meta' => 'CONCAT(\'{"count":\', ' . $db->quote('cnt') . ', ' . $db->quote('meta_add') . ', \'}\')'
-        //'{"count":20,"aliases":{"category_id":2,"brand_id":5}}'
 
         $queryTmp = implode(', ', array_map(function ($column) use ($db) {
             return $db->quote($column);
@@ -190,7 +191,7 @@ class Pages extends \SNOWGIRL_CORE\SEO\Pages
             $checkCount = 0 == count($componentsToSelect);
 
             $typesToSelect = array_filter($componentsAndTypesToSelect, function ($componentOrType) {
-                return in_array($componentOrType, $this->types);
+                return in_array($componentOrType, $types);
             });
 
             $queryParamsColumn = [];
@@ -217,7 +218,7 @@ class Pages extends \SNOWGIRL_CORE\SEO\Pages
                     }
 
                     $queryParamsColumn[] = $tmp;
-                } elseif (in_array($componentOrType, $this->types)) {
+                } elseif (in_array($componentOrType, $types)) {
                     $queryParamsColumn[] = '\'"' . $componentOrType . '":1\'';
                 } else {
                     $this->log('undefined component or type[' . $componentOrType . ']', Logger::TYPE_ERROR);
@@ -236,7 +237,7 @@ class Pages extends \SNOWGIRL_CORE\SEO\Pages
                     }
 
                     return $db->quote('name', $table);
-                } elseif (in_array($componentOrType, $this->types)) {
+                } elseif (in_array($componentOrType, $types)) {
                     return '\'' . $typesTexts[$componentOrType] . '\'';
                 } else {
                     $this->log('undefined component or type[' . $componentOrType . ']', Logger::TYPE_ERROR);
@@ -249,7 +250,7 @@ class Pages extends \SNOWGIRL_CORE\SEO\Pages
                 if (in_array($componentOrType, $components)) {
                     /** @var $componentOrType ItemAttr|ItemAttrAlias */
                     return $db->quote('uri', $componentOrType::getTable());
-                } elseif (in_array($componentOrType, $this->types)) {
+                } elseif (in_array($componentOrType, $types)) {
                     return '\'' . $componentOrType . '\'';
                 } else {
                     $this->log('undefined component or type[' . $componentOrType . ']', Logger::TYPE_ERROR);
@@ -291,9 +292,6 @@ class Pages extends \SNOWGIRL_CORE\SEO\Pages
                         }
                     }
                 }
-
-                //'meta' => 'CONCAT(\'{"count":\', ' . $db->quote('cnt') . ', ' . $db->quote('meta_add') . ', \'}\')'
-                //'{"count":20,"aliases":{"category_id":2,"brand_id":5}}'
 
                 $baseColumnsToSelect[] = 'CONCAT(\',"aliases":{\', ' . implode(', \',\', ', $queryAliasesColumn) . ', \'}\') AS ' . $db->quote('meta_add');
             } else {
@@ -428,7 +426,7 @@ class Pages extends \SNOWGIRL_CORE\SEO\Pages
 
             $query = implode(' ', [
                 'INSERT IGNORE INTO',
-                $db->quote(PageCatalog::getTable()) . ' (' . $queryColumnsToInsert . ')',
+                $db->quote($this->catalogTable) . ' (' . $queryColumnsToInsert . ')',
 //                '(',
                 'SELECT ' . $queryColumnsToSelect,
                 'FROM (',
@@ -442,18 +440,13 @@ class Pages extends \SNOWGIRL_CORE\SEO\Pages
 
             try {
 //                $this->seo->getApp()->services->logger->make($query);
-                $db->req($query);
+                $aff += $db->req($query);
             } catch (\Exception $ex) {
                 $this->seo->getApp()->services->logger->makeException($ex);
             }
         }
 
-        if ($ftdbms && PageCatalog::isFtdbmsIndex()) {
-//            $this->seo->getApp()->services->ftdbms->rotate($this->seo->getApp(), PageCatalog::class);
-            $this->seo->getApp()->utils->catalog->doIndexFtdbms();
-        }
-
-        return true;
+        return $aff;
     }
 
     /**
