@@ -5,7 +5,7 @@ namespace SNOWGIRL_SHOP\Entity;
 use SNOWGIRL_CORE\Entity;
 
 /**
- * @todo !! add UK on partner_link (partner_link_hash)
+ * @todo    !! add UK on partner_link (partner_link_hash)
  * Class Item
  *
  * @package SNOWGIRL_SHOP\Entity
@@ -45,15 +45,17 @@ class Item extends Entity
 
         'partner_updated_at' => ['type' => self::COLUMN_INT, self::REQUIRED],
         'created_at' => ['type' => self::COLUMN_TIME, self::FTDBMS_ATTR, self::REQUIRED],
+        'updated_at' => ['type' => self::COLUMN_TIME, 'default' => null]
     ];
     protected static $indexes = [
         'uk_image' => ['image'],
         'uk_source_partner_item' => ['import_source_id', 'partner_item_id'],
         'ix_category_source_updated' => ['category_id', 'import_source_id', 'partner_updated_at'],
         'ix_catalog_category_brand' => ['is_sport', 'is_size_plus', 'category_id', 'brand_id'],
-        'ix_order_desc_rating' => ['order_desc_rating'],
-        'ix_order_asc_price' => ['order_asc_price'],
-        'ix_order_desc_price' => ['order_desc_price']
+//        'ix_order_desc_rating' => ['order_desc_rating'],
+//        'ix_order_asc_price' => ['order_asc_price'],
+//        'ix_order_desc_price' => ['order_desc_price'],
+//        'ix_updated_at' => ['updated_at']
     ];
 
     public function setId($v)
@@ -315,6 +317,16 @@ class Item extends Entity
         return (int)$this->getRawAttr('import_source_id');
     }
 
+    public function setPartnerUpdatedAt($v)
+    {
+        return $this->setRequiredAttr('partner_updated_at', (int)$v);
+    }
+
+    public function getPartnerUpdatedAt()
+    {
+        return (int)$this->getRawAttr('partner_updated_at');
+    }
+
     public function setCreatedAt($v)
     {
         return $this->setRequiredRawAttr('created_at', self::normalizeInt($v));
@@ -325,13 +337,13 @@ class Item extends Entity
         return $datetime ? self::timeToDatetime($this->getRawAttr('created_at')) : $this->getRawAttr('created_at');
     }
 
-    public function setPartnerUpdatedAt($v)
+    public function setUpdatedAt($v)
     {
-        return $this->setRequiredAttr('partner_updated_at', (int)$v);
+        return $this->setRawAttr('updated_at', self::normalizeTime($v, true));
     }
 
-    public function getPartnerUpdatedAt()
+    public function getUpdatedAt($datetime = false)
     {
-        return (int)$this->getRawAttr('partner_updated_at');
+        return $datetime ? self::timeToDatetime($this->getRawAttr('updated_at')) : $this->getRawAttr('updated_at');
     }
 }

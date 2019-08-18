@@ -17,11 +17,6 @@ abstract class DataProvider
 
     abstract public function getWhere($raw = false);
 
-    /**
-     * @param bool $cache
-     *
-     * @return array
-     */
     abstract public function getOrder($cache = false);
 
     abstract public function getTotalCount();

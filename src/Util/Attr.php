@@ -50,13 +50,13 @@ class Attr extends Util
             ]))->affectedRows();
 
             $where = $fixWhere->get();
-            $where[] = new Expr($db->quote($itemPk, 'i') . ' IS NULL');
+            $where[] = new Expr($db->quote($itemPk, $itemTable) . ' IS NULL');
 
             $query = new Query(['params' => []]);
             $query->text = implode(' ', [
                 'DELETE ' . $db->quote('ia'),
                 'FROM ' . $db->quote($linkTable) . ' ' . $db->quote('ia'),
-                'LEFT JOIN ' . $db->quote($itemTable) . ' i USING (' . $db->quote($itemPk) . ')',
+                'LEFT JOIN ' . $db->quote($itemTable) . ' USING (' . $db->quote($itemPk) . ')',
                 $db->makeWhereSQL($where, $query->params)
             ]);
 

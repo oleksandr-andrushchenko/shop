@@ -3,7 +3,7 @@
 namespace SNOWGIRL_SHOP\Item;
 
 use SNOWGIRL_CORE\Service\Storage\Query\Expr;
-use SNOWGIRL_CORE\App;
+use SNOWGIRL_SHOP\App\Console as App;
 use SNOWGIRL_SHOP\Entity\Import\Source as ImportSource;
 
 class FixWhere
@@ -130,7 +130,7 @@ class FixWhere
         $orWhere = [];
 
         if ($this->partnerUpdatedAtFrom || $this->partnerUpdatedAtTo) {
-            $q = $this->app->services->rdbms->quote('partner_updated_at');
+            $q = $this->app->storage->mysql->quote('partner_updated_at');
 
             if ($tmp = $this->partnerUpdatedAtFrom) {
                 $where[] = new Expr($q . ' > ?', $tmp);
@@ -142,7 +142,7 @@ class FixWhere
         }
 
         if ($this->createdAtFrom || $this->createdAtTo) {
-            $q = $this->app->services->rdbms->quote('created_at');
+            $q = $this->app->storage->mysql->quote('created_at', $this->app->managers->items->getEntity()->getTable());
 
             if ($tmp = $this->formatDate($this->createdAtFrom)) {
                 $where[] = new Expr($q . ' > ?', $tmp);
@@ -159,7 +159,7 @@ class FixWhere
         }
 
         if ($this->updatedAtFrom || $this->updatedAtTo || $this->updatedAtIsNull) {
-            $q = $this->app->services->rdbms->quote('updated_at');
+            $q = $this->app->storage->mysql->quote('updated_at', $this->app->managers->items->getEntity()->getTable());
 
             if ($tmp = $this->formatDate($this->updatedAtFrom)) {
                 $where[] = new Expr(($this->updatedAtFromWithNulls ? ($q . ' IS NULL OR ') : '') . $q . ' > ?', $tmp);

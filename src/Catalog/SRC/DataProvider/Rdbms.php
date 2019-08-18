@@ -218,15 +218,6 @@ class Rdbms extends DataProvider
         return $output;
     }
 
-    /**
-     * Main Order function - returns Rdbms(!) order
-     *
-     * @todo if change - sync with tables order columns...
-     *
-     * @param bool|false $cache
-     *
-     * @return array
-     */
     public function getOrder($cache = false)
     {
         $output = [];
@@ -234,9 +225,7 @@ class Rdbms extends DataProvider
         $info = $this->src->getOrderInfo();
 
         if ($cache) {
-            //this column should be enumerated according to this method non-cache output
             $output[$info->cache_column] = SORT_ASC;
-//            $index = $info->cache_index;
             return $output;
         }
 
