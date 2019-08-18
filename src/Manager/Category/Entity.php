@@ -47,12 +47,12 @@ class Entity extends Manager
                 'CREATE ' . 'TABLE IF NOT EXISTS ' . $db->quote($table) . ' (',
                 $db->quote($pk) . ' SMALLINT UNSIGNED NOT NULL AUTO_INCREMENT,',
                 $db->quote('category_id') . ' SMALLINT UNSIGNED NOT NULL DEFAULT 0,',
-                $db->quote('value') . ' TINYTEXT,',
-                $db->quote('value_hash') . ' CHAR(32) NOT NULL,',
+                $db->quote('entity') . ' TINYTEXT,',
+                $db->quote('entity_hash') . ' CHAR(32) NOT NULL,',
                 $db->quote('count') . ' SMALLINT UNSIGNED NOT NULL DEFAULT 0,',
                 $db->quote('is_active') . ' TINYINT UNSIGNED NOT NULL DEFAULT 0,',
                 'PRIMARY KEY (' . $db->quote($pk) . '),',
-                'UNIQUE KEY (' . $db->quote('category_id') . ', ' . $db->quote('value_hash') . ') )',
+                'UNIQUE KEY (' . $db->quote('category_id') . ', ' . $db->quote('entity_hash') . ') )',
                 'ENGINE=MyISAM DEFAULT CHARSET=utf8'
             ])
         );
@@ -62,7 +62,7 @@ class Entity extends Manager
         $query = new Query(['params' => [self::INCLUDE_ENTITY_COUNT_FROM]]);
         $query->text = implode(' ', [
             'INSERT' . ' INTO ' . $db->quote($table),
-            '(' . $db->quote('category_id') . ', ' . $db->quote('value') . ', ' . $db->quote('value_hash') . ', ' . $db->quote('count') . ')',
+            '(' . $db->quote('category_id') . ', ' . $db->quote('entity') . ', ' . $db->quote('entity_hash') . ', ' . $db->quote('count') . ')',
             '(SELECT ' . $db->quote('category_id') . ', ' . $db->quote('entity') . ', MD5(' . $db->quote('entity') . '), COUNT(*) AS ' . $db->quote('cnt'),
             'FROM ' . $db->quote(ItemEntity::getTable()),
             'WHERE ' . $db->quote('entity') . ' <> \'\'',
@@ -126,7 +126,7 @@ class Entity extends Manager
         return $this->clear()
             ->setWhere([
                 'is_active' => 1,
-                new Expr($this->app->services->rdbms->quote('count') . ' > 0')
+                new Expr($this->app->storage->mysql->quote('count') . ' > 0')
             ])
             ->getObjects();
     }
@@ -193,7 +193,7 @@ class Entity extends Manager
                 $this->updateItemsCategory(__FUNCTION__, $category->getId(), array_merge($where, [
                     'category_id' => $parentCategoryId,
                     'entity' => '',
-                    'name' => new Expr($this->app->services->rdbms->quote('name') . ' LIKE ?', $category->getName() . '%')
+                    'name' => new Expr($this->app->storage->mysql->quote('name') . ' LIKE ?', $category->getName() . '%')
                 ]));
             }
         }
@@ -238,7 +238,7 @@ class Entity extends Manager
             if ($this->app->managers->categories->isLeafById($entity->getCategoryId())) {
                 $this->updateItemsCategory(__FUNCTION__, $entity->getCategoryId(), array_merge($where, [
                     'entity' => '',
-                    'name' => new Expr($this->app->services->rdbms->quote('name') . ' LIKE ?', $entity->getValue() . '%')
+                    'name' => new Expr($this->app->storage->mysql->quote('name') . ' LIKE ?', $entity->getValue() . '%')
                 ]));
             }
         }
@@ -260,7 +260,7 @@ class Entity extends Manager
         foreach ($this->getActiveNonEmptyObjects() as $entity) {
             if ($this->app->managers->categories->isLeafById($entity->getCategoryId())) {
                 $this->updateItemsCategory(__FUNCTION__, $entity->getCategoryId(), array_merge($where, [
-                    'entity' => new Expr($this->app->services->rdbms->quote('entity') . ' LIKE ?', $entity->getValue() . '%')
+                    'entity' => new Expr($this->app->storage->mysql->quote('entity') . ' LIKE ?', $entity->getValue() . '%')
                 ]));
             }
         }
