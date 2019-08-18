@@ -125,12 +125,12 @@ DROP TABLE IF EXISTS `category_entity`;
 CREATE TABLE `category_entity` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `category_id` smallint(5) unsigned NOT NULL DEFAULT 0,
-  `value` tinytext DEFAULT NULL,
-  `value_hash` char(32) NOT NULL,
+  `entity` tinytext DEFAULT NULL,
+  `entity_hash` char(32) NOT NULL,
   `count` mediumint(8) unsigned NOT NULL DEFAULT 0,
   `is_active` tinyint(3) unsigned NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `category_id` (`category_id`,`value_hash`)
+  UNIQUE KEY `category_id` (`category_id`,`entity_hash`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -297,14 +297,12 @@ CREATE TABLE `item` (
   `order_desc_price` int(11) NOT NULL DEFAULT 0,
   `partner_updated_at` int(5) unsigned NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`item_id`),
   UNIQUE KEY `uk_image` (`image`),
   UNIQUE KEY `uk_source_partner_item` (`import_source_id`,`partner_item_id`),
   KEY `ix_catalog_category_brand` (`is_sport`,`is_size_plus`,`category_id`,`brand_id`),
-  KEY `ix_category_source_updated` (`category_id`,`import_source_id`,`partner_updated_at`),
-  KEY `ix_order_desc_rating` (`order_desc_rating`),
-  KEY `ix_order_asc_price` (`order_asc_price`),
-  KEY `ix_order_desc_price` (`order_desc_price`)
+  KEY `ix_category_source_updated` (`category_id`,`import_source_id`,`partner_updated_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Страницы всех предложений';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
