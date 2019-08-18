@@ -507,7 +507,8 @@ class Import
             'order_desc_rating',
             'order_asc_price',
             'order_desc_price',
-            'created_at'
+            'created_at',
+            'updated_at'
         ]);
 
         if (ImportSource::TYPE_PARTNER != $this->source->getType()) {
@@ -1191,7 +1192,7 @@ class Import
         $tmp = [];
 
         for ($i = 0, $s = count($this->values); $i < $this->index; $i++) {
-            $tmp[] = implode(', ', array_fill(0, $s, '?'));
+            $tmp[] = implode(',', array_fill(0, $s, '?')) . ',NOW()';
         }
 
         $onDuplicateIgnoreColumns = [
@@ -1200,7 +1201,8 @@ class Import
             $this->app->managers->sources->getEntity()->getPk(),
             'image',
             'partner_item_id',
-            'created_at'
+            'created_at',
+//            'updated_at'
         ];
 
         $editableColumns = self::getPostEditableColumns();
@@ -1229,7 +1231,7 @@ class Import
             $db->quote($this->app->managers->items->getEntity()->getTable()),
             '(' . implode(', ', array_map(function ($i) use ($db) {
                 return $db->quote($i);
-            }, array_keys($this->values))) . ') VALUES ' . implode(', ', array_map(function ($i) {
+            }, array_keys($this->values))) . ',' . $db->quote('updated_at') . ') VALUES ' . implode(', ', array_map(function ($i) {
                 return '(' . $i . ')';
             }, $tmp)),
             'ON DUPLICATE KEY UPDATE',
@@ -1501,6 +1503,11 @@ class Import
         }
     }
 
+    protected function beforeRow($row)
+    {
+
+    }
+
     /**
      * @param      $row
      *
@@ -1517,6 +1524,8 @@ class Import
         $values = [];
 
         while (true) {
+            $this->beforeRow($row);
+
             if (!$values['partner_item_id'] = array_key_exists('_partner_item_id', $row) ? $row['_partner_item_id'] : $this->getPartnerItemIdByRow($row)) {
                 break;
             }
@@ -1642,26 +1651,25 @@ class Import
         $this->createHistory($fileUniqueHash);
         $this->setOutOfStock();
 
+        $this->microtime = (int)microtime(true);
 
-        //@todo fixWhere (smth instead of partner_update_at) !!!!
         $fixWhere = (new FixWhere($this->app))
             ->setSources([$this->source])
-//            ->setCreatedAtFrom($ts = time() - 1)
-//            ->setOrBetweenCreatedAndUpdated(true)
-//            ->setUpdatedAtFrom($ts)
-            ->setPartnerUpdatedAtFrom($this->microtime = (int)microtime(true));
+            //@todo replace with last id
+            ->setCreatedAtFrom($ts = time() - 1)
+            ->setOrBetweenCreatedAndUpdated(true)
+            ->setUpdatedAtFrom($ts)
+        ;
 
         $isOk = $this->import($offset, $length);
 
         $this->updateHistory($isOk);
 
-        if (true || !$this->app->isDev()) {
-            $this->app->utils->items->doFixWithNonExistingAttrs($fixWhere);
-            $aff = $this->app->utils->attrs->doDeleteNonExistingItemsMva($fixWhere);
-            $this->log('updated with invalid mva: ' . $aff);
+        $this->app->utils->items->doFixWithNonExistingAttrs($fixWhere);
+        $aff = $this->app->utils->attrs->doDeleteNonExistingItemsMva($fixWhere);
+        $this->log('updated with invalid mva: ' . $aff);
 //            $this->app->utils->attrs->doAddMvaByInclusions($fixWhere);
-            $this->app->utils->items->doFixItemsCategories($fixWhere);
-        }
+        $this->app->utils->items->doFixItemsCategories($fixWhere);
 
         return $isOk;
     }
