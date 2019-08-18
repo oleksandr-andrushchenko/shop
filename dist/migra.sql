@@ -15,8 +15,19 @@ alter table `item_archive` add `partner_updated_at` int(5) unsigned NOT NULL aft
 update `item_archive` set `partner_updated_at` = unix_timestamp(ifnull(`updated_at`, `created_at`));
 alter table `item_archive` drop column `updated_at`;
 
-
-
 alter table item drop KEY `uk_vendor_partner_item`;
 alter table item add UNIQUE KEY `uk_source_partner_item` (`import_source_id`,`partner_item_id`);
 alter table item add KEY `ix_category_source_updated` (`category_id`,`import_source_id`,`partner_updated_at`);
+
+
+alter table item
+  drop key `ix_order_desc_rating`,
+  drop key `ix_order_asc_price`,
+  drop key `ix_order_desc_price`,
+  add column `updated_at` timestamp NULL DEFAULT NULL after created_at;
+
+alter table item_archive add column `updated_at` timestamp NULL DEFAULT NULL after created_at;
+
+alter table category_entity
+  change `value` `entity` tinytext DEFAULT NULL,
+  change `value_hash` `entity_hash` char(32) DEFAULT NULL;
