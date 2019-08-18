@@ -162,7 +162,16 @@ class Elastic extends DataProvider
             return $output;
         }
 
-        throw new \Exception('other potentially suitable columns are missed in index, please add them first');
+        $output[] = 'is_in_stock:asc';
+        $output[] = $info->column . ':' . ($info->desc ? 'desc' : 'asc');
+        $output[] = 'created_at:desc';
+        $output[] = 'partner_updated_at:desc';
+
+        if ('rating' !== $info->column) {
+            $output[] = 'rating:desc';
+        }
+
+        $output[] = 'item_id:desc';
 
         return $output;
     }
