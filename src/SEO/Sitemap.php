@@ -179,7 +179,7 @@ class Sitemap extends \SNOWGIRL_CORE\SEO\Sitemap
                     }
 
                     return $items
-                        ->setColumns([$pk, 'name', 'image', 'is_in_stock', 'brand_id', 'created_at', 'partner_updated_at'])
+                        ->setColumns([$pk, 'name', 'image', 'is_in_stock', 'brand_id', 'created_at', 'updated_at'])
                         ->setOrders([$pk => SORT_ASC])
                         ->setLimit($size)
                         ->getArrays();
@@ -191,7 +191,7 @@ class Sitemap extends \SNOWGIRL_CORE\SEO\Sitemap
                                 '/' . $this->catalogUriPrefix . ItemURI::buildPath($item['name'], $item[$pk]),
                                 (1 == $item['is_in_stock']) ? '0.8' : '0.5',
                                 'weekly',
-                                $this->getAddLastModParamByTimes($item['partner_updated_at'], $item['created_at']),
+                                $this->getAddLastModParamByTimes($item['updated_at'], $item['created_at']),
                                 $this->getAddImageParam($item['image'], $item['name'])
                             );
                         }
