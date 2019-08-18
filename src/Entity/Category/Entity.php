@@ -11,8 +11,8 @@ class Entity extends \SNOWGIRL_CORE\Entity
         'id' => ['type' => self::COLUMN_INT, self::AUTO_INCREMENT],
         'category_id' => ['type' => self::COLUMN_INT, self::REQUIRED, 'entity' => __NAMESPACE__],
 //            'lang',
-        'value' => ['type' => self::COLUMN_TEXT, self::REQUIRED],
-        'value_hash' => ['type' => self::COLUMN_TEXT, self::REQUIRED],
+        'entity' => ['type' => self::COLUMN_TEXT, self::REQUIRED],
+        'entity_hash' => ['type' => self::COLUMN_TEXT, self::REQUIRED],
         'count' => ['type' => self::COLUMN_INT, self::REQUIRED],
         'is_active' => ['type' => self::COLUMN_INT, 'default' => 0]
     ];
@@ -37,24 +37,24 @@ class Entity extends \SNOWGIRL_CORE\Entity
         return (int)$this->getRawAttr('category_id');
     }
 
-    public function setValue($v)
+    public function setEntity($v)
     {
-        return $this->setRequiredAttr('value', trim($v));
+        return $this->setRequiredAttr('entity', trim($v));
     }
 
-    public function getValue()
+    public function getEntity()
     {
-        return $this->getRawAttr('value');
+        return $this->getRawAttr('entity');
     }
 
-    public function setValueHash($v)
+    public function setEntityHash($v)
     {
-        return $this->setRequiredAttr('value_hash', trim($v));
+        return $this->setRequiredAttr('entity_hash', trim($v));
     }
 
-    public function getValueHash()
+    public function getEntityHash()
     {
-        return $this->getRawAttr('value_hash');
+        return $this->getRawAttr('entity_hash');
     }
 
     public function setCount($v)
