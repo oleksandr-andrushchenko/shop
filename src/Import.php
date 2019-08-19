@@ -54,6 +54,7 @@ class Import
     protected $csvFileDelimiter = ';';
 
     protected $isCheckUpdatedAt;
+    protected $isForceUpdate;
 
     public function __construct(App $app, ImportSource $source)
     {
@@ -1192,20 +1193,20 @@ class Import
         $tmp = [];
 
         for ($i = 0, $s = count($this->values); $i < $this->index; $i++) {
-            $tmp[] = implode(',', array_fill(0, $s, '?')) . ',NOW()';
+            $tmp[] = implode(',', array_fill(0, $s, '?'));
         }
 
         $onDuplicateIgnoreColumns = [
             $this->app->managers->items->getEntity()->getPk(),
             $this->app->managers->vendors->getEntity()->getPk(),
             $this->app->managers->sources->getEntity()->getPk(),
-            'image',
-            'partner_item_id',
+//            'image',
+//            'partner_item_id',
             'created_at',
-//            'updated_at'
+            'updated_at'
         ];
 
-        $editableColumns = self::getPostEditableColumns();
+        $editableColumns = $this->isForceUpdate ? [] : self::getPostEditableColumns();
 
         $db = $this->app->storage->mysql;
 
@@ -1231,7 +1232,7 @@ class Import
             $db->quote($this->app->managers->items->getEntity()->getTable()),
             '(' . implode(', ', array_map(function ($i) use ($db) {
                 return $db->quote($i);
-            }, array_keys($this->values))) . ',' . $db->quote('updated_at') . ') VALUES ' . implode(', ', array_map(function ($i) {
+            }, array_keys($this->values))) . ') VALUES ' . implode(', ', array_map(function ($i) {
                 return '(' . $i . ')';
             }, $tmp)),
             'ON DUPLICATE KEY UPDATE',
@@ -1240,7 +1241,7 @@ class Import
 
             implode(', ', array_map(function ($column) use ($onDuplicateClosure, $db) {
                 return $onDuplicateClosure($column, 'VALUES(' . $db->quote($column) . ')');
-            }, array_diff(array_keys($this->values), $onDuplicateIgnoreColumns, $editableColumns))) . ' ,',
+            }, array_diff(array_keys($this->values), $onDuplicateIgnoreColumns, $editableColumns))) . ',',
             implode(', ', array_map(function ($column) use ($onDuplicateClosure, $db, $columnsOptions) {
                 $options = $columnsOptions[$column];
 
@@ -1255,7 +1256,8 @@ class Import
                         'VALUES(' . $db->quote($column) . ')',
                         $db->quote($column)
                     ]) . ')');
-            }, $editableColumns))
+            }, $editableColumns)) . ($editableColumns ? ',' : ''),
+            $onDuplicateClosure('updated_at', 'NOW()')
         ]);
         $query->params = $this->bindValues;
         $query->log = false;
@@ -1452,7 +1454,7 @@ class Import
                     $rows[$k]['_image_count'] = $imageCount;
                 }
 
-                if ($this->isCheckUpdatedAt) {
+                if (!$this->isForceUpdate && $this->isCheckUpdatedAt) {
                     $partnerItemIdToPartnerUpdatedAt = $this->getPartnerUpdatedAtByPartnerItemId($partnerItemId);
                 } else {
                     $partnerItemIdToPartnerUpdatedAt = [];
@@ -1462,7 +1464,7 @@ class Import
 
                 foreach ($rows as $row) {
                     if (isset($imageToPartnerItemId[$row['_image']])) {
-                        if ($imageToPartnerItemId[$row['_image']] != $row['_partner_item_id']) {
+                        if (!$this->isForceUpdate && ($imageToPartnerItemId[$row['_image']] != $row['_partner_item_id'])) {
                             $this->retrieveMva($row, $row['_image']);
                             $this->log('[SKIPPED unique key] partner_id=' . $row['_partner_item_id'] . ' image=' . $row['_image']);
                             $this->skippedByUniqueKey++;
@@ -1471,13 +1473,12 @@ class Import
                     } else {
                         // force download
                         unset($row['_image'], $row['_image_count']);
-
                     }
 
                     if (isset($partnerItemIdToPartnerUpdatedAt[$row['_partner_item_id']])) {
                         $row['_partner_updated_at'] = $this->getPartnerUpdatedAtByRow($row);
 
-                        if ($partnerItemIdToPartnerUpdatedAt[$row['_partner_item_id']] <= $row['_partner_updated_at']) {
+                        if (!$this->isForceUpdate && ($partnerItemIdToPartnerUpdatedAt[$row['_partner_item_id']] <= $row['_partner_updated_at'])) {
                             $this->log('[SKIPPED updated_at] partner_id=' . $row['_partner_item_id'] . ' updated_at=' . $row['_partner_updated_at']);
                             $this->skippedByUpdatedAt++;
                             continue;
@@ -1658,8 +1659,7 @@ class Import
             //@todo replace with last id
             ->setCreatedAtFrom($ts = time() - 1)
             ->setOrBetweenCreatedAndUpdated(true)
-            ->setUpdatedAtFrom($ts)
-        ;
+            ->setUpdatedAtFrom($ts);
 
         $isOk = $this->import($offset, $length);
 
