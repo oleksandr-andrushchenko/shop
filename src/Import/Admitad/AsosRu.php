@@ -11,9 +11,9 @@ class AsosRu extends Admitad
         'param' => [
             'equal' => ['Female']
         ],
-        'currencyId' => [
-            'equal' => ['RUB']
-        ]
+//        'currencyId' => [
+//            'equal' => ['RUB']
+//        ]
     ];
 
     protected $paramsIndex;
