@@ -10,7 +10,8 @@ use SNOWGIRL_CORE\HtmlParser;
 use SNOWGIRL_CORE\Service\Storage\Query;
 use SNOWGIRL_CORE\Service\Storage\Query\Expr;
 use SNOWGIRL_CORE\Util;
-use SNOWGIRL_CORE\App;
+use SNOWGIRL_SHOP\App\Web;
+use SNOWGIRL_SHOP\App\Console;
 
 use SNOWGIRL_SHOP\Entity\Page\Catalog as PageCatalog;
 use SNOWGIRL_SHOP\Entity\Page\Catalog\Custom as PageCatalogCustom;
@@ -21,7 +22,7 @@ use SNOWGIRL_SHOP\Catalog\URI;
 /**
  * Class Catalog
  *
- * @property App app
+ * @property Web|Console app
  * @package SNOWGIRL_SHOP\Util
  */
 class Catalog extends Util
@@ -365,9 +366,22 @@ class Catalog extends Util
         ]), $reindexDays, $reindexDays));
     }
 
-    protected function getSearchColumns(): array
+    protected $searchColumns;
+    protected $elasticColumns;
+    protected $elasticColumnsOptions;
+
+    protected function initialize()
     {
-        return $this->app->managers->catalog->findColumns(Entity::SEARCH_IN);
+        $this->searchColumns = $this->app->managers->catalog->findColumns(Entity::SEARCH_IN);
+        $this->elasticColumns = array_merge($this->searchColumns, [
+            $this->app->managers->catalog->getEntity()->getPk(),
+            'uri',
+            'meta'
+        ]);
+        $this->elasticColumnsOptions = Arrays::filterByKeysArray(
+            $this->app->managers->catalog->getEntity()->getColumns(),
+            $this->elasticColumns
+        );
     }
 
     protected function getElasticMappings(): array
@@ -377,7 +391,7 @@ class Catalog extends Util
             'count' => 'integer',
         ];
 
-        foreach ($this->getSearchColumns() as $column) {
+        foreach ($this->searchColumns as $column) {
             $properties[$column] = 'text';
             $properties[$column . '_length'] = 'short';
         }
@@ -404,128 +418,88 @@ class Catalog extends Util
         return true;
     }
 
+    public function getElasticDocument(PageCatalog $page): array
+    {
+        $document = array_filter($page->getAttrs(), function ($v) {
+            return null !== $v;
+        });
+
+        foreach ($this->elasticColumnsOptions as $column => $options) {
+            if (isset($document[$column])) {
+                switch ($options['type']) {
+                    case Entity::COLUMN_FLOAT:
+                        if ($document[$column]) {
+                            $document[$column] = (float)$document[$column];
+                        } else {
+                            $document[$column] = $options['default'];
+                        }
+                        break;
+                    case Entity::COLUMN_INT:
+                        if ($document[$column]) {
+                            $document[$column] = (int)$document[$column];
+                        } else {
+                            $document[$column] = $options['default'];
+                        }
+                        break;
+                    case Entity::COLUMN_TIME:
+                        if ($document[$column]) {
+                        } else {
+                            $document[$column] = $options['default'];
+                        }
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+
+        foreach ($this->searchColumns as $column) {
+            if (isset($document[$column])) {
+                $document[$column . '_length'] = mb_strlen($document[$column]);
+            }
+        }
+
+        if (isset($document['meta'])) {
+            if ($meta = json_decode($document['meta'], true)) {
+                $document['count'] = $meta['count'];
+            }
+
+            unset($document['meta']);
+        }
+
+        return $document;
+    }
+
     public function doRawIndexElastic(string $index = null, $where = null): int
     {
         $aff = 0;
 
-        $elastic = $this->app->storage->elastic;
+        $catalogPk = $this->app->managers->catalog->getEntity()->getPk();
 
-        /** @var string|Entity $entity */
-        $entity = $this->app->managers->catalog->getEntity();
+        $index = $index ?: $this->app->managers->catalog->getEntity()->getTable();
 
-        $catalogTable = $entity->getTable();
-        $catalogPk = $entity->getPk();
+        $manager = $this->app->managers->catalog->copy(true)
+            ->setColumns($this->elasticColumns)
+            ->setOrders([$catalogPk => SORT_ASC]);
 
-        $index = $index ?: $catalogTable;
         $where = Arrays::cast($where);
 
-        $columns = [
-            $catalogPk,
-            'uri',
-            'meta'
-        ];
-
-        $searchColumns = $this->getSearchColumns();
-
-        foreach ($searchColumns as $column) {
-            $columns[] = $column;
-        }
-
-        $columnsOptions = Arrays::filterByKeysArray($entity->getColumns(), $columns);
-
-        $mappingKeys = array_keys($this->getElasticMappings()['properties']);
-
-        $mysql = $this->app->storage->mysql;
-
         (new WalkChunk2(1000))
-            ->setFnGet(function ($lastId, $size) use ($mysql, $catalogPk, $catalogTable, $columns, $where) {
-                $query = new Query(['params' => []]);
-
+            ->setFnGet(function ($lastId, $size) use ($manager, $catalogPk, $where) {
                 if ($lastId) {
-                    $where[] = new Expr($mysql->quote($catalogPk, $catalogTable) . ' > ?', $lastId);
+                    $where[] = new Expr($this->app->storage->mysql->quote($catalogPk) . ' > ?', $lastId);
                 }
 
-                $query->text = implode(' ', [
-                    'SELECT ' . implode(', ', array_map(function ($column) use ($mysql, $catalogTable) {
-                        return $mysql->quote($column, $catalogTable);
-                    }, $columns)),
-                    'FROM ' . $mysql->quote($catalogTable),
-                    $where ? $mysql->makeWhereSQL($where, $query->params, $catalogTable) : '',
-                    $mysql->makeOrderSQL([$catalogPk => SORT_ASC], $query->params, $catalogTable),
-                    $mysql->makeLimitSQL(0, $size, $query->params)
-                ]);
-
-                return $mysql->req($query)->reqToArrays();
+                return $manager->setWhere($where)->setLimit($size)->getObjects();
             })
-            ->setFnDo(function ($items) use (
-                $elastic, $entity, $catalogPk, $index, $columnsOptions, $searchColumns, $mappingKeys, &$aff
-            ) {
-                $items = Arrays::mapByKeyValueMaker($items, function ($i, $item) use (
-                    $catalogPk, $columnsOptions, $searchColumns, $mappingKeys
-                ) {
-                    $item = array_filter($item, function ($v) {
-                        return null !== $v;
-                    });
-
-                    foreach ($columnsOptions as $column => $options) {
-                        if (isset($item[$column])) {
-                            switch ($options['type']) {
-                                case Entity::COLUMN_FLOAT:
-                                    if ($item[$column]) {
-                                        $item[$column] = (float)$item[$column];
-                                    } else {
-                                        $item[$column] = $options['default'];
-                                    }
-                                    break;
-                                case Entity::COLUMN_INT:
-                                    if ($item[$column]) {
-                                        $item[$column] = (int)$item[$column];
-                                    } else {
-                                        $item[$column] = $options['default'];
-                                    }
-                                    break;
-                                case Entity::COLUMN_TIME:
-                                    if ($item[$column]) {
-                                    } else {
-                                        $item[$column] = $options['default'];
-                                    }
-                                    break;
-                                default:
-                                    break;
-                            }
-                        }
-                    }
-
-                    foreach ($searchColumns as $column) {
-                        if (isset($item[$column])) {
-                            $item[$column . '_length'] = mb_strlen($item[$column]);
-                        }
-                    }
-
-                    if (isset($item['meta'])) {
-                        if ($meta = json_decode($item['meta'], true)) {
-                            $item['count'] = $meta['count'];
-                        }
-
-                        unset($item['meta']);
-                    }
-
-                    $id = $item[$catalogPk];
-                    unset($item[$catalogPk]);
-
-//                    $item2 = Arrays::filterByKeysArray($item, $mappingKeys);
-//
-//                    if ($item != $item2) {
-//                        var_dump($item, $item2);
-//                        die;
-//                    }
-
-                    return [$id, $item];
+            ->setFnDo(function ($pages) use ($index, &$aff) {
+                $documents = Arrays::mapByKeyValueMaker($pages, function ($i, $page) {
+                    return [$page->getId(), $this->getElasticDocument($page)];
                 });
 
-                $aff += $elastic->indexMany($index, $items);
+                $aff += $this->app->storage->elastic->indexMany($index, $documents);
 
-                return end($items) ? key($items) : false;
+                return end($documents) ? key($documents) : false;
             })
             ->run();
 
