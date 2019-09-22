@@ -99,8 +99,7 @@ class Pages extends \SNOWGIRL_CORE\SEO\Pages
 
         $aliasPostfix = '\\Alias';
 
-
-        $combinations = array_filter($combinations, function ($combination) use ($aliasPostfix, $aliases, $types) {
+        $combinations = array_filter(Arrays::getUniqueCombinations($componentsAndTypes), function ($combination) use ($aliasPostfix, $aliases, $types) {
             if (in_array(Size::class, $combination) || in_array(Size::class . $aliasPostfix, $combination)) {
                 return false;
             }
@@ -190,7 +189,7 @@ class Pages extends \SNOWGIRL_CORE\SEO\Pages
 
             $checkCount = 0 == count($componentsToSelect);
 
-            $typesToSelect = array_filter($componentsAndTypesToSelect, function ($componentOrType) {
+            $typesToSelect = array_filter($componentsAndTypesToSelect, function ($componentOrType) use ($types) {
                 return in_array($componentOrType, $types);
             });
 
@@ -226,7 +225,7 @@ class Pages extends \SNOWGIRL_CORE\SEO\Pages
                 }
             }
 
-            $mapName = function ($componentOrType) use ($combination, $db, $components, $typesTexts) {
+            $mapName = function ($componentOrType) use ($combination, $db, $components, $types, $typesTexts) {
                 if (in_array($componentOrType, $components)) {
                     /** @var $componentOrType ItemAttr|ItemAttrAlias */
                     $table = $componentOrType::getTable();
@@ -246,7 +245,7 @@ class Pages extends \SNOWGIRL_CORE\SEO\Pages
             };
 
             //do not change  this logic, coz of page_catalog_custom.uri_hash link
-            $mapUri = function ($componentOrType) use ($combination, $db, $components) {
+            $mapUri = function ($componentOrType) use ($combination, $db, $components, $types) {
                 if (in_array($componentOrType, $components)) {
                     /** @var $componentOrType ItemAttr|ItemAttrAlias */
                     return $db->quote('uri', $componentOrType::getTable());
@@ -440,7 +439,7 @@ class Pages extends \SNOWGIRL_CORE\SEO\Pages
 
             try {
 //                $this->seo->getApp()->services->logger->make($query);
-                $aff += $db->req($query);
+                $aff += $db->req($query)->affectedRows();
             } catch (\Exception $ex) {
                 $this->seo->getApp()->services->logger->makeException($ex);
             }
