@@ -12,7 +12,7 @@ use SNOWGIRL_SHOP\Catalog\URI;
 use SNOWGIRL_SHOP\Entity\Page\Catalog;
 
 /**
- * Example: php bin/console add-page-catalog category=10,color=10,sport,sales,size-plus
+ * Example: php bin/console add-catalog-page category=10,color=10,sport,sales,size-plus
  *
  * Should be synced with Pages::generateCatalogPages
  *
@@ -41,6 +41,14 @@ class AddCatalogPageAction
             ->setMeta($this->buildMeta($app, $where));
 
         $aff = $app->managers->catalog->insertOne($page);
+
+        if ($aff) {
+            $app->storage->elastic->indexOne(
+                $this->buildElasticIndexName($app),
+                $page->getId(),
+                $this->buildElasticDocument($app, $page)
+            );
+        }
 
         $app->response->setBody($aff ? 'DONE' : 'FAILED');
     }
@@ -152,5 +160,22 @@ class AddCatalogPageAction
         $output['count'] = 0;
 
         return json_encode($output);
+    }
+
+    protected function buildElasticIndexName(App $app): string
+    {
+        $table = $app->managers->items->getEntity()->getTable();
+        $indexes = $app->storage->elastic->getAliasIndexes($table);
+
+        if (!$indexes) {
+            throw new \Exception('no indexes were found');
+        }
+
+        return $indexes[0];
+    }
+
+    protected function buildElasticDocument(App $app, Catalog $page)
+    {
+        return $app->utils->catalog->getElasticDocument($page);
     }
 }
