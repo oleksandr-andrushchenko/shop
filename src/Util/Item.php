@@ -669,16 +669,12 @@ class Item extends Util
     {
         $manager = $this->app->managers->categoriesToEntities;
 
-        $manager->createTableAndFill();
+        $manager->generate();
 
 //        $time = time();
 
         //the highest priority
         $manager->updateByParentsAndEntities($fixWhere);
-
-        if (true) {
-            return true;
-        }
 
         if (!$fixWhere) {
             $fixWhere = new FixWhere($this->app);
@@ -688,15 +684,17 @@ class Item extends Util
 //        $fixWhere->setUpdatedAtTo($time, true);
         $fixWhere->setUpdatedAtIsNull(true);
 
-        $manager->updateByParentsAndNamesLikeCategories($fixWhere);
+//        $manager->updateByParentsAndNamesLikeCategories($fixWhere);
 
-        $manager->updateByEntities($fixWhere);
+//        $manager->updateByEntities($fixWhere);
 
-        $manager->updateByEntitiesLikeEntities($fixWhere);
-        $manager->updateByNamesLikeEntities($fixWhere);
+//        $manager->updateByEntitiesLikeEntities($fixWhere);
+//        $manager->updateByNamesLikeEntities($fixWhere);
+
+        $manager->updateByParentsAndNamesLikeEntities($fixWhere);
 
         //update for admin
-        $manager->createTableAndFill(true);
+        $manager->generate(true);
 
         return true;
     }
