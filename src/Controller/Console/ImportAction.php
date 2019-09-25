@@ -26,7 +26,7 @@ class ImportAction
         }
 
         if (!$importSource = $app->managers->sources->find($importSourceId)) {
-            throw (new NotFound)->setNonExisting('import_source_id');
+            throw (new NotFound)->setNonExisting('import_source');
         }
 
         if (!$importSource->isCron()) {
@@ -34,6 +34,7 @@ class ImportAction
         }
 
         $app->request->set('param_1', $app->request->get('param_2', false));
+        $app->request->set('param_2', $app->request->get('param_3', false));
 
         (new ImportAllAction)($app, $importSource);
     }
