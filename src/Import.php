@@ -3,13 +3,14 @@
 namespace SNOWGIRL_SHOP;
 
 use SNOWGIRL_CORE\App;
+use SNOWGIRL_CORE\File;
 use SNOWGIRL_SHOP\App\Web;
 use SNOWGIRL_SHOP\App\Console;
 use SNOWGIRL_CORE\Entity;
 use SNOWGIRL_CORE\Exception;
 use SNOWGIRL_CORE\Helper\Arrays;
 use SNOWGIRL_CORE\Helper\Strings;
-use SNOWGIRL_CORE\Helper\FS;
+use SNOWGIRL_CORE\Helper\FileSystem;
 use SNOWGIRL_CORE\Service\Logger;
 use SNOWGIRL_CORE\Script;
 use SNOWGIRL_CORE\Service\Storage\Query;
@@ -28,7 +29,7 @@ use SNOWGIRL_CORE\Service\Storage\Query\Expr;
 /**
  * Class Import
  *
- * @property App|Web|Console app
+ * @property Web|Console app
  * @package SNOWGIRL_SHOP
  * @see     https://csv.thephpleague.com/9.0/
  */
@@ -56,11 +57,14 @@ class Import
     protected $isCheckUpdatedAt;
     protected $isForceUpdate;
 
-    public function __construct(App $app, ImportSource $source)
+    protected $force;
+
+    public function __construct(App $app, ImportSource $source, bool $force = false)
     {
         $this->app = $app;
 
         $this->source = $source;
+        $this->force = $force;
 
         $meta = $this->getMeta();
         $this->indexes = $meta['indexes'];
@@ -94,6 +98,11 @@ class Import
         return $this->source->getFileMapping(true);
     }
 
+    protected function getFile(): string
+    {
+        return $this->source->getFile();
+    }
+
     public function getMeta()
     {
         $output = [
@@ -115,7 +124,7 @@ class Import
     {
         chgrp($filename, $this->app->config->server->web_server_group);
         chown($filename, $this->app->config->server->web_server_user);
-        FS::chmodRecursive($filename, 0775);
+        FileSystem::chmodRecursive($filename, 0775);
         return $this;
     }
 
@@ -133,7 +142,7 @@ class Import
             $this->setAccessPermissions($dir);
         }
 
-        $dir .= '/' . md5($this->source->getFile());
+        $dir .= '/' . $this->source->getId();
 
         clearstatcache(true, $dir);
 
@@ -145,17 +154,28 @@ class Import
         return $dir;
     }
 
+    protected $cacheDropped;
+
     public function dropCache()
     {
-        $this->log('flushing cache...');
-        return FS::rmDir($this->getCachePath());
+        if (null === $this->cacheDropped) {
+            $this->log('dropping cache...');
+            $this->cacheDropped = FileSystem::deleteDirectory($this->getCachePath());
+        }
+
+        return $this->cacheDropped;
+    }
+
+    protected function getFileHash(): string
+    {
+        return md5($this->getFile());
     }
 
     public function getDownloadedRawFileName()
     {
         return implode('/', [
             $this->getCachePath(),
-            'src'
+            'source_' . $this->getFileHash()
         ]);
     }
 
@@ -163,25 +183,30 @@ class Import
     {
         return implode('/', [
             $this->getCachePath(),
-            'src.csv'
+            'source_' . $this->getFileHash() . '.csv'
         ]);
     }
 
-    protected function getCsvFile()
+    protected function downloadCsvFile(bool $force = false): string
     {
-        clearstatcache(true, $file = $this->getDownloadedCsvFileName());
+        $file = $this->getDownloadedCsvFileName();
+        clearstatcache(true, $file);
 
-        if (!file_exists($file)) {
-            clearstatcache(true, $file2 = $this->getDownloadedRawFileName());
+        if ($force || !file_exists($file)) {
+            $force && FileSystem::deleteFile($file);
 
-            if (!file_exists($file2)) {
+            $file2 = $this->getDownloadedRawFileName();
+            clearstatcache(true, $file2);
+
+            if ($force || !file_exists($file2)) {
+                $force && FileSystem::deleteFile($file2);
+
                 $this->log('downloading file...');
 
                 shell_exec(implode(' ', [
                     'wget --quiet',
                     '--output-document=' . $file2,
-                    '"' . $this->source->getFile() . '"',
-                    '> /dev/null'
+                    '"' . $this->getFile() . '"'
                 ]));
 
                 $this->setAccessPermissions($file2);
@@ -210,6 +235,11 @@ class Import
         }
 
         return $file;
+    }
+
+    protected function getCsvFile(): string
+    {
+        return $this->downloadCsvFile();
     }
 
     protected function readFileRow($handle, $delimiter)
@@ -569,8 +599,6 @@ class Import
     protected $skippedByOther;
     protected $skippedByUniqueKey;
     protected $skippedByUpdatedAt;
-    protected $startIndex;
-    protected $endIndex;
     protected $defaultAllowModifyOnly = true;
     protected $partnerType;
 
@@ -1277,7 +1305,7 @@ class Import
         return $this;
     }
 
-    public static function factoryAndRun(App $app, ImportSource $importSource = null, $safe = true)
+    public static function factoryAndRun(App $app, ImportSource $importSource = null, bool $force = false, bool $safe = true)
     {
         /** @var ImportSource[] $importSources */
         $importSources = $importSource ? [$importSource] : $app->managers->sources->clear()
@@ -1292,7 +1320,7 @@ class Import
         foreach ($importSources as $importSource) {
             try {
                 if (!$safe || $app->managers->sources->getVendor($importSource)->isActive()) {
-                    $app->managers->sources->getImport($importSource)->run();
+                    $app->managers->sources->getImport($importSource)->run($force);
                 } else {
                     $app->services->logger->make('Vendor "' . $app->managers->sources->getVendor($importSource)->getName() . '" is disabled');
                 }
@@ -1308,8 +1336,8 @@ class Import
     protected function getLastHistory(): ?ImportHistory
     {
         return $this->app->managers->importHistory
-            ->setWhere([ImportSource::getPk() => $this->source->getId()])
-            ->setOrders([ImportHistory::getPk() => SORT_DESC])
+            ->setWhere([$this->app->managers->importHistory->getEntity()->getPk() => $this->source->getId()])
+            ->setOrders([$this->app->managers->importHistory->getEntity()->getPk() => SORT_DESC])
             ->getObject();
     }
 
@@ -1331,11 +1359,9 @@ class Import
 
     protected function isNeed(&$uniqueFileHash = null, &$whyNoReason = null): bool
     {
-        if ($this->lastHistory = $this->getLastHistory()) {
+        if ($this->lastHistory) {
             if ($this->lastHistory->isOk() || (time() - strtotime($this->source->getCreatedAt()) >= 7 * 24 * 60 * 60)) {
-                if (!$this->app->isDev()) {
-                    $this->dropCache();
-                }
+                $this->dropCache();
 
                 $uniqueFileHash = $this->getUniqueFileHash();
 
@@ -1392,12 +1418,9 @@ class Import
      *       3) if item exists - do not check image (file_exists($hash)) - compare hashes only, and if not equal -
      *       update hash & download
      *
-     * @param int $offset
-     * @param int $length
-     *
      * @return bool
      */
-    protected function import(int $offset = 0, int $length = 9999999): bool
+    protected function import(): bool
     {
         try {
             $this->before();
@@ -1416,8 +1439,6 @@ class Import
             $this->skippedByUniqueKey = 0;
             $this->skippedByUpdatedAt = 0;
             $this->skippedByOther = 0;
-            $this->startIndex = $offset;
-            $this->endIndex = $offset + $length - 1;
 
             $this->partnerType = ImportSource::TYPE_PARTNER == $this->source->getType();
             $this->isCheckUpdatedAt = $this->isCheckUpdatedAt && isset($this->mappings['partner_updated_at']['column']);
@@ -1425,14 +1446,6 @@ class Import
             $rows = [];
 
             $this->walkFilteredFile(function ($row, $k) use (&$rows) {
-                if ($k < $this->startIndex) {
-                    return true;
-                }
-
-                if ($k > $this->endIndex) {
-                    return false;
-                }
-
                 $rows[] = $row;
 
                 return true;
@@ -1631,7 +1644,7 @@ class Import
         return true;
     }
 
-    public function run(int $offset = 0, int $length = 9999999)
+    public function run(bool $force = false)
     {
         if (!$this->app->managers->sources->getVendor($this->source)->isActive()) {
             throw new \Exception('vendor [import_source_id=' . $this->source->getName() . '] is disabled');
@@ -1640,6 +1653,16 @@ class Import
         if ($this->app->request->isCli() && !$this->source->isCron()) {
             throw new \Exception('[import_source_id=' . $this->source->getName() . '] is out of cron');
         }
+
+        $this->force = $force;
+
+        if ($this->force) {
+            $this->dropCache();
+        }
+
+        $this->downloadCsvFile($this->force);
+
+        $this->lastHistory = $this->getLastHistory();
 
         if (!$this->isNeed($fileUniqueHash, $whyNoReason)) {
             $this->log('***NO NEED TO IMPORT*** ' . $whyNoReason);
@@ -1661,22 +1684,22 @@ class Import
             ->setOrBetweenCreatedAndUpdated(true)
             ->setUpdatedAtFrom($ts);
 
-        $isOk = $this->import($offset, $length);
+        $isOk = $this->import();
 
         $this->updateHistory($isOk);
 
         $this->app->utils->items->doFixWithNonExistingAttrs($fixWhere);
         $aff = $this->app->utils->attrs->doDeleteNonExistingItemsMva($fixWhere);
         $this->log('updated with invalid mva: ' . $aff);
-//            $this->app->utils->attrs->doAddMvaByInclusions($fixWhere);
+//        $this->app->utils->attrs->doAddMvaByInclusions($fixWhere);
         $this->app->utils->items->doFixItemsCategories($fixWhere);
 
         return $isOk;
     }
 
-    public function __invoke(int $offset = 0, int $length = 9999999)
+    public function __invoke(bool $force = false)
     {
-        return $this->run($offset, $length);
+        return $this->run($force);
     }
 
     public static function getPostEditableColumns()
