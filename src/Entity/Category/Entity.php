@@ -10,10 +10,10 @@ class Entity extends \SNOWGIRL_CORE\Entity
     protected static $columns = [
         'id' => ['type' => self::COLUMN_INT, self::AUTO_INCREMENT],
         'category_id' => ['type' => self::COLUMN_INT, self::REQUIRED, 'entity' => __NAMESPACE__],
-//            'lang',
         'entity' => ['type' => self::COLUMN_TEXT, self::REQUIRED],
         'entity_hash' => ['type' => self::COLUMN_TEXT, self::REQUIRED],
-        'count' => ['type' => self::COLUMN_INT, self::REQUIRED],
+        'stop_words' => ['type' => self::COLUMN_TEXT, 'default' => null],
+        'count' => ['type' => self::COLUMN_INT, 'default' => 0],
         'is_active' => ['type' => self::COLUMN_INT, 'default' => 0]
     ];
 
@@ -49,12 +49,22 @@ class Entity extends \SNOWGIRL_CORE\Entity
 
     public function setEntityHash($v)
     {
-        return $this->setRequiredAttr('entity_hash', trim($v));
+        return $this->setRequiredAttr('entity_hash', self::normalizeHash($v));
     }
 
     public function getEntityHash()
     {
         return $this->getRawAttr('entity_hash');
+    }
+
+    public function setStopWords($v)
+    {
+        return $this->setRawAttr('stop_words', $v ? (is_array($v) ? implode(',', $v) : $v) : null);
+    }
+
+    public function getStopWords($array = false)
+    {
+        return ($v = $this->getRawAttr('stop_words')) ? ($array ? explode(',', $v) : $v) : null;
     }
 
     public function setCount($v)
