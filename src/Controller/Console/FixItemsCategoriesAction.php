@@ -28,11 +28,11 @@ class FixItemsCategoriesAction
 
         $output = $app->utils->items->doFixItemsCategories(
             (new FixWhere($app))
-                ->setCreatedAtFrom($app->request->get('param_1'))
-                ->setCreatedAtTo($app->request->get('param_2'))
-                ->setUpdatedAtFrom($app->request->get('param_3'))
-                ->setUpdatedAtTo($app->request->get('param_4'))
-                ->setSources(array_map('trim', explode(',', $app->request->get('param_5'))))
+                ->setSources(array_map('trim', explode(',', $app->request->get('param_1'))))
+                ->setCreatedAtFrom($app->request->get('param_2'))
+                ->setCreatedAtTo($app->request->get('param_3'))
+                ->setUpdatedAtFrom($app->request->get('param_4'))
+                ->setUpdatedAtTo($app->request->get('param_5'))
                 ->setOrBetweenCreatedAndUpdated($app->request->get('param_6'))
 
         );
