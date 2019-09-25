@@ -30,7 +30,7 @@ class Admin extends \SNOWGIRL_CORE\View\Layout\Admin
         $tmp[] = $this->app->rbac->hasPerm(RBAC::PERM_CATEGORIES_PAGE) ? 'categories' : false;
         $tmp[] = $this->app->rbac->hasPerm(RBAC::PERM_CATALOG_PAGE) ? 'catalog' : false;
         $tmp[] = $this->app->rbac->hasPerm(RBAC::PERM_OFFERS_PAGE) ? 'offers' : false;
-        $tmp[] = $this->app->rbac->hasPerm(RBAC::PERM_ITEM_FIXES_PAGE) ? 'item-fixes' : false;
+        $tmp[] = $this->app->rbac->hasPerm(RBAC::PERM_CATEGORY_FIXES_PAGE) ? 'category-fixes' : false;
         $tmp[] = $this->app->rbac->hasPerm(RBAC::PERM_CONTROL_PAGE) ? 'control' : false;
 //        $tmp[] = $this->app->rbac->hasPerm(RBAC::PERM_PROFILER_PAGE) ? 'profiler' : false;
 
