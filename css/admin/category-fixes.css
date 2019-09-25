@@ -1,3 +1,11 @@
+.form-search select {
+    min-width: 150px
+}
+
+.form-entity .widget-tag {
+    display: inline
+}
+
 .img-wrapper {
     height: 100px
 }

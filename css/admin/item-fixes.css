@@ -1,3 +1,7 @@
+.form-search select {
+    min-width: 150px
+}
+
 .table .table {
     margin: 0
 }
@@ -28,11 +32,6 @@ table label {
 table select {
     max-width: 400px
 }
-
-/*table table td {*/
-/*padding: 3px;*/
-/*border: 1px solid gray*/
-/*}*/
 
 .message-ok,
 .message-fail {
