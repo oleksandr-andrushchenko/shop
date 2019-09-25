@@ -36,6 +36,7 @@ class CategoryFixesAction
             'searchUseFulltext' => $searchUseFulltext = $app->request->get('search_use_fulltext', false),
             'searchWithEntities' => $app->request->get('search_entities', false),
             'searchWithNonActiveEntities' => $app->request->get('search_non_active_entities', false),
+            'searchLeafs' => $app->request->get('search_leafs', false),
             'orderBy' => $orderBy = $app->request->get('order_by', false),
             'orderValue' => $orderValue = $app->request->get('order_value', 'asc')
         ]);
@@ -71,12 +72,25 @@ class CategoryFixesAction
 
         $manager = $app->managers->categoriesToEntities->clear();
 
+        $categoryIds = [];
+
+        if ($content->searchLeafs) {
+            $categoryIds[] = $app->managers->categories->getLeafsIds();
+        }
+
         if ($content->searchWithEntities) {
-            $srcWhere['category_id'] = $manager->getCategoryList();
+            $categoryIds[] = $manager->getCategoryList();
         }
 
         if ($content->searchWithNonActiveEntities) {
-            $srcWhere['category_id'] = $manager->getCategoryListWithNonActiveItems();
+            $categoryIds[] = $manager->getCategoryListWithNonActiveItems();
+        }
+
+        $empty = false;
+
+        if ($categoryIds) {
+            $srcWhere['category_id'] = (count($categoryIds) > 1) ? array_intersect(...$categoryIds) : $categoryIds[0];
+            $empty = count($srcWhere['category_id']) == 0;
         }
 
         if ($orderBy && $orderValue) {
@@ -94,9 +108,9 @@ class CategoryFixesAction
             ->calcTotal(true);
 
         $content->addParams([
-            'items' => $items = $src->getObjects(true),
-            'itemEntities' => $app->managers->categoriesToEntities->getItemsGroupByCategories(['category_id' => array_keys($items)]),
-            'itemItems' => $app->managers->items->getFirstItemsFromEachCategory(['category_id' => array_keys($items)], 5),
+            'items' => $categories = $empty ? [] : $src->getObjects(true),
+            'itemEntities' => $app->managers->categoriesToEntities->getItemsGroupByCategories(['category_id' => array_keys($categories)]),
+            'itemItems' => $app->managers->items->getFirstItemsFromEachCategory(['category_id' => array_keys($categories)], 5),
             'categoryPicker' => $app->managers->categories->makeTagPicker(null, false, [], $view),
             'tagsPicker' => $app->managers->tags->makeTagPicker(null, true, [], $view),
             'pager' => $app->views->pager([
@@ -104,7 +118,7 @@ class CategoryFixesAction
                     'action' => 'category-fixes',
                     'page' => '{page}'
                 ])),
-                'total' => $src->getTotal(),
+                'total' => $empty ? 0 : $src->getTotal(),
                 'size' => $pageSize,
                 'page' => $pageNum,
                 'per_set' => 5,
