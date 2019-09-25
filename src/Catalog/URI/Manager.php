@@ -27,7 +27,7 @@ class Manager
     public function __construct(App $app)
     {
         $this->managers = $app->managers;
-        $this->db = $app->managers->catalog->getStorageObject();
+        $this->db = $app->managers->catalog->getStorage();
         $this->logger = $app->services->logger;
     }
 

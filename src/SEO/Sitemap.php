@@ -78,7 +78,7 @@ class Sitemap extends \SNOWGIRL_CORE\SEO\Sitemap
             $customCatalog = $app->managers->catalogCustom->clear();
 
             /** @var Rdbms $db */
-            $db = $app->managers->catalogCustom->getStorageObject();
+            $db = $app->managers->catalogCustom->getStorage();
 
             $table = $customCatalog->getEntity()->getTable();
             $pk = $customCatalog->getEntity()->getPk();

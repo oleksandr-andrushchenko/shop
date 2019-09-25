@@ -34,7 +34,8 @@ class Ftdbms extends DataProvider
 
         if (is_array($ids)) {
             if ($ids) {
-                return $this->manager->setStorage(Manager::STORAGE_RDBMS)
+                return $this->manager
+                    ->setStorage(Manager::STORAGE_RDBMS)
                     ->addWhere([$this->manager->getEntity()->getPk() => $ids])
                     ->getObjects();
             }

@@ -248,7 +248,7 @@ class Rdbms extends DataProvider
     public function getTotalCount()
     {
         return $this->src->getURI()->getApp()->managers->items->clear()
-            ->setStorage(Manager::STORAGE_RDBMS)
+//            ->setStorage(Manager::STORAGE_RDBMS)
             ->setWhere($this->getWhere())
             ->getCount();
     }

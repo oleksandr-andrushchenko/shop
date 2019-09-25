@@ -616,7 +616,7 @@ class Item extends Manager implements GoLinkBuilderInterface
         $pk = $this->entity->getPk();
 
         foreach ($this->copy(true)
-                     ->setStorage($this->storage)
+//                     ->setStorage($this->storage)
                      ->setColumns([$pk, 'image'])
                      ->setWhere($where)
                      ->setQueryParam('log', false)

@@ -272,7 +272,7 @@ class Catalog extends Util
                 continue;
             }
 
-            $custom = $this->app->managers->catalogCustom->getStorageObject()
+            $custom = $this->app->managers->catalogCustom->getStorage()
                 ->selectOne($this->app->managers->catalogCustom->getEntity()->getTable(), new Query([
                     'params' => [],
                     'where' => ['params_hash' => $page->getParamsHash()]

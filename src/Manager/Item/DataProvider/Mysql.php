@@ -55,7 +55,7 @@ class Mysql extends DataProvider
     public function getTypesByUri(URI $uri, &$map = [], &$current = []): array
     {
         $copy = $this->manager->copy(true)
-            ->setStorageObject($this->manager->getApp()->storage->mysql(null, $this->manager->getMasterServices()));
+            ->setStorage($this->manager->getApp()->storage->mysql(null, $this->manager->getMasterServices()));
 
         $map = [];
         $current = [];

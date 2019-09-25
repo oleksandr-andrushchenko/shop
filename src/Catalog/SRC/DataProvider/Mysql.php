@@ -249,7 +249,7 @@ class Mysql extends DataProvider
     public function getTotalCount()
     {
         return $this->src->getURI()->getApp()->managers->items->clear()
-            ->setStorageObject($this->src->getURI()->getApp()->storage->mysql(null, $this->src->getMasterServices()))
+            ->setStorage($this->src->getURI()->getApp()->storage->mysql(null, $this->src->getMasterServices()))
             ->setWhere($this->getWhere())
             ->getCount();
     }

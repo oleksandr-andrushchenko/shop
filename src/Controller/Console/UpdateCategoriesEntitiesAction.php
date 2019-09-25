@@ -15,7 +15,7 @@ class UpdateCategoriesEntitiesAction
 
         $app->response->setBody(implode("\r\n", [
             __CLASS__,
-            $app->managers->categoriesToEntities->createTableAndFill() ? 'DONE' : 'FAILED'
+            $app->managers->categoriesToEntities->generate() ? 'DONE' : 'FAILED'
         ]));
     }
 }

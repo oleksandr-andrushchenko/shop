@@ -52,7 +52,9 @@ class Rdbms extends DataProvider
 
     public function getTypesByUri(URI $uri, &$map = [], &$current = []): array
     {
-        $copy = $this->manager->copy(true)->setStorage(Manager::STORAGE_RDBMS);
+        $copy = $this->manager->copy(true)
+//            ->setStorage(Manager::STORAGE_RDBMS)
+        ;
 
         $map = [];
         $current = [];
