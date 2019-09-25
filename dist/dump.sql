@@ -123,14 +123,15 @@ DROP TABLE IF EXISTS `category_entity`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `category_entity` (
-  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `id` smallint(5) unsigned NOT NULL AUTO_INCREMENT,
   `category_id` smallint(5) unsigned NOT NULL DEFAULT 0,
-  `entity` tinytext DEFAULT NULL,
+  `entity` tinytext NOT NULL,
   `entity_hash` char(32) NOT NULL,
-  `count` mediumint(8) unsigned NOT NULL DEFAULT 0,
-  `is_active` tinyint(3) unsigned NOT NULL DEFAULT 0,
+  `stop_words` tinytext DEFAULT NULL,
+  `count` smallint(5) unsigned NOT NULL DEFAULT 0,
+  `is_active` tinyint(1) unsigned NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `category_id` (`category_id`,`entity_hash`)
+  UNIQUE KEY `uk_entity` (`entity_hash`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -338,7 +339,8 @@ CREATE TABLE `item_archive` (
   `size_id` varchar(128) DEFAULT NULL,
   `season_id` varchar(128) DEFAULT NULL,
   `partner_updated_at` int(5) unsigned NOT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `created_at` timestamp NOT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL
   PRIMARY KEY (`item_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
