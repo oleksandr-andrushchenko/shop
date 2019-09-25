@@ -80,7 +80,7 @@ snowgirlApp.prototype.onSearchFormInputChange = function (ev) {
     var $input = $(ev.target);
     var option = $input.attr('name');
 
-    if (-1 !== ['search_entities', 'search_non_active_entities'].indexOf(option)) {
+    if (-1 !== ['search_leafs', 'search_entities', 'search_non_active_entities'].indexOf(option)) {
         this.search();
     }
 
