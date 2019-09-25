@@ -1,5 +1,6 @@
 <!---->
 <?php
+
 use SNOWGIRL_CORE\View;
 use SNOWGIRL_CORE\Script\Css;
 use SNOWGIRL_CORE\Script\Js;
@@ -29,20 +30,40 @@ $this->getLayout()
 $manager = $this->app->managers->categories;
 ?>
 <ul class="list-inline">
-    <li><a href="<?php echo $this->makeLink('admin', 'item-fixes') ?>">Предложения</a></li>
     <li>Категории</li>
+    <li><a href="<?php echo $this->makeLink('admin', 'item-fixes') ?>">Предложения</a></li>
 </ul>
 
 <?php echo '<div class="vs">' ?>
 
-<form action="<?php echo $this->makeLink('admin', 'category-fixes') ?>" class="form-inline form-search"
-      method="get">
+<a href="<?php echo $this->makeLink('admin', 'generate-category-entities') ?>" class="btn btn-info">
+    <span class="glyphicon glyphicon-copy"></span> Обновить entities
+</a>
+
+или создать
+
+<form action="<?php echo $this->makeLink('admin', ['action' => 'row', 'table' => CategoryEntity::getTable()]) ?>"
+      method="post" class="form-inline form-entity">
+    <input type="hidden" name="is_active" value="1">
+
+    <div class="form-group">
+        <label>Категория* <?php echo clone $this->categoryPicker ?></label>
+        <label>Сущность* <input type="text" name="entity" id="entity" class="form-control" placeholder="entity" required/></label>
+        <label>Стоп-слова <?php echo $this->app->views->tagInput(['name' => 'stop_words', 'multiple' => true], $this) ?></label>
+    </div>
+
+    <button type="submit" class="btn btn-success">
+        <span class="glyphicon glyphicon-save-file"></span>
+        Создать
+    </button>
+</form>
+
+<form action="<?php echo $this->makeLink('admin', 'category-fixes') ?>" class="form-inline form-search" method="get">
     <div class="form-group">
         <label for="search_by" class="control-label">Искать</label>
         <select name="search_by" id="search_by" class="form-control">
             <?php foreach ($this->columns as $column) { ?>
-                <option
-                    value="<?php echo $column ?>" <?php echo $column == $this->searchBy ? 'selected' : '' ?>><?php echo $column ?></option>
+                <option value="<?php echo $column ?>" <?php echo $column == $this->searchBy ? 'selected' : '' ?>><?php echo $column ?></option>
             <?php } ?>
         </select>
         <label for="search_value" class="control-label">по</label>
@@ -57,22 +78,14 @@ $manager = $this->app->managers->categories;
         </label>
     </div>
 
-    <div class="form-group">
-        <label for="order_by" class="control-label">Сортировать</label>
-        <select name="order_by" id="order_by" class="form-control">
-            <?php foreach ($this->columns as $column) { ?>
-                <option
-                    value="<?php echo $column ?>" <?php echo $column == $this->orderBy ? 'selected' : '' ?>><?php echo $column ?></option>
-            <?php } ?>
-        </select>
-        <label for="order_value" class="control-label">по</label>
-        <select name="order_value" id="order_value" class="form-control">
-            <option value="asc">ASC</option>
-            <option value="desc" <?php echo 'desc' == $this->orderValue ? 'selected' : '' ?>>DESC</option>
-        </select>
-    </div>
-
     <div class="clearfix"></div>
+
+    <div class="form-group">
+        <label class="control-label">
+            <input type="checkbox" name="search_leafs" value="1" <?php echo $this->searchLeafs ? 'checked' : '' ?>>
+            Листья
+        </label>
+    </div>
 
     <div class="form-group">
         <label class="control-label">
@@ -89,6 +102,24 @@ $manager = $this->app->managers->categories;
             Без активных entities
         </label>
     </div>
+
+    <div class="clearfix"></div>
+
+    <div class="form-group">
+        <label for="order_by" class="control-label">Сортировать</label>
+        <select name="order_by" id="order_by" class="form-control">
+            <?php foreach ($this->columns as $column) { ?>
+                <option value="<?php echo $column ?>" <?php echo $column == $this->orderBy ? 'selected' : '' ?>><?php echo $column ?></option>
+            <?php } ?>
+        </select>
+        <label for="order_value" class="control-label">по</label>
+        <select name="order_value" id="order_value" class="form-control">
+            <option value="asc">ASC</option>
+            <option value="desc" <?php echo 'desc' == $this->orderValue ? 'selected' : '' ?>>DESC</option>
+        </select>
+    </div>
+
+    <div class="clearfix"></div>
 
     <div class="form-group">
         <button type="submit" class="btn btn-primary">
@@ -159,7 +190,7 @@ $manager = $this->app->managers->categories;
                                             <option value="0">- <?php echo $column ?> -</option>
                                             <?php foreach ($this->{$selectMap[$column]} as $id => $v) { ?>
                                                 <option
-                                                    value="<?php echo $id ?>" <?php echo $id == $item->get($column) ? 'selected' : '' ?>>
+                                                        value="<?php echo $id ?>" <?php echo $id == $item->get($column) ? 'selected' : '' ?>>
                                                     <?php echo $v->get('name') ?>
                                                 </option>
                                             <?php } ?>
@@ -176,16 +207,19 @@ $manager = $this->app->managers->categories;
                                                           data-id="<?php echo $itemEntity->getId() ?>"
                                                           data-name="is_active"
                                                           value="<?php echo $itemEntity->isActive() ? 0 : 1 ?>"
-                                                    <?php echo $itemEntity->isActive() ? 'checked' : '' ?>> <?php echo $itemEntity->getValue() ?>
+                                                    <?php echo $itemEntity->isActive() ? 'checked' : '' ?>> <?php echo $itemEntity->getEntity() ?>
                                                 [
-                                                <small><?php echo $itemEntity->getCount() ?></small>
+                                                <?php echo $itemEntity->getCount() ?>
+                                                <?php if ($itemEntity->getStopWords()) { ?>
+                                                    | <strike><?php echo implode('</strike>, <strike>', $itemEntity->getStopWords(true)) ?></strike>
+                                                <?php } ?>
                                                 ]
                                             </label>
                                         <?php } ?>
                                     <?php } ?>
                                 <?php } elseif ('is_leaf' == $column) { ?>
                                     <span
-                                        class="flag flag-<?php echo $manager->isLeaf($item) ? 'true' : 'false' ?>"></span>
+                                            class="flag flag-<?php echo $manager->isLeaf($item) ? 'true' : 'false' ?>"></span>
                                 <?php } elseif ('name' == $column) { ?>
                                     <b><?php echo $item->get($column) ?></b>
                                 <?php } else { ?>
