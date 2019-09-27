@@ -1,0 +1,21 @@
+<?php
+
+use SNOWGIRL_CORE\View;
+use SNOWGIRL_SHOP\Entity\Import\Source as ImportSource;
+
+/** @var View $this */
+/** @var ImportSource $source */
+$source = $this->source;
+
+$this->getLayout()
+    ->setTitle($title = 'Файл источника ' . $source->getName())
+    ->addBreadcrumb('Офферы', $this->makeLink('admin', 'offers'))
+    ->addBreadcrumb($source->getName(), $this->makeLink('admin', ['action' => 'import-source', 'id' => $source->getId()]))
+    ->addBreadcrumb('Файл')
+    ->setH1($title);
+?>
+
+<b>Remote:</b> <?php echo $this->remote ?><br><br>
+<b>Local:</b> <?php echo $this->local ?><br><br>
+Content:<br>
+<textarea style="width:100%;" rows="1000"><?php echo $this->content ?></textarea>
