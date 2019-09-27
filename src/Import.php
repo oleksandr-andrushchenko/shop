@@ -98,7 +98,7 @@ class Import
         return $this->source->getFileMapping(true);
     }
 
-    protected function getFile(): string
+    public function getFile(): string
     {
         return $this->source->getFile();
     }
@@ -237,7 +237,7 @@ class Import
         return $file;
     }
 
-    protected function getCsvFile(): string
+    public function getCsvFile(): string
     {
         return $this->downloadCsvFile();
     }
@@ -1162,9 +1162,8 @@ class Import
     protected function getIsInStockByRow($row)
     {
         $map = $this->mappings['is_in_stock'];
-        $value = trim($row[$this->indexes[$map['column']]]);
 
-        if (array_key_exists('modify', $map) && array_key_exists($value, $modifies = $map['modify'])) {
+        if (array_key_exists('modify', $map) && array_key_exists($value = trim($row[$this->indexes[$map['column']]]), $modifies = $map['modify'])) {
             return (int)$modifies[$value]['value'];
         }
 

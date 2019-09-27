@@ -52,7 +52,7 @@ class Admitad extends Import
         return false === $this->lastOkImport ? null : $this->lastOkImport;
     }
 
-    protected function getFile(): string
+    public function getFile(): string
     {
         if ($this->force) {
             return $this->source->getFile();

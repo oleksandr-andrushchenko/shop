@@ -27,10 +27,11 @@ class ImportSourceAction
             throw (new NotFound)->setNonExisting('source');
         }
 
-        $view = $app->views->getLayout(true);
-        $content = $view->setContentByTemplate('@shop/admin/import-source.phtml');
-
         $import = $app->managers->sources->getImport($source);
+
+        $view = $app->views->getLayout(true);
+
+        $content = $view->setContentByTemplate('@shop/admin/import-source.phtml');
 
         $content->addParams([
             'source' => $source,

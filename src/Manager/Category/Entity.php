@@ -143,11 +143,13 @@ class Entity extends Manager
     {
         $aff = $this->app->managers->items->updateMany(['category_id' => $categoryId], $where);
 
-        $this->app->services->logger->make(implode(' - ', [
-                'method=' . $function,
-                'cat=' . $categoryId,
-                'where=' . json_encode($where)
-            ]) . ' : aff=' . $aff);
+        $this->app->services->logger->make(implode("\r\n", [
+            'METHOD: ' . $function,
+            'CATEGORY: ' . $categoryId,
+            'WHERE: ' . json_encode($where),
+            'AFF: ' . $aff,
+            ''
+        ]));
 
         return $aff;
     }
