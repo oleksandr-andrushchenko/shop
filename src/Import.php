@@ -1201,101 +1201,97 @@ class Import
             : $this->microtime;
     }
 
-    protected function _insertItems()
-    {
-        $this->log('-----------PROGRESS-----------')
-            ->log('PASSED = ' . $this->passed)
-            ->log('SKIPPED by unique key = ' . $this->skippedByUniqueKey)
-            ->log('SKIPPED by updated at = ' . $this->skippedByUpdatedAt)
-            ->log('SKIPPED by other = ' . $this->skippedByOther)
-            ->log('SKIPPED = ' . ($this->skippedByOther + $this->skippedByUniqueKey + $this->skippedByUpdatedAt))
-            ->log('------------------------------');
-
-        if ((!$this->values) || (!$this->bindValues) || (!$this->index)) {
-            return false;
-        }
-
-        $columnsOptions = $this->app->managers->items->getEntity()->getColumns();
-
-        $tmp = [];
-
-        for ($i = 0, $s = count($this->values); $i < $this->index; $i++) {
-            $tmp[] = implode(',', array_fill(0, $s, '?'));
-        }
-
-        $onDuplicateIgnoreColumns = [
-            $this->app->managers->items->getEntity()->getPk(),
-            $this->app->managers->vendors->getEntity()->getPk(),
-            $this->app->managers->sources->getEntity()->getPk(),
-//            'image',
-//            'partner_item_id',
-            'created_at',
-            'updated_at'
-        ];
-
-        $editableColumns = $this->isForceUpdate ? [] : self::getPostEditableColumns();
-
-        $db = $this->app->storage->mysql;
-
-        $onDuplicateClosure = function ($column, $value) use ($db) {
-            return $db->quote($column) . ' = IF(' . implode(', ', [
-                    $db->quote('image') . ' = VALUES(' . $db->quote('image') . ')',
-                    //if duplicate on image - then
-                    'IF(' . implode(', ', [
-                        $db->quote('partner_item_id') . ' = VALUES(' . $db->quote('partner_item_id') . ')',
-                        //update
-                        $value,
-                        //ignore (do nothing)
-                        $db->quote($column)
-                    ]) . ')',
-                    //update
-                    $value
-                ]) . ')';
-        };
-
-        $query = new Query;
-        $query->text = implode(' ', [
-            'INSERT INTO',
-            $db->quote($this->app->managers->items->getEntity()->getTable()),
-            '(' . implode(', ', array_map(function ($i) use ($db) {
-                return $db->quote($i);
-            }, array_keys($this->values))) . ') VALUES ' . implode(', ', array_map(function ($i) {
-                return '(' . $i . ')';
-            }, $tmp)),
-            'ON DUPLICATE KEY UPDATE',
-
-            //@todo next code overwrites all items fixes... (+add fixWhere clauses maybe?! +take into account "updated_at" in this query)
-
-            implode(', ', array_map(function ($column) use ($onDuplicateClosure, $db) {
-                return $onDuplicateClosure($column, 'VALUES(' . $db->quote($column) . ')');
-            }, array_diff(array_keys($this->values), $onDuplicateIgnoreColumns, $editableColumns))) . ',',
-            implode(', ', array_map(function ($column) use ($onDuplicateClosure, $db, $columnsOptions) {
-                $options = $columnsOptions[$column];
-
-                return $onDuplicateClosure($column, 'IF(' . implode(', ', [
-                        implode(' OR ', array_filter([
-                            !in_array(Entity::REQUIRED, $options) ? ($db->quote($column) . ' IS NULL') : null,
-                            Entity::COLUMN_INT == $options['type'] ? ($db->quote($column) . ' = 0') : null,
-                            Entity::COLUMN_TEXT == $options['type'] ? ($db->quote($column) . ' = \'\'') : null
-                        ], function ($v) {
-                            return null !== $v;
-                        })),
-                        'VALUES(' . $db->quote($column) . ')',
-                        $db->quote($column)
-                    ]) . ')');
-            }, $editableColumns)) . ($editableColumns ? ',' : ''),
-            $onDuplicateClosure('updated_at', 'NOW()')
-        ]);
-        $query->params = $this->bindValues;
-        $query->log = false;
-
-        return $db->req($query)->affectedRows();
-    }
-
     protected function insertItems()
     {
         try {
-            $aff = $this->_insertItems();
+            $this->log('-----------PROGRESS-----------')
+                ->log('PASSED = ' . $this->passed)
+                ->log('SKIPPED by unique key = ' . $this->skippedByUniqueKey)
+                ->log('SKIPPED by updated at = ' . $this->skippedByUpdatedAt)
+                ->log('SKIPPED by other = ' . $this->skippedByOther)
+                ->log('SKIPPED = ' . ($this->skippedByOther + $this->skippedByUniqueKey + $this->skippedByUpdatedAt))
+                ->log('------------------------------');
+
+            if ((!$this->values) || (!$this->bindValues) || (!$this->index)) {
+                return false;
+            }
+
+            $columnsOptions = $this->app->managers->items->getEntity()->getColumns();
+
+            $tmp = [];
+
+            for ($i = 0, $s = count($this->values); $i < $this->index; $i++) {
+                $tmp[] = implode(',', array_fill(0, $s, '?'));
+            }
+
+            $onDuplicateIgnoreColumns = [
+                $this->app->managers->items->getEntity()->getPk(),
+                $this->app->managers->vendors->getEntity()->getPk(),
+                $this->app->managers->sources->getEntity()->getPk(),
+//            'image',
+//            'partner_item_id',
+                'created_at',
+                'updated_at'
+            ];
+
+            $editableColumns = $this->isForceUpdate ? [] : self::getPostEditableColumns();
+
+            $db = $this->app->storage->mysql;
+
+            $onDuplicateClosure = function ($column, $value) use ($db) {
+                return $db->quote($column) . ' = IF(' . implode(', ', [
+                        $db->quote('image') . ' = VALUES(' . $db->quote('image') . ')',
+                        //if duplicate on image - then
+                        'IF(' . implode(', ', [
+                            $db->quote('partner_item_id') . ' = VALUES(' . $db->quote('partner_item_id') . ')',
+                            //update
+                            $value,
+                            //ignore (do nothing)
+                            $db->quote($column)
+                        ]) . ')',
+                        //update
+                        $value
+                    ]) . ')';
+            };
+
+            $query = new Query;
+            $query->text = implode(' ', [
+                'INSERT INTO',
+                $db->quote($this->app->managers->items->getEntity()->getTable()),
+                '(' . implode(', ', array_map(function ($i) use ($db) {
+                    return $db->quote($i);
+                }, array_keys($this->values))) . ') VALUES ' . implode(', ', array_map(function ($i) {
+                    return '(' . $i . ')';
+                }, $tmp)),
+                'ON DUPLICATE KEY UPDATE',
+
+                //@todo next code overwrites all items fixes... (+add fixWhere clauses maybe?! +take into account "updated_at" in this query)
+
+                implode(', ', array_map(function ($column) use ($onDuplicateClosure, $db) {
+                    return $onDuplicateClosure($column, 'VALUES(' . $db->quote($column) . ')');
+                }, array_diff(array_keys($this->values), $onDuplicateIgnoreColumns, $editableColumns))) . ',',
+                implode(', ', array_map(function ($column) use ($onDuplicateClosure, $db, $columnsOptions) {
+                    $options = $columnsOptions[$column];
+
+                    return $onDuplicateClosure($column, 'IF(' . implode(', ', [
+                            implode(' OR ', array_filter([
+                                !in_array(Entity::REQUIRED, $options) ? ($db->quote($column) . ' IS NULL') : null,
+                                Entity::COLUMN_INT == $options['type'] ? ($db->quote($column) . ' = 0') : null,
+                                Entity::COLUMN_TEXT == $options['type'] ? ($db->quote($column) . ' = \'\'') : null
+                            ], function ($v) {
+                                return null !== $v;
+                            })),
+                            'VALUES(' . $db->quote($column) . ')',
+                            $db->quote($column)
+                        ]) . ')');
+                }, $editableColumns)) . ($editableColumns ? ',' : ''),
+                $onDuplicateClosure('updated_at', 'NOW()')
+            ]);
+            $query->params = $this->bindValues;
+            $query->log = false;
+
+            $aff = $db->req($query)->affectedRows();
+
             $this->log('AFF item: ' . (int)$aff);
         } catch (\Exception $ex) {
             $this->app->services->logger->makeException($ex);
@@ -1417,9 +1413,12 @@ class Import
      *       3) if item exists - do not check image (file_exists($hash)) - compare hashes only, and if not equal -
      *       update hash & download
      *
+     * @param \Closure      $onRow
+     * @param \Closure|null $onEnd
+     *
      * @return bool
      */
-    protected function import(): bool
+    public function walkImport(\Closure $onRow, \Closure $onEnd = null)
     {
         try {
             $this->before();
@@ -1497,23 +1496,51 @@ class Import
                         }
                     }
 
-                    if (!$this->importRow($row)) {
-                        break 2;
+                    if ($values = $this->importRow($row)) {
+                        if (false === $onAdd($row, $values)) {
+                            break 2;
+                        }
+                    } else {
+                        $this->skippedByOther++;
                     }
                 }
             }
 
-            if ($this->index) {
-                $this->insertItems();
-            }
-
-            $this->insertMva();
+            $onEnd && $onEnd();
 
             return true;
         } catch (\Exception $ex) {
             $this->app->services->logger->makeException($ex);
             return false;
         }
+    }
+
+    protected function import(): bool
+    {
+        return $this->walkImport(function ($row, $values) {
+            $this->log('[PASSED] partner_id=' . $values['partner_item_id']);
+
+            $this->values = $values;
+
+            foreach ($values as $v) {
+                $this->bindValues[] = $v;
+            }
+
+            $this->passed++;
+            $this->index++;
+
+            if (self::LIMIT == $this->index) {
+                $this->insertItems();
+                $this->index = 0;
+                $this->bindValues = [];
+            }
+        }, function () {
+            if ($this->index) {
+                $this->insertItems();
+            }
+
+            $this->insertMva();
+        });
     }
 
     protected function beforeRow($row)
@@ -1616,31 +1643,10 @@ class Import
         }
 
         if ($ok) {
-            $this->log('[PASSED] partner_id=' . $values['partner_item_id']);
-
-            $this->values = $values;
-
-            foreach ($values as $v) {
-                $this->bindValues[] = $v;
-            }
-
-            $this->passed++;
-            $this->index++;
-        } else {
-            $this->skippedByOther++;
+            return $values;
         }
 
-        if (self::LIMIT == $this->index) {
-            $this->insertItems();
-            $this->index = 0;
-            $this->bindValues = [];
-
-            if ($this->app->isDev()) {
-                return false;
-            }
-        }
-
-        return true;
+        return false;
     }
 
     public function run(bool $force = false)
@@ -1665,10 +1671,7 @@ class Import
 
         if (!$this->isNeed($fileUniqueHash, $whyNoReason)) {
             $this->log('***NO NEED TO IMPORT*** ' . $whyNoReason);
-
-            if (!$this->app->isDev()) {
-                return true;
-            }
+            return true;
         }
 
         $this->createHistory($fileUniqueHash);
