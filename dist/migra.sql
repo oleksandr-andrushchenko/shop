@@ -38,9 +38,9 @@ alter table category_entity
   change `entity_hash` `entity_hash` char(32) NOT NULL,
   add column `stop_words` tinytext default NULL after entity_hash,
   change is_active `is_active` tinyint(1) unsigned NOT NULL DEFAULT 0,
-  change `count` `count` smallint(5) unsigned NOT NULL DEFAULT 0,
+  change `count` `count` int(7) unsigned NOT NULL DEFAULT 0,
   drop key category_id,
-  add UNIQUE KEY `uk_entity` (`entity_hash`);
+  add UNIQUE KEY `uk_category_entity` (`category_id`, `entity_hash`);
 
 alter table item_archive
   change created_at `created_at` timestamp NOT NULL;

@@ -128,10 +128,10 @@ CREATE TABLE `category_entity` (
   `entity` tinytext NOT NULL,
   `entity_hash` char(32) NOT NULL,
   `stop_words` tinytext DEFAULT NULL,
-  `count` smallint(5) unsigned NOT NULL DEFAULT 0,
+  `count` int(7) unsigned NOT NULL DEFAULT 0,
   `is_active` tinyint(1) unsigned NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `uk_entity` (`entity_hash`)
+  UNIQUE KEY `uk_category_entity` (`category_id`, `entity_hash`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
