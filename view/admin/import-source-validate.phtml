@@ -54,7 +54,7 @@ $this->getLayout()
 
 <b>First passed row:</b>
 <?php if ($this->firstPassedRow) { ?>
-    <textarea style="width:100%;height:300px"><?php echo implode(';', $this->firstPassedRow) ?></textarea>
+    <textarea style="width:100%;height:150px"><?php echo implode(';', $this->firstPassedRow) ?></textarea>
     <b class="text-success">OK</b>
 <?php } else { ?>
     <b class="text-warning">ABSENT</b>
@@ -63,7 +63,7 @@ $this->getLayout()
 
 <b>First passed values:</b>
 <?php if ($this->firstPassedValues) { ?>
-    <textarea style="width:100%;height:300px"><?php echo implode(';', $this->firstPassedValues) ?></textarea>
+    <textarea style="width:100%;height:150px"><?php echo implode(';', $this->firstPassedValues) ?></textarea>
     <b class="text-success">OK</b>
 <?php } else { ?>
     <b class="text-warning">ABSENT</b>
