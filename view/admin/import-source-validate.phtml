@@ -15,32 +15,56 @@ $this->getLayout()
     ->setH1($title);
 ?>
 
-<b>Columns:</b> <?php echo implode(', ', $this->columns) ?><br><br>
+<b>Columns:</b> <?php echo implode(', ', $this->columns) ?>
+<?php if ($this->columns) { ?>
+    <b class="text-success">OK</b>
+<?php } else { ?>
+    <b class="text-danger">FAILED</b>
+<?php } ?>
+<br><br>
 
 <b>Filter columns:</b> <?php echo implode(', ', $this->filterColumns) ?>
 <?php if ($this->filterColumnsDiff) { ?>
-    <div style="color:red;font-weight:bold">
-        <b>Diff:</b> <?php echo implode(', ', $this->filterColumnsDiff) ?><br><br>
-    </div>
+    <b>Diff</b>: <?php echo implode(', ', $this->filterColumnsDiff) ?>
+    <b class="text-danger">FAILED</b>
 <?php } else { ?>
-    <b style="color:green">OK</b>
+    <b class="text-success">OK</b>
 <?php } ?>
 <br><br>
 
 <b>Mappping columns:</b> <?php echo implode(', ', $this->mappingColumns) ?>
 <?php if ($this->mappingColumnsDiff) { ?>
-    <div style="color:red;font-weight:bold">
-        <b>Diff:</b> <?php echo implode(', ', $this->mappingColumnsDiff) ?><br><br>
-    </div>
+    <b>Diff</b>: <?php echo implode(', ', $this->mappingColumnsDiff) ?>
+    <b class="text-danger">FAILED</b>
 <?php } else { ?>
-    <b style="color:green">OK</b>
+    <b class="text-success">OK</b>
 <?php } ?>
 <br><br>
 
-<b>At least one filtered row exists:</b>
-<?php if ($this->atLeastOneExists) { ?>
-    <b style="color:green">OK</b>
+<b>First filtered row:</b>
+<?php if ($this->firstFilteredRow) { ?>
+    <textarea style="width:100%;height:150px"><?php echo implode(';', $this->firstFilteredRow) ?></textarea>
+    <b class="text-success">OK</b>
 <?php } else { ?>
-    <b style="color:red">Fail</b>
+    <b class="text-warning">ABSENT</b>
 <?php } ?>
+<br><br>
+
+<b>First passed row:</b>
+<?php if ($this->firstPassedRow) { ?>
+    <textarea style="width:100%;height:300px"><?php echo implode(';', $this->firstPassedRow) ?></textarea>
+    <b class="text-success">OK</b>
+<?php } else { ?>
+    <b class="text-warning">ABSENT</b>
+<?php } ?>
+<br><br>
+
+<b>First passed values:</b>
+<?php if ($this->firstPassedValues) { ?>
+    <textarea style="width:100%;height:300px"><?php echo implode(';', $this->firstPassedValues) ?></textarea>
+    <b class="text-success">OK</b>
+<?php } else { ?>
+    <b class="text-warning">ABSENT</b>
+<?php } ?>
+<br><br>
 

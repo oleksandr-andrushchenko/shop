@@ -34,10 +34,20 @@ class ImportSourceValidateAction
         $content = $view->setContentByTemplate('@shop/admin/import-source-validate.phtml');
 
 
-        $atLeastOneExists = false;
+        $content->addParams([
+            'firstFilteredRow' => false,
+            'firstPassedRow' => false,
+            'firstPassedValues' => false
+        ]);
 
-        $import->walkFilteredFile(function ($row) use (&$atLeastOneExists) {
-            $atLeastOneExists = true;
+        $import->walkFilteredFile(function ($row) use (&$content) {
+            $content->firstFilteredRow = $row;
+            return false;
+        });
+
+        $import->walkImport(function ($row, $values) use (&$content) {
+            $content->firstPassedRow = $row;
+            $content->firstPassedValues = $values;
             return false;
         });
 
@@ -49,8 +59,7 @@ class ImportSourceValidateAction
             'mappingColumns' => $mappingColumns = array_map(function ($mapping) {
                 return $mapping['column'];
             }, $source->getFileMapping(true)),
-            'mappingColumnsDiff' => array_diff($mappingColumns, $columns),
-            'atLeastOneExists' => $atLeastOneExists
+            'mappingColumnsDiff' => array_diff($mappingColumns, $columns)
         ]);
 
         $app->response->setHTML(200, $view);
