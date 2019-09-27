@@ -79,8 +79,7 @@ class ImportSourceAction
         }
 
         $content->addParams([
-            'fileColumns' => $columns,
-            'importLimit' => $app->request->get('import-length', $total)
+            'fileColumns' => $columns
         ]);
 
         $app->response->setHTML(200, $view);

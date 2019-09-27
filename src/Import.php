@@ -305,7 +305,7 @@ class Import
 
     protected $walkFileSize;
 
-    protected function walkFilteredFile(\Closure $fn, $allowModifyOnly = true, array $allowModifyOnlyExclude = [])
+    public function walkFilteredFile(\Closure $fn, $allowModifyOnly = true, array $allowModifyOnlyExclude = [])
     {
         $this->walkFileSize = count($this->columns);
 

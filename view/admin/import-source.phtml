@@ -45,16 +45,10 @@ $this->getLayout()
 
 <div class="row">
     <div class="col-xs-12 control">
-        <a class="btn btn-primary btn-raw-data"
+        <a class="btn btn-default btn-raw-data"
            href="<?php echo $this->makeLink('admin', ['action' => 'import-source-file', 'id' => $source->getId()]) ?>"
            title="Вывести содержимое файла" target="_blank">
             <span class="glyphicon glyphicon-file"></span> Raw-данные
-        </a>
-
-        <a class="btn btn-info btn-data <?php echo $data ? 'active' : '' ?>"
-           href="<?php echo $this->makeLink('admin', ['action' => 'import-source', 'id' => $source->getId(), 'data' => $data ? 0 : 1]) ?>"
-           title="Вывести отформатированное содержимое файла данных (ресурсоемкая операция)">
-            <span class="glyphicon glyphicon-file"></span> Данные
         </a>
 
         <a class="btn btn-default btn-validate"
@@ -63,14 +57,16 @@ $this->getLayout()
             <span class="glyphicon glyphicon-exclamation-sign"></span> Валидация
         </a>
 
+        <a class="btn btn-info btn-data <?php echo $data ? 'active' : '' ?>"
+           href="<?php echo $this->makeLink('admin', ['action' => 'import-source', 'id' => $source->getId(), 'data' => $data ? 0 : 1]) ?>"
+           title="Вывести отформатированное содержимое файла данных (ресурсоемкая операция)">
+            <span class="glyphicon glyphicon-file"></span> Данные
+        </a>
+
         <form action="<?php echo $this->makeLink('admin', 'import-source-import') ?>"
               class="form-inline form-import" method="get">
             <input type="hidden" name="id" value="<?php echo $source->getId() ?>">
 
-            <div class="form-group">
-                <label><input type="text" class="form-control" name="import-length"
-                              value="<?php echo $this->importLimit ?>" size="4" placeholder="Лимит"></label>
-            </div>
             <button type="submit" class="btn btn-success">
                 <span class="glyphicon glyphicon-play"></span> Импорт
             </button>
