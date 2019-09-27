@@ -45,9 +45,15 @@ $this->getLayout()
 
 <div class="row">
     <div class="col-xs-12 control">
+        <a class="btn btn-primary btn-raw-data"
+           href="<?php echo $this->makeLink('admin', ['action' => 'import-source-file', 'id' => $source->getId()]) ?>"
+           title="Вывести содержимое файла" target="_blank">
+            <span class="glyphicon glyphicon-file"></span> Raw-данные
+        </a>
+
         <a class="btn btn-info btn-data <?php echo $data ? 'active' : '' ?>"
            href="<?php echo $this->makeLink('admin', ['action' => 'import-source', 'id' => $source->getId(), 'data' => $data ? 0 : 1]) ?>"
-           title="Вывести содержимое файла данных (ресурсоемкая операция)">
+           title="Вывести отформатированное содержимое файла данных (ресурсоемкая операция)">
             <span class="glyphicon glyphicon-file"></span> Данные
         </a>
 
