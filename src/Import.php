@@ -1413,12 +1413,12 @@ class Import
      *       3) if item exists - do not check image (file_exists($hash)) - compare hashes only, and if not equal -
      *       update hash & download
      *
-     * @param \Closure      $onRow
+     * @param \Closure      $onAdd
      * @param \Closure|null $onEnd
      *
      * @return bool
      */
-    public function walkImport(\Closure $onRow, \Closure $onEnd = null)
+    public function walkImport(\Closure $onAdd, \Closure $onEnd = null)
     {
         try {
             $this->before();
