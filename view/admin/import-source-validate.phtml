@@ -1,0 +1,38 @@
+<?php
+
+use SNOWGIRL_CORE\View;
+use SNOWGIRL_SHOP\Entity\Import\Source as ImportSource;
+
+/** @var View $this */
+/** @var ImportSource $source */
+$source = $this->source;
+
+$this->getLayout()
+    ->setTitle($title = 'Валидация источника ' . $source->getName())
+    ->addBreadcrumb('Офферы', $this->makeLink('admin', 'offers'))
+    ->addBreadcrumb($source->getName(), $this->makeLink('admin', ['action' => 'import-source', 'id' => $source->getId()]))
+    ->addBreadcrumb('Валидация')
+    ->setH1($title);
+?>
+
+<b>Columns:</b> <?php echo implode(', ', $this->columns) ?><br><br>
+
+<b>Filter columns:</b> <?php echo implode(', ', $this->filterColumns) ?>
+<?php if ($this->filterColumnsDiff) { ?>
+    <div style="color:red;font-weight:bold">
+        <b>Diff:</b> <?php echo implode(', ', $this->filterColumnsDiff) ?><br><br>
+    </div>
+<?php } else { ?>
+    <b style="color:green">OK</b>
+<?php } ?>
+<br><br>
+
+<b>Mappping columns:</b> <?php echo implode(', ', $this->mappingColumns) ?>
+<?php if ($this->mappingColumnsDiff) { ?>
+    <div style="color:red;font-weight:bold">
+        <b>Diff:</b> <?php echo implode(', ', $this->mappingColumnsDiff) ?><br><br>
+    </div>
+<?php } else { ?>
+    <b style="color:green">OK</b>
+<?php } ?>
+
