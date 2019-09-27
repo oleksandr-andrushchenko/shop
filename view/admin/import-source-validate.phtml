@@ -35,4 +35,12 @@ $this->getLayout()
 <?php } else { ?>
     <b style="color:green">OK</b>
 <?php } ?>
+<br><br>
+
+<b>At least one filtered row exists:</b>
+<?php if ($this->atLeastOneExists) { ?>
+    <b style="color:green">OK</b>
+<?php } else { ?>
+    <b style="color:red">Fail</b>
+<?php } ?>
 

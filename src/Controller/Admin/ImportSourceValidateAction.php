@@ -33,6 +33,14 @@ class ImportSourceValidateAction
 
         $content = $view->setContentByTemplate('@shop/admin/import-source-validate.phtml');
 
+
+        $atLeastOneExists = false;
+
+        $import->walkFilteredFile(function ($row) use (&$atLeastOneExists) {
+            $atLeastOneExists = true;
+            return false;
+        });
+
         $content->addParams([
             'source' => $source,
             'columns' => $columns = $import->getMeta()['columns'],
@@ -41,7 +49,8 @@ class ImportSourceValidateAction
             'mappingColumns' => $mappingColumns = array_map(function ($mapping) {
                 return $mapping['column'];
             }, $source->getFileMapping(true)),
-            'mappingColumnsDiff' => array_diff($mappingColumns, $columns)
+            'mappingColumnsDiff' => array_diff($mappingColumns, $columns),
+            'atLeastOneExists' => $atLeastOneExists
         ]);
 
         $app->response->setHTML(200, $view);
