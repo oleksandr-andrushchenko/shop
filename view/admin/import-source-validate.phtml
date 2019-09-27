@@ -25,6 +25,7 @@ $this->getLayout()
 
 <b>Filter columns:</b> <?php echo implode(', ', $this->filterColumns) ?>
 <?php if ($this->filterColumnsDiff) { ?>
+    <br>
     <b>Diff</b>: <?php echo implode(', ', $this->filterColumnsDiff) ?>
     <b class="text-danger">FAILED</b>
 <?php } else { ?>
@@ -34,6 +35,7 @@ $this->getLayout()
 
 <b>Mappping columns:</b> <?php echo implode(', ', $this->mappingColumns) ?>
 <?php if ($this->mappingColumnsDiff) { ?>
+    <br>
     <b>Diff</b>: <?php echo implode(', ', $this->mappingColumnsDiff) ?>
     <b class="text-danger">FAILED</b>
 <?php } else { ?>
