@@ -44,3 +44,19 @@ alter table category_entity
 
 alter table item_archive
   change created_at `created_at` timestamp NOT NULL;
+
+
+truncate table `import_history`;
+
+alter table `import_history`
+  change `file_unique_hash` `hash` varchar(32) not null,
+  add `count_total` int(5) unsigned null default null after `is_ok`,
+  add `count_filtered_filter` int(5) unsigned null default null after `count_total`,
+  add `count_filtered_modifier` int(5) unsigned null default null after `count_filtered_filter`,
+  add `count_skipped_unique` int(5) unsigned null default null after `count_row`,
+  add `count_skipped_updated` int(5) unsigned null default null after `count_skipped_unique`,
+  add `count_skipped_other` int(5) unsigned null default null after `count_skipped_updated`,
+  add `count_passed` int(5) unsigned null default null after `count_skipped_other`,
+  add `count_affected` int(5) unsigned null default null after `count_passed`,
+  add `error` varchar(2048) null default null after `count_affected`,
+  drop `is_ok`;
