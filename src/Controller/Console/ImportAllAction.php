@@ -16,10 +16,9 @@ class ImportAllAction
     {
         $this->prepareServices($app);
 
-        $force = 1 == $app->request->get('param_1', 0);
-        $rotate = 1 == $app->request->get('param_2', 1);
+        $rotate = 1 == $app->request->get('param_1', 1);
 
-        Import::factoryAndRun($app, $importSource, $force);
+        Import::factoryAndRun($app, $importSource);
 
         if ($rotate) {
             (new IndexElasticAction)($app);

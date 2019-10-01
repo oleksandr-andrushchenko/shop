@@ -12,11 +12,6 @@ class ImportAction
 {
     use PrepareServicesTrait;
 
-    /**
-     * @param App $app
-     *
-     * @throws Exception
-     */
     public function __invoke(App $app)
     {
         $this->prepareServices($app);
@@ -33,8 +28,7 @@ class ImportAction
             throw new Exception('not in cron');
         }
 
-        $app->request->set('param_1', $app->request->get('param_2', false));
-        $app->request->set('param_2', $app->request->get('param_3', false));
+        $app->request->set('param_1', $app->request->get('param_2', 0));
 
         (new ImportAllAction)($app, $importSource);
     }
