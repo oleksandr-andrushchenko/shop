@@ -34,35 +34,14 @@ class Admitad extends Import
 
     protected $langs = ['ru'];
     protected $isCheckUpdatedAt = true;
-    protected $lastOkImport;
 
-    protected function getLastOkImport(): ?ImportHistory
+    public function getFilename(): string
     {
-        if (null === $this->lastOkImport) {
-            $tmp = $this->app->managers->importHistory
-                ->setWhere([
-                    'import_source_id' => $this->source->getId(),
-                    'is_ok' => 1
-                ])
-                ->getObject();
-
-            $this->lastOkImport = null === $tmp ? false : $tmp;
-        }
-
-        return false === $this->lastOkImport ? null : $this->lastOkImport;
-    }
-
-    public function getFile(): string
-    {
-        if ($this->force) {
-            return $this->source->getFile();
-        }
-
         if ($lastOkImport = $this->getLastOkImport()) {
             return $this->source->getFile() . '&last_import=' . $lastOkImport->getCreatedAt(true)->format('Y.m.d.H.i');
         }
 
-        return parent::getFile();
+        return parent::getFilename();
     }
 
     /**
