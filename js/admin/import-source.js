@@ -128,7 +128,7 @@ snowgirlApp.prototype.onMapItemModifyRawTagsFocus = function (ev) {
         action: 'tag-picker',
         table: 'tag',
         name: name,
-        multiple: true
+        multiple: 1
     };
 
     var data = {

@@ -35,9 +35,9 @@ class ImportSourceFileAction
 
         $content->addParams([
             'source' => $source,
-            'remote' => $import->getFile(),
+            'remote' => $import->getFilename(),
             'local' => $import->getDownloadedCsvFileName(),
-            'content' => file_get_contents($import->getCsvFile())
+            'content' => file_get_contents($import->getDownloadedCsvFileName())
         ]);
 
         $app->response->setHTML(200, $view);

@@ -33,7 +33,6 @@ class ImportSourceValidateAction
 
         $content = $view->setContentByTemplate('@shop/admin/import-source-validate.phtml');
 
-
         $content->addParams([
             'firstFilteredRow' => false,
             'firstPassedRow' => false,

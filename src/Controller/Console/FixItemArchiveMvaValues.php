@@ -13,6 +13,7 @@ class FixItemArchiveMvaValues
     {
         $this->prepareServices($app);
 
-        $app->response->setBody(($aff = $app->utils->items->doFixArchiveMvaValues()) ? "DONE: {$aff}" : 'FAILED');
+        $aff = $app->utils->items->doFixArchiveMvaValues();
+        $app->response->setBody($aff ? "DONE: {$aff}" : 'FAILED');
     }
 }
