@@ -13,9 +13,16 @@ class History extends Entity
     protected static $columns = [
         'import_history_id' => ['type' => self::COLUMN_INT, self::AUTO_INCREMENT],
         'import_source_id' => ['type' => self::COLUMN_INT, self::REQUIRED, 'entity' => __NAMESPACE__ . '\Source'],
-        'file_unique_hash' => ['type' => self::COLUMN_TEXT],
-        'is_ok' => ['type' => self::COLUMN_INT, self::REQUIRED],
-        //@todo add statisstics (total in file, passed, skipped etc.)
+        'hash' => ['type' => self::COLUMN_TEXT, self::REQUIRED],
+        'count_total' => ['type' => self::COLUMN_INT, 'default' => null],
+        'count_filtered_filter' => ['type' => self::COLUMN_INT, 'default' => null],
+        'count_filtered_modifier' => ['type' => self::COLUMN_INT, 'default' => null],
+        'count_skipped_unique' => ['type' => self::COLUMN_INT, 'default' => null],
+        'count_skipped_updated' => ['type' => self::COLUMN_INT, 'default' => null],
+        'count_skipped_other' => ['type' => self::COLUMN_INT, 'default' => null],
+        'count_passsed' => ['type' => self::COLUMN_INT, 'default' => null],
+        'count_affected' => ['type' => self::COLUMN_INT, 'default' => null],
+        'error' => ['type' => self::COLUMN_TEXT, 'default' => null],
         'created_at' => ['type' => self::COLUMN_TIME, self::REQUIRED],
         'updated_at' => ['type' => self::COLUMN_TIME, 'default' => null]
     ];
@@ -30,7 +37,7 @@ class History extends Entity
         return $this->getImportHistoryId();
     }
 
-    public function setImportHistoryId($v)
+    public function setImportHistoryId($v): self
     {
         return $this->setRequiredAttr('import_history_id', (int)$v);
     }
@@ -40,13 +47,7 @@ class History extends Entity
         return (int)$this->getRawAttr('import_history_id');
     }
 
-    /**
-     * @param $v
-     *
-     * @return History
-     * @throws Exception\EntityAttr\Required
-     */
-    public function setImportSourceId($v)
+    public function setImportSourceId($v): self
     {
         return $this->setRequiredAttr('import_source_id', (int)$v);
     }
@@ -56,29 +57,104 @@ class History extends Entity
         return (int)$this->getRawAttr('import_source_id');
     }
 
-    public function setFileUniqueHash($v)
+    public function setHash($v): self
     {
-        return $this->setRawAttr('file_unique_hash', trim($v));
+        return $this->setRequiredAttr('hash', trim($v));
     }
 
-    public function getFileUniqueHash()
+    public function getHash()
     {
-        return $this->getRawAttr('file_unique_hash');
+        return $this->getRawAttr('hash');
     }
 
-    public function setIsOk($v)
+    public function setCountTotal(int $v = null): self
     {
-        return $this->setRawAttr('is_ok', $v ? 1 : 0);
+        return $this->setRawAttr('count_total', $v);
     }
 
-    public function getIsOk()
+    public function getCountTotal()
     {
-        return 1 == $this->getRawAttr('is_ok');
+        return is_null($v = $this->getRawAttr('count_total')) ? null : (int)$v;
     }
 
-    public function isOk()
+    public function setCountFilteredFilter(int $v = null): self
     {
-        return true == $this->getIsOk();
+        return $this->setRawAttr('count_filtered_filter', $v);
+    }
+
+    public function getCountFilteredFilter()
+    {
+        return is_null($v = $this->getRawAttr('count_filtered_filter')) ? null : (int)$v;
+    }
+
+    public function setCountFilteredModifier(int $v = null): self
+    {
+        return $this->setRawAttr('count_filtered_modifier', $v);
+    }
+
+    public function getCountFilteredModifier()
+    {
+        return is_null($v = $this->getRawAttr('count_filtered_modifier')) ? null : (int)$v;
+    }
+
+    public function setCountSkippedUnique(int $v = null): self
+    {
+        return $this->setRawAttr('count_skipped_unique', $v);
+    }
+
+    public function getCountSkippedUnique()
+    {
+        return is_null($v = $this->getRawAttr('count_skipped_unique')) ? null : (int)$v;
+    }
+
+    public function setCountSkippedUpdated(int $v = null): self
+    {
+        return $this->setRawAttr('count_skipped_updated', $v);
+    }
+
+    public function getCountSkippedUpdated()
+    {
+        return is_null($v = $this->getRawAttr('count_skipped_updated')) ? null : (int)$v;
+    }
+
+    public function setCountSkippedOther(int $v = null): self
+    {
+        return $this->setRawAttr('count_skipped_other', $v);
+    }
+
+    public function getCountSkippedOther()
+    {
+        return is_null($v = $this->getRawAttr('count_skipped_other')) ? null : (int)$v;
+    }
+
+    public function setCountPassed(int $v = null): self
+    {
+        return $this->setRawAttr('count_passed', $v);
+    }
+
+    public function getCountPassed()
+    {
+        return is_null($v = $this->getRawAttr('count_passed')) ? null : (int)$v;
+    }
+
+    public function setCountAffected(int $v = null): self
+    {
+        return $this->setRawAttr('count_affected', $v);
+    }
+
+    public function getCountAffected()
+    {
+        return is_null($v = $this->getRawAttr('count_affected')) ? null : (int)$v;
+    }
+
+    public function setError($v): self
+    {
+        return $this->setAttr('error', ($v = trim($v)) ? $v : null);
+    }
+
+    public function getError()
+    {
+        return ($v = $this->getRawAttr('error')) ? $v : null;
     }
 
     public function setCreatedAt($v)
