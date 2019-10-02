@@ -387,24 +387,20 @@ class Import
         $return->columns = $this->columns;
         $return->indexes = $this->indexes;
 
-        $tmp = [];
-        $total = 0;
+        $rows = [];
         $startIndex = ($page - 1) * $size;
         $endIndex = $page * $size - 1;
 
-        $this->walkFilteredFile(function ($row, $i) use ($startIndex, $endIndex, &$tmp, &$total) {
-            $total++;
-
+        $this->walkFilteredFile(function ($row, $i) use ($startIndex, $endIndex, &$rows) {
             if ($i < $startIndex || $i > $endIndex) {
                 return true;
             }
 
-            $tmp[] = $row;
-            return true;
+            $rows[] = $row;
         });
 
-        $return->data = $tmp;
-        $return->totalItems = $total;
+        $return->data = $rows;
+        $return->totalItems = $this->walkTotal;
         $return->totalPages = ceil($return->totalItems / $size);
 
         return $return;
