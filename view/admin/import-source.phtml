@@ -52,9 +52,15 @@ $this->getLayout()
         </a>
 
         <a class="btn btn-default btn-validate"
-           href="<?php echo $this->makeLink('admin', ['action' => 'import-source-validate', 'id' => $source->getId()]) ?>"
+           href="<?php echo $this->makeLink('admin', ['action' => 'validate-import-source', 'id' => $source->getId()]) ?>"
            title="Поиск ошибок" target="_blank">
             <span class="glyphicon glyphicon-exclamation-sign"></span> Валидация
+        </a>
+
+        <a class="btn btn-default btn-validate"
+           href="<?php echo $this->makeLink('admin', ['action' => 'fix-import-source', 'id' => $source->getId()]) ?>"
+           title="Исправление ошибок">
+            <span class="glyphicon glyphicon glyphicon-wrench"></span> Фикс
         </a>
 
         <a class="btn btn-info btn-data <?php echo $data ? 'active' : '' ?>"
@@ -71,7 +77,7 @@ $this->getLayout()
                 <span class="glyphicon glyphicon-play"></span> Импорт
             </button>
         </form>
-        <a href="<?php echo $this->makeLink('admin', ['action' => 'import-source-refresh', 'id' => $source->getId()]) ?>"
+        <a href="<?php echo $this->makeLink('admin', ['action' => 'refresh-import-source', 'id' => $source->getId()]) ?>"
            class="btn btn-warning btn-refresh">
             <span class="glyphicon glyphicon-refresh"></span> Обновить кэш
         </a>
