@@ -403,7 +403,7 @@ snowgirlApp.prototype.onRefreshButtonClick = function (ev) {
 };
 snowgirlApp.prototype.onCopyButtonClick = function (ev) {
     var $btn = $(ev.target).getButton().toggleLoading();
-    this.core.makeRequestByRoute('admin', {action: 'import-source-copy', id: this.importSourceId}, 'post')
+    this.core.makeRequestByRoute('admin', {action: 'copy-import-source', id: this.importSourceId}, 'post')
         .then($.proxy(function (body) {
             $btn.toggleLoading();
             if (confirm('Сделано! Перейти к источнику?')) {
@@ -416,7 +416,7 @@ snowgirlApp.prototype.onCopyButtonClick = function (ev) {
 };
 snowgirlApp.prototype.onDeleteButtonClick = function (ev) {
     var $btn = $(ev.target).getButton().toggleLoading();
-    this.core.makeRequestByRoute('admin', {action: 'import-source-delete', id: this.importSourceId}, 'post')
+    this.core.makeRequestByRoute('admin', {action: 'delete-import-source', id: this.importSourceId}, 'post')
         .then($.proxy(function (body) {
             $btn.toggleLoading();
             if (body.hasOwnProperty('count')) {
