@@ -22,36 +22,8 @@ class FixImportSourceAction
             throw (new NotFound)->setNonExisting('source');
         }
 
-        $import = $app->managers->sources->getImport($source);
+        $aff = $app->utils->sources->doFixSource($source);
 
-        $columns = $import->getMeta()['columns'];
-
-        $filters = $source->getFileFilter(true);
-
-        foreach ($filters as $column => $options) {
-            if (!in_array($column, $columns)) {
-                unset($filters[$column]);
-            }
-        }
-
-        $source->setFileFilter($filters);
-
-        $mappings = $source->getFileMapping(true);
-
-        foreach ($mappings as $column => $options) {
-            if (!isset($options['column'])) {
-                unset($mappings[$column]);
-            }
-
-            if (!in_array($options['column'], $columns)) {
-                unset($mappings[$column]);
-            }
-        }
-
-        $source->setFileMapping($mappings);
-
-        $aff = $app->managers->sources->updateOne($source);
-
-        $app->response->setBody($aff ? 'DONE' : 'FAILED');
+        $app->response->setBody(false === $aff ? 'FAILED' : 'DONE');
     }
 }
