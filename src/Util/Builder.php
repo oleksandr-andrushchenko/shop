@@ -15,7 +15,7 @@ namespace SNOWGIRL_SHOP\Util;
  * @property Site     sites
  * @property Tag      tags
  * @property Image    images
- * @property Source    sources
+ * @property Source   sources
  * @package SNOWGIRL_SHOP\Util
  */
 class Builder extends \SNOWGIRL_CORE\Util\Builder
@@ -41,6 +41,8 @@ class Builder extends \SNOWGIRL_CORE\Util\Builder
                 return $this->get(Site::class);
             case 'tags':
                 return $this->get(Tag::class);
+            case 'sources':
+                return $this->get(Source::class);
             default:
                 return parent::_get($k);
         }
