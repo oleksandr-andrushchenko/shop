@@ -15,6 +15,7 @@ namespace SNOWGIRL_SHOP\Util;
  * @property Site     sites
  * @property Tag      tags
  * @property Image    images
+ * @property Source    sources
  * @package SNOWGIRL_SHOP\Util
  */
 class Builder extends \SNOWGIRL_CORE\Util\Builder
