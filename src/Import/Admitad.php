@@ -6,6 +6,12 @@ use SNOWGIRL_SHOP\Import;
 use SNOWGIRL_SHOP\Entity\Item;
 use SNOWGIRL_SHOP\Entity\Import\History as ImportHistory;
 
+/**
+ * @todo param processing (as for asos)
+ * Class Admitad
+ *
+ * @package SNOWGIRL_SHOP\Import
+ */
 class Admitad extends Import
 {
     protected $sources = [
