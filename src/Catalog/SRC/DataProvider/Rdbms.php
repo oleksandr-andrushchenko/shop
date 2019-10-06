@@ -29,7 +29,7 @@ class Rdbms extends DataProvider
         $joins = [];
         $where = $this->getWhere(true);
 //        $whereIndex = $this->getWhereIndex($where);
-        $order = $this->getOrder(!$this->src->getMaxMatched());
+        $order = $this->getOrder();
 
         $mva = Manager::mapEntitiesAddPksAsKeys(PageCatalogManager::getMvaComponents());
 
@@ -64,10 +64,6 @@ class Rdbms extends DataProvider
 
                 if (isset($this->entities[$key])) {
                     $attrWhats[] = $makeWhat($entity, true);
-                }
-
-                if ($this->src->getMaxMatched()) {
-                    $attrOrders[] = 'COUNT(DISTINCT ' . $db->quote($key) . ')';
                 }
 
                 $attrsKeysAlreadyAdded[] = $key;
@@ -224,14 +220,11 @@ class Rdbms extends DataProvider
 
         $info = $this->src->getOrderInfo();
 
-        if ($cache) {
-            $output[$info->cache_column] = SORT_ASC;
-            return $output;
-        }
-
         $output['is_in_stock'] = SORT_DESC;
 
-        $output[$info->column] = $info->desc ? SORT_DESC : SORT_ASC;
+        if ($info->column) {
+            $output[$info->column] = $info->desc ? SORT_DESC : SORT_ASC;
+        }
 
         $output['created_at'] = SORT_DESC;
         $output['partner_updated_at'] = SORT_DESC;
