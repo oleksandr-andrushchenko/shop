@@ -18,7 +18,7 @@ $item = $this->entity;
         </div>
         <div class="inner-cell">
             <?php echo $item->getName() ?>
-            <?php echo $this->app->views->getRating($item->getRating(), 5, 2) ?>
+            <?php echo $this->app->views->getItemRating($item) ?>
             <div class="price">
                 <span class="text" style="display:none">Цена</span>
                 <span class="val"><?php echo Helper::makeNiceNumber($item->getPrice()) ?></span>
