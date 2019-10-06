@@ -45,4 +45,24 @@ class Ftdbms extends DataProvider
 
         return [];
     }
+
+    public function getItemsAttrs()
+    {
+        // TODO: Implement getItemsAttrs() method.
+    }
+
+    public function getWhere($raw = false)
+    {
+        // TODO: Implement getWhere() method.
+    }
+
+    public function getOrder()
+    {
+        // TODO: Implement getOrder() method.
+    }
+
+    public function getTotalCount()
+    {
+        // TODO: Implement getTotalCount() method.
+    }
 }
