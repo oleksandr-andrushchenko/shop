@@ -21,21 +21,18 @@ class SRC
     /** @var array */
     protected $entities;
     protected $masterServices;
-    protected $maxMatched;
 
     /**
      * @todo    !!! create separate Strategies (classes implemented from common interface) instead of raw mods
      *
-     * @param URI        $uri
-     * @param array      $entities   - attrs entities to collect (used in templates, e.g. - entity.item.catalog.phtml )
-     * @param bool|false $maxMatched - is order by max matched (attributes counts)
+     * @param URI   $uri
+     * @param array $entities - attrs entities to collect (used in templates, e.g. - entity.item.catalog.phtml )
      */
-    public function __construct(URI $uri, array $entities = [], $maxMatched = false)
+    public function __construct(URI $uri, array $entities = [])
     {
         $this->uri = $uri;
         $this->entities = Manager::mapEntitiesAddPksAsKeys($entities);
         $this->masterServices = $this->uri->getApp()->managers->items->getMasterServices();
-        $this->maxMatched = !!$maxMatched;
     }
 
     protected $dataProvider;
@@ -72,11 +69,6 @@ class SRC
     public function getEntities()
     {
         return $this->entities;
-    }
-
-    public function getMaxMatched()
-    {
-        return $this->maxMatched;
     }
 
     protected function getItemsRawCacheKey()
@@ -265,7 +257,7 @@ class SRC
         }
 
         return (object)[
-            'column' => $v,
+            'column' => 'relevance' == $v ? null : $v,
             'cache_column' => $vv = implode('_', ['order', $desc ? 'desc' : 'asc', $v]),
             'cache_index' => 'ix_' . $vv,
             'desc' => $desc
@@ -335,6 +327,7 @@ class SRC
     public static function getOrderValues()
     {
         return self::$orderValues ?: self::$orderValues = [
+            'relevance',
             '-rating',
             'price',
             '-price',
