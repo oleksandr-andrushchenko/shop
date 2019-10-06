@@ -60,3 +60,8 @@ alter table `import_history`
   add `count_affected` int(5) unsigned null default null after `count_passed`,
   add `error` varchar(2048) null default null after `count_affected`,
   drop `is_ok`;
+
+
+alter table `item` drop `order_desc_rating`,
+  drop `order_asc_price`,
+  drop `order_desc_price`;
