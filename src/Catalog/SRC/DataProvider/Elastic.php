@@ -50,7 +50,7 @@ class Elastic extends DataProvider
             array_values($this->getWhere()),
             $this->src->getOffset(),
             $this->src->getLimit(),
-            $this->getOrder(!$this->src->getMaxMatched()),
+            $this->getOrder(),
             $columns
         );
     }
@@ -150,20 +150,18 @@ class Elastic extends DataProvider
         return $output;
     }
 
-    public function getOrder($cache = false)
+    public function getOrder()
     {
         $output = [];
 
         $info = $this->src->getOrderInfo();
 
-        if ($cache) {
-            //this column should be enumerated according to this method non-cache output
-            $output[] = $info->cache_column . ':asc';
-            return $output;
+        $output[] = 'is_in_stock:asc';
+
+        if ($info->column) {
+            $output[] = $info->column . ':' . ($info->desc ? 'desc' : 'asc');
         }
 
-        $output[] = 'is_in_stock:asc';
-        $output[] = $info->column . ':' . ($info->desc ? 'desc' : 'asc');
         $output[] = 'created_at:desc';
         $output[] = 'partner_updated_at:desc';
 
