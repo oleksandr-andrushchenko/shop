@@ -505,9 +505,9 @@ class Import
             'rating',
             'is_sport',
             'is_size_plus',
-            'order_desc_rating',
-            'order_asc_price',
-            'order_desc_price',
+//            'order_desc_rating',
+//            'order_asc_price',
+//            'order_desc_price',
             'created_at',
             'updated_at'
         ]);

@@ -39,9 +39,9 @@ class Item extends Entity
         'is_in_stock' => ['type' => self::COLUMN_INT, 'default' => 0],
         'import_source_id' => ['type' => self::COLUMN_INT, self::REQUIRED, 'entity' => __NAMESPACE__ . '\Import\Source'],
 
-        'order_desc_rating' => ['type' => self::COLUMN_INT, 'default' => 0],
-        'order_asc_price' => ['type' => self::COLUMN_INT, 'default' => 0],
-        'order_desc_price' => ['type' => self::COLUMN_INT, 'default' => 0],
+//        'order_desc_rating' => ['type' => self::COLUMN_INT, 'default' => 0],
+//        'order_asc_price' => ['type' => self::COLUMN_INT, 'default' => 0],
+//        'order_desc_price' => ['type' => self::COLUMN_INT, 'default' => 0],
 
         'partner_updated_at' => ['type' => self::COLUMN_INT, self::REQUIRED],
         'created_at' => ['type' => self::COLUMN_TIME, self::FTDBMS_ATTR, self::REQUIRED],
