@@ -2,6 +2,9 @@
 
 namespace SNOWGIRL_SHOP\View;
 
+use SNOWGIRL_CORE\Service\Storage\Query\Expr;
+use SNOWGIRL_SHOP\App\Web;
+use SNOWGIRL_SHOP\Entity\Item;
 use SNOWGIRL_SHOP\View\Widget\Grid\Categories;
 use SNOWGIRL_SHOP\View\Widget\Grid\Brands;
 use SNOWGIRL_SHOP\View\Widget\Grid\Items;
@@ -10,6 +13,9 @@ use SNOWGIRL_SHOP\View\Widget\Form\Order as OrderForm;
 
 /**
  * Class Builder
+ *
+ * @property Web app
+ *
  * @method Categories categories($params = [], $parent = null)
  * @method Brands brands($params = [], $parent = null)
  * @method Items items($params = [], $parent = null)
@@ -33,5 +39,24 @@ class Builder extends \SNOWGIRL_CORE\View\Builder
             default:
                 return parent::_call($fn, $args);
         }
+    }
+
+    public const ITEM_RATING_STAR_MAX = 5;
+
+    protected $itemRatingStarCost;
+
+    protected function getItemRatingStarCost()
+    {
+        if (null === $this->itemRatingStarCost) {
+            $tmp = $this->app->analytics->getItemRatingStarCost();
+            $this->itemRatingStarCost = null === $tmp ? 1 : $tmp;
+        }
+
+        return $this->itemRatingStarCost;
+    }
+
+    public function getItemRating(Item $item)
+    {
+        return parent::getRating($item->getRating(), self::ITEM_RATING_STAR_MAX, $this->getItemRatingStarCost());
     }
 }
