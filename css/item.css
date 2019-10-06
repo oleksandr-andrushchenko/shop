@@ -59,6 +59,11 @@
     color: #1e1e1e
 }
 
+.item-vendor img {
+    max-width: 100px;
+    max-height: 50px
+}
+
 .details > * + * {
     margin-top: 10px
 }
