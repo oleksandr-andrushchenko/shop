@@ -431,7 +431,6 @@ class Item extends Manager implements GoLinkBuilderInterface
         return $output;
     }
 
-
     /**
      * @param URI $uri
      *
