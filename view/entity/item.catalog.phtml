@@ -87,7 +87,7 @@ $brandName = htmlspecialchars($brand->getName());
         <span class="entity">/ <?php echo $entityName ?></span>
     </div>
 
-    <?php echo $this->app->views->getRating($item->getRating(), 5, 2) ?>
+    <?php echo $this->app->views->getItemRating($item) ?>
 
     <div class="prices" itemprop="offers" itemscope itemtype="http://schema.org/Offer">
         <meta itemprop="itemCondition" itemscope itemtype="http://schema.org/OfferItemCondition"

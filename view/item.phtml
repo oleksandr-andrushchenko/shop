@@ -62,7 +62,7 @@ if ((!$item->get('archive')) && $item->isInStock()) {
         <h1 class="item-name" itemprop="name">
             <?php echo htmlspecialchars($this->h1) ?>
             <?php echo $id = $item->getPartnerItemId() ?>
-            <?php echo $this->app->views->getRating($item->getRating(), 5, 2) ?>
+            <?php echo $this->app->views->getItemRating($item) ?>
         </h1>
         <meta itemprop="description" content="<?php echo htmlspecialchars(trim(implode(' ', [
             htmlspecialchars($this->app->managers->items->getEntityCustom($item)),
