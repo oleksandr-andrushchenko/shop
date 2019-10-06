@@ -19,7 +19,7 @@ class Nosql extends DataProvider
 //            ->setColumns(array_merge([Item::getPk()], $this->uri->getApp()->managers->catalog->getComponentsPKs()))
             ->setColumns(array_merge([Item::getPk()], array_keys($this->src->getEntities())))
             ->setWhere($this->getWhere())
-            ->setOrders($this->getOrder(!$this->src->getMaxMatched()))
+            ->setOrders($this->getOrder())
             ->setOffset($this->src->getOffset())
             ->setLimit($this->src->getLimit())
             ->getArrays();
@@ -90,16 +90,11 @@ class Nosql extends DataProvider
         return $output;
     }
 
-    public function getOrder($cache = false)
+    public function getOrder()
     {
         $output = [];
 
         $info = $this->src->getOrderInfo();
-
-        if ($cache) {
-            $output[$info->cache_column] = SORT_ASC;
-            return $output;
-        }
 
         //@todo...
 
