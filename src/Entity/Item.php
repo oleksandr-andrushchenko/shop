@@ -39,9 +39,10 @@ class Item extends Entity
         'is_in_stock' => ['type' => self::COLUMN_INT, 'default' => 0],
         'import_source_id' => ['type' => self::COLUMN_INT, self::REQUIRED, 'entity' => __NAMESPACE__ . '\Import\Source'],
 
-//        'order_desc_rating' => ['type' => self::COLUMN_INT, 'default' => 0],
-//        'order_asc_price' => ['type' => self::COLUMN_INT, 'default' => 0],
-//        'order_desc_price' => ['type' => self::COLUMN_INT, 'default' => 0],
+        'order_desc_relevance' => ['type' => self::COLUMN_INT, 'default' => 0],
+        'order_desc_rating' => ['type' => self::COLUMN_INT, 'default' => 0],
+        'order_asc_price' => ['type' => self::COLUMN_INT, 'default' => 0],
+        'order_desc_price' => ['type' => self::COLUMN_INT, 'default' => 0],
 
         'partner_updated_at' => ['type' => self::COLUMN_INT, self::REQUIRED],
         'created_at' => ['type' => self::COLUMN_TIME, self::FTDBMS_ATTR, self::REQUIRED],
@@ -52,10 +53,10 @@ class Item extends Entity
         'uk_source_partner_item' => ['import_source_id', 'partner_item_id'],
         'ix_category_source_updated' => ['category_id', 'import_source_id', 'partner_updated_at'],
         'ix_catalog_category_brand' => ['is_sport', 'is_size_plus', 'category_id', 'brand_id'],
+//        'ix_order_desc_relevance' => ['order_desc_relevance'],
 //        'ix_order_desc_rating' => ['order_desc_rating'],
 //        'ix_order_asc_price' => ['order_asc_price'],
-//        'ix_order_desc_price' => ['order_desc_price'],
-//        'ix_updated_at' => ['updated_at']
+//        'ix_order_desc_price' => ['order_desc_price']
     ];
 
     public function setId($v)

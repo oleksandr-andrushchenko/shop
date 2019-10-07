@@ -29,7 +29,7 @@ class Rdbms extends DataProvider
         $joins = [];
         $where = $this->getWhere(true);
 //        $whereIndex = $this->getWhereIndex($where);
-        $order = $this->getOrder();
+        $order = $this->getOrder(true);
 
         $mva = Manager::mapEntitiesAddPksAsKeys(PageCatalogManager::getMvaComponents());
 
@@ -219,6 +219,11 @@ class Rdbms extends DataProvider
         $output = [];
 
         $info = $this->src->getOrderInfo();
+
+        if ($cache) {
+            $output[$info->cache_column] = SORT_ASC;
+            return $output;
+        }
 
         $output['is_in_stock'] = SORT_DESC;
 

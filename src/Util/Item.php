@@ -276,9 +276,11 @@ class Item extends Util
     protected $archiveIgnore = [
         'rating',
         'is_active',
-//        'order_desc_rating',
-//        'order_asc_price',
-//        'order_desc_price'
+
+        'order_desc_relevance',
+        'order_desc_rating',
+        'order_asc_price',
+        'order_desc_price'
     ];
 
     public function doCreateArchiveTable()
@@ -948,11 +950,12 @@ class Item extends Util
             'is_sport' => 'boolean',
             'is_size_plus' => 'boolean',
             'is_sales' => 'boolean',
-//            'price' => 'double',
             'price' => 'integer',
-//            'order_desc_rating' => 'integer',
-//            'order_asc_price' => 'integer',
-//            'order_desc_price' => 'integer'
+
+            'order_desc_relevance' => 'integer',
+            'order_desc_rating' => 'integer',
+            'order_asc_price' => 'integer',
+            'order_desc_price' => 'integer'
         ];
 
         foreach ($this->getSearchColumns() as $column) {
@@ -1029,9 +1032,11 @@ class Item extends Util
             'is_size_plus',
             'old_price',
             'price',
-//            'order_desc_rating',
-//            'order_asc_price',
-//            'order_desc_price'
+
+            'order_desc_relevance',
+            'order_desc_rating',
+            'order_asc_price',
+            'order_desc_price'
         ];
 
         $searchColumns = $this->getSearchColumns();
