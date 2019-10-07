@@ -887,7 +887,7 @@ class SEO
 
         if ($catalog) {
             return array_merge(array_combine($values, array_fill(0, count($values), null)), [
-                'relevance' => 'Релевантности',
+                '-relevance' => 'Релевантности',
                 '-rating' => 'Рейтингу',
                 'price' => 'Возрастанию цены',
                 '-price' => 'Убыванию цены'
@@ -895,7 +895,7 @@ class SEO
         }
 
         return array_merge(array_combine($values, array_fill(0, count($values), null)), [
-            'relevance' => 'отсортировано по релевантности',
+            '-relevance' => 'отсортировано по релевантности',
             '-rating' => 'отсортировано по рейтингу',
             'price' => 'отсортировано по возрастанию цены',
             '-price' => 'отсортировано по убыванию цены'

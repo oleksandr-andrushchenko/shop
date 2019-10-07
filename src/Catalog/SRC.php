@@ -327,7 +327,7 @@ class SRC
     public static function getOrderValues()
     {
         return self::$orderValues ?: self::$orderValues = [
-            'relevance',
+            '-relevance',
             '-rating',
             'price',
             '-price',
