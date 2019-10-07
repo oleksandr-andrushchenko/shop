@@ -65,3 +65,9 @@ alter table `import_history`
 alter table `item` drop `order_desc_rating`,
   drop `order_asc_price`,
   drop `order_desc_price`;
+
+
+alter table `item` add `order_desc_relevance` int(11) NOT NULL DEFAULT 0 after `import_source_id`,
+  add `order_desc_rating` int(11) NOT NULL DEFAULT 0 after `order_desc_relevance`,
+  add `order_asc_price` int(11) NOT NULL DEFAULT 0 after `order_desc_rating`,
+  add `order_desc_price` int(11) NOT NULL DEFAULT 0 after `order_asc_price`;
