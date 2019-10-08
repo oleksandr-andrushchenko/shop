@@ -1334,31 +1334,21 @@ class Import
         return $this;
     }
 
-    protected function updateHistory(
-        int $total = null,
-        int $filteredFilter = null,
-        int $filteredModifier = null,
-        int $skippedUnique = null,
-        int $skippedUpdated = null,
-        int $skippedOther = null,
-        int $passsed = null,
-        int $affected = null,
-        string $error = null
-    )
+    protected function updateHistory()
     {
         if ($this->history && $this->history->getId()) {
             $this->app->managers->importHistory->updateOne($this->history
-                ->setCountTotal($total)
-                ->setCountFilteredFilter($filteredFilter)
-                ->setCountFilteredModifier($filteredModifier)
-                ->setCountSkippedUnique($skippedUnique)
-                ->setCountSkippedUpdated($skippedUpdated)
-                ->setCountSkippedOther($skippedOther)
-                ->setCountPassed($passsed)
-                ->setCountAffected($affected)
-                ->setError($error));
+                ->setCountTotal($this->walkTotal)
+                ->setCountFilteredFilter($this->walkFilteredFilter)
+                ->setCountFilteredModifier($this->walkFilteredModifier)
+                ->setCountSkippedUnique($this->skippedByUnique)
+                ->setCountSkippedUpdated($this->skippedByUpdated)
+                ->setCountSkippedOther($this->skippedByOther)
+                ->setCountPassed($this->passed)
+                ->setCountAffected($this->aff)
+                ->setError($this->error));
         } else {
-            $this->log('History can\'t being updated');
+            $this->log('invalid history object');
         }
 
         return $this;
@@ -1704,25 +1694,17 @@ class Import
                 $this->insertMva();
             });
 
-            $this->updateHistory(
-                $this->walkTotal,
-                $this->walkFilteredFilter,
-                $this->walkFilteredModifier,
-                $this->skippedByUnique,
-                $this->skippedByUpdated,
-                $this->skippedByOther,
-                $this->passed,
-                $this->aff,
-                $this->error
-            );
+            $this->updateHistory();
 
-            $this->app->utils->items->doFixWithNonExistingAttrs($fixWhere);
+            if ($this->aff) {
+                $this->app->utils->items->doFixWithNonExistingAttrs($fixWhere);
 
-            $aff = $this->app->utils->attrs->doDeleteNonExistingItemsMva($fixWhere);
-            $this->log('updated with invalid mva: ' . $aff);
+                $aff = $this->app->utils->attrs->doDeleteNonExistingItemsMva($fixWhere);
+                $this->log('updated with invalid mva: ' . $aff);
 
-//        $this->app->utils->attrs->doAddMvaByInclusions($fixWhere);
-            $this->app->utils->items->doFixItemsCategories($fixWhere);
+//                $this->app->utils->attrs->doAddMvaByInclusions($fixWhere);
+                $this->app->utils->items->doFixItemsCategories($fixWhere);
+            }
         } catch (\Exception $ex) {
             $this->app->services->logger->makeException($ex);
         }
