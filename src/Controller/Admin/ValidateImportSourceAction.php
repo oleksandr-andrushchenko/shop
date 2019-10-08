@@ -31,7 +31,7 @@ class ValidateImportSourceAction
 
         $view = $app->views->getLayout(true);
 
-        $content = $view->setContentByTemplate('@shop/admin/import-source-validate.phtml');
+        $content = $view->setContentByTemplate('@shop/admin/validate-import-source.phtml');
 
         $content->addParams([
             'firstFilteredRow' => false,
