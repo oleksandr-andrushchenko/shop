@@ -32,7 +32,7 @@ class History extends Manager
             ->getObject();
 
         if ($tmp) {
-            return (time() - strtotime($tmp->getCreatedAt())) / (24 * 60 * 60) < 7;
+            return (time() - strtotime($tmp->getCreatedAt())) / (24 * 60 * 60) < 1;
         }
 
         return null;
