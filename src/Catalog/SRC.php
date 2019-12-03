@@ -32,7 +32,7 @@ class SRC
     {
         $this->uri = $uri;
         $this->entities = Manager::mapEntitiesAddPksAsKeys($entities);
-        $this->masterServices = $this->uri->getApp()->managers->items->getMasterServices();
+        $this->masterServices = $this->getURI()->getApp()->managers->items->getMasterServices();
     }
 
     protected $dataProvider;
@@ -73,13 +73,13 @@ class SRC
 
     protected function getItemsRawCacheKey()
     {
-        return md5(serialize([$this->uri->getParams(), array_keys($this->entities)]));
+        return md5(serialize([$this->getURI()->getParams(), array_keys($this->entities)]));
     }
 
     protected function getItemsIdToAttrsCacheKey()
     {
         return implode('-', [
-            Item::getTable(),
+            $this->getURI()->getApp()->managers->items->getEntity()->getTable(),
             $this->getItemsRawCacheKey(),
             'ids'
         ]);
@@ -88,7 +88,7 @@ class SRC
     protected function getItemsCountCacheKey()
     {
         return implode('-', [
-            Item::getTable(),
+            $this->getURI()->getApp()->managers->items->getEntity()->getTable(),
             $this->getItemsRawCacheKey(),
             'total'
         ]);
@@ -98,7 +98,7 @@ class SRC
     {
         $key = $this->getItemsIdToAttrsCacheKey();
 
-        if (false !== ($output = $this->uri->getApp()->services->mcms(null, null, $this->masterServices)->get($key))) {
+        if (false !== ($output = $this->getURI()->getApp()->services->mcms(null, null, $this->masterServices)->get($key))) {
             return $output;
         }
 
@@ -110,7 +110,7 @@ class SRC
             $output[$id] = $item;
         }
 
-        $this->uri->getApp()->services->mcms(null, null, $this->masterServices)->set($key, $output);
+        $this->getURI()->getApp()->services->mcms(null, null, $this->masterServices)->set($key, $output);
         return $output;
     }
 
@@ -133,7 +133,7 @@ class SRC
     public function getItems(&$total = false)
     {
         if (null === $total) {
-            $this->uri->getApp()->services->mcms(null, null, $this->masterServices)->prefetch([
+            $this->getURI()->getApp()->services->mcms(null, null, $this->masterServices)->prefetch([
                 $this->getItemsIdToAttrsCacheKey(),
                 $this->getItemsCountCacheKey()
             ]);
@@ -152,7 +152,7 @@ class SRC
         $itemIdToAttrs = $this->getItemsIdToAttrs();
 
         /** @var Item[] $items */
-        $items = $this->uri->getApp()->managers->items->populateList(array_keys($itemIdToAttrs));
+        $items = $this->getURI()->getApp()->managers->items->populateList(array_keys($itemIdToAttrs));
         $items = Arrays::mapByKeyMaker($items, function ($item) {
             /** @var Item $item */
             return $item->getId();
@@ -175,13 +175,13 @@ class SRC
             $entityToAttrId[$attrEntity] = $attrId;
         }
 
-        $itemColumns = Item::getColumns();
+        $itemColumns = $this->getURI()->getApp()->managers->items->getEntity()->getColumns();
 
         foreach ($entityToAttrId as $attrEntity => $attrId) {
             /** @var Entity $attrEntity */
             $attrKey = $attrEntity::getPk();
             $attrId = array_unique($attrId);
-            $manager = $this->uri->getApp()->managers->getByEntityClass($attrEntity);
+            $manager = $this->getURI()->getApp()->managers->getByEntityClass($attrEntity);
 
             $attrIdToAttrObject = Arrays::mapByKeyMaker($manager->populateList($attrId), function ($entity) {
                 /** @var Entity $entity */
@@ -235,7 +235,7 @@ class SRC
     public function getTotalCount()
     {
         if (null === $this->totalCount) {
-            $this->totalCount = $this->uri->getApp()->services->mcms(null, null, $this->masterServices)
+            $this->totalCount = $this->getURI()->getApp()->services->mcms(null, null, $this->masterServices)
                 ->call($this->getItemsCountCacheKey(), function () {
                     return $this->getDataProvider()->getTotalCount();
                 });
@@ -246,7 +246,7 @@ class SRC
 
     public function getOrderInfo()
     {
-        $v = $this->uri->get(URI::ORDER);
+        $v = $this->getURI()->get(URI::ORDER);
 
         if (!in_array($v, self::getOrderValues())) {
             $v = self::getDefaultOrderValue();
@@ -292,10 +292,10 @@ class SRC
     public function getLimit()
     {
         if (null === $this->limit) {
-            $v = $this->uri->get(URI::PER_PAGE);
+            $v = $this->getURI()->get(URI::PER_PAGE);
 
-            if (!in_array($v, self::getShowValues($this->uri->getApp())) && !$this->uri->get(URI::EVEN_NOT_STANDARD_PER_PAGE)) {
-                $v = self::getDefaultShowValue($this->uri->getApp());
+            if (!in_array($v, self::getShowValues($this->getURI()->getApp())) && !$this->getURI()->get(URI::EVEN_NOT_STANDARD_PER_PAGE)) {
+                $v = self::getDefaultShowValue($this->getURI()->getApp());
             }
 
             $this->limit = (int)$v;
@@ -306,7 +306,7 @@ class SRC
 
     public function getPageNum()
     {
-        return $this->uri->get(URI::PAGE_NUM, 1);
+        return $this->getURI()->get(URI::PAGE_NUM, 1);
     }
 
     protected static $showValues;
@@ -396,7 +396,7 @@ class SRC
     public function getPage()
     {
         if (null === $this->page) {
-            $this->page = $this->uri->getApp()->managers->pages->findByKey('catalog');
+            $this->page = $this->getURI()->getApp()->managers->pages->findByKey('catalog');
         }
 
         return $this->page;
@@ -427,7 +427,7 @@ class SRC
             return $this->catalogPage;
         }
 
-        if (!$this->uri->isCatalogPage()) {
+        if (!$this->getURI()->isCatalogPage()) {
             return $this->catalogPage = false;
         }
 
@@ -436,11 +436,11 @@ class SRC
         }
 
         //@todo check...
-        if (!$params = $this->uri->getParams()) {
+        if (!$params = $this->getURI()->getParams()) {
             return $this->catalogPage = false;
         }
 
-        if (!$page = $this->uri->getApp()->managers->catalog->clear()->getObjectByParams($params)) {
+        if (!$page = $this->getURI()->getApp()->managers->catalog->clear()->getObjectByParams($params)) {
             return $this->catalogPage = false;
         }
 
@@ -465,7 +465,7 @@ class SRC
             return $this->catalogCustomPage = false;
         }
 
-        if (!$page = $this->uri->getApp()->managers->catalog->getPageCatalogCustom($catalog)) {
+        if (!$page = $this->getURI()->getApp()->managers->catalog->getPageCatalogCustom($catalog)) {
             return $this->catalogCustomPage = false;
         }
 
@@ -496,7 +496,7 @@ class SRC
         $aliases = $this->getAliases();
 
         if (isset($aliases[$k])) {
-            return $this->uri->getApp()->managers->getByEntityPk($k)->getAliasManager()->find($aliases[$k]);
+            return $this->getURI()->getApp()->managers->getByEntityPk($k)->getAliasManager()->find($aliases[$k]);
         }
 
         return false;
