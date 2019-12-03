@@ -162,14 +162,17 @@ class Elastic extends DataProvider
             return $output;
         }
 
-        $output[] = 'is_in_stock:asc';
+//        $output[] = 'is_in_stock:asc';
+
+        $output[] = 'created_at:desc';
+        $output[] = 'partner_updated_at:desc';
 
         if ($info->column) {
             $output[] = $info->column . ':' . ($info->desc ? 'desc' : 'asc');
         }
 
-        $output[] = 'created_at:desc';
-        $output[] = 'partner_updated_at:desc';
+//        $output[] = 'created_at:desc';
+//        $output[] = 'partner_updated_at:desc';
 
         if ('rating' !== $info->column) {
             $output[] = 'rating:desc';
