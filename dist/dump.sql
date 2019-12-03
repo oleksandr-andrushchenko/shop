@@ -286,8 +286,8 @@ CREATE TABLE `item` (
   `name` varchar(512) NOT NULL,
   `partner_id` varchar(32) NOT NULL,
   `partner_link` varchar(1024) DEFAULT NULL,
+  `partner_link_hash` varchar(32) NOT NULL,
   `image` char(32) NOT NULL,
-  `image_count` tinyint(1) unsigned DEFAULT NULL,
   `price` decimal(8,2) DEFAULT NULL,
   `old_price` decimal(8,2) DEFAULT NULL,
   `entity` tinytext NOT NULL,
@@ -309,7 +309,6 @@ CREATE TABLE `item` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`item_id`),
-  UNIQUE KEY `uk_image` (`image`),
   UNIQUE KEY `uk_source_partner_item` (`import_source_id`,`partner_item_id`),
   KEY `ix_catalog_category_brand` (`is_sport`,`is_size_plus`,`category_id`,`brand_id`),
   KEY `ix_category_source_updated` (`category_id`,`import_source_id`,`partner_updated_at`)
@@ -328,8 +327,8 @@ CREATE TABLE `item_archive` (
   `name` varchar(512) NOT NULL,
   `partner_item_id` varchar(32) NOT NULL,
   `partner_link` varchar(1024) DEFAULT NULL,
+  `partner_link_hash` varchar(32) NOT NULL,
   `image` char(32) NOT NULL,
-  `image_count` tinyint(1) unsigned DEFAULT NULL,
   `price` decimal(8,2) DEFAULT NULL,
   `old_price` decimal(8,2) DEFAULT NULL,
   `entity` tinytext NOT NULL,
@@ -347,6 +346,7 @@ CREATE TABLE `item_archive` (
   `material_id` varchar(128) DEFAULT NULL,
   `size_id` varchar(128) DEFAULT NULL,
   `season_id` varchar(128) DEFAULT NULL,
+  `image_id` varchar(164) DEFAULT NULL,
   `partner_updated_at` int(5) unsigned NOT NULL,
   `created_at` timestamp NOT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
@@ -366,6 +366,20 @@ CREATE TABLE `item_color` (
   `color_id` smallint(5) unsigned NOT NULL,
   PRIMARY KEY (`item_id`,`color_id`),
   KEY `ix_color` (`color_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `item_image`
+--
+
+DROP TABLE IF EXISTS `item_image`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `item_image` (
+  `item_id` int(10) unsigned NOT NULL,
+  `image_id` varchar(32) NOT NULL,
+  PRIMARY KEY (`item_id`,`image_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
