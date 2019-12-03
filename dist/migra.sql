@@ -71,3 +71,23 @@ alter table `item` add `order_desc_relevance` int(11) NOT NULL DEFAULT 0 after `
   add `order_desc_rating` int(11) NOT NULL DEFAULT 0 after `order_desc_relevance`,
   add `order_asc_price` int(11) NOT NULL DEFAULT 0 after `order_desc_rating`,
   add `order_desc_price` int(11) NOT NULL DEFAULT 0 after `order_asc_price`;
+
+
+alter table `item` drop `image_count`,
+  add `partner_link_hash` varchar(32) not null after `partner_link`,
+--   add `is_404` tinyint(1) unsigned not null default 0,
+  drop key `uk_image`;
+
+update `item` set `partner_link_hash` = MD5(`partner_link`);
+
+alter table `item_archive` drop `image_count`,
+  add `partner_link_hash` varchar(32) not null after `partner_link`,
+  add `image_id` varchar(164) default null after `season_id`;
+
+update `item_archive` set `partner_link_hash` = MD5(`partner_link`);
+
+CREATE TABLE `item_image` (
+  `item_id` int(10) unsigned NOT NULL,
+  `image_id` varchar(32) NOT NULL,
+  PRIMARY KEY (`item_id`,`image_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
