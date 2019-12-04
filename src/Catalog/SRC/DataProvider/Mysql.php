@@ -8,17 +8,15 @@ use SNOWGIRL_CORE\Service\Storage\Query;
 use SNOWGIRL_CORE\Service\Storage\Query\Expr;
 use SNOWGIRL_SHOP\Catalog\SRC\DataProvider;
 use SNOWGIRL_SHOP\Catalog\URI;
-use SNOWGIRL_SHOP\Entity\Item;
 
-use SNOWGIRL_SHOP\Manager\Page\Catalog as PageCatalogManager;
 use SNOWGIRL_SHOP\Manager\Item\Attr as ItemAttrManager;
 
 class Mysql extends DataProvider
 {
     public function getItemsAttrs()
     {
-        $table = Item::getTable();
-        $pk = Item::getPk();
+        $table = $this->src->getURI()->getApp()->managers->items->getEntity()->getTable();
+        $pk = $this->src->getURI()->getApp()->managers->items->getEntity()->getPk();
 
         $db = $this->src->getURI()->getApp()->storage->mysql(null, $this->src->getMasterServices());
 
@@ -28,10 +26,9 @@ class Mysql extends DataProvider
         $columns = [new Expr($db->quote($pk, $table))];
         $joins = [];
         $where = $this->getWhere(true);
-//        $whereIndex = $this->getWhereIndex($where);
         $order = $this->getOrder(true);
 
-        $mva = Manager::mapEntitiesAddPksAsKeys(PageCatalogManager::getMvaComponents());
+        $mva = Manager::mapEntitiesAddPksAsKeys($this->src->getURI()->getApp()->managers->catalog->getMvaComponents());
 
         $attrWhats = [];
         $attrJoins = [];
@@ -90,8 +87,6 @@ class Mysql extends DataProvider
         }
 
         if ($attrOrders) {
-//            $orderIndex = false;
-
             /**
              * @see ::makeOrder
              */
@@ -103,25 +98,12 @@ class Mysql extends DataProvider
                 array_slice($order, $key, null, true);
         }
 
-//        $index = [];
-
-//        if ($whereIndex) {
-//            $index = array_merge($index, is_array($whereIndex) ? $whereIndex : [$whereIndex]);
-//        }
-
-//        if ($orderIndex) {
-//            $index = array_merge($index, is_array($orderIndex) ? $orderIndex : [$orderIndex]);
-//        }
-
-        //@todo indexes...
-
         //we could fetch multi value attributes also - GROUP_CONCAT(DISTINCT t.tag_id), GROUP_CONCAT(DISTINCT m.material_id)
 
         $query = new Query(['params' => []]);
         $query->text = implode(' ', [
             $db->makeSelectSQL($columns, false, $query->params),
             $db->makeFromSQL($table),
-//            $index ? $db->makeIndexSQL($index) : '',
             implode(' ', $joins),
             $db->makeWhereSQL($where, $query->params),
             $joins ? $db->makeGroupSQL($pk, $query->params, $table) : '',
@@ -131,7 +113,6 @@ class Mysql extends DataProvider
 
         $output = $db->req($query)->reqToArrays();
 
-//        var_dump($output);die;
         return $output;
     }
 
@@ -159,9 +140,9 @@ class Mysql extends DataProvider
 
         $db = $this->src->getURI()->getApp()->storage->mysql(null, $this->src->getMasterServices());
 
-        $mva = Manager::mapEntitiesAddPksAsKeys(PageCatalogManager::getMvaComponents());
+        $mva = Manager::mapEntitiesAddPksAsKeys($this->src->getURI()->getApp()->managers->catalog->getMvaComponents());
 
-        foreach (Manager::mapEntitiesAddPksAsKeys(PageCatalogManager::getComponentsOrderByRdbmsKey()) as $pk => $entity) {
+        foreach (Manager::mapEntitiesAddPksAsKeys($this->src->getURI()->getApp()->managers->catalog->getComponentsOrderByRdbmsKey()) as $pk => $entity) {
             if (isset($params[$pk])) {
                 $v = $params[$pk];
 
@@ -226,14 +207,17 @@ class Mysql extends DataProvider
             return $output;
         }
 
-        $output['is_in_stock'] = SORT_DESC;
+//        $output['is_in_stock'] = SORT_DESC;
+
+        $output['created_at'] = SORT_DESC;
+        $output['partner_updated_at'] = SORT_DESC;
 
         if ($info->column) {
             $output[$info->column] = $info->desc ? SORT_DESC : SORT_ASC;
         }
 
-        $output['created_at'] = SORT_DESC;
-        $output['partner_updated_at'] = SORT_DESC;
+//        $output['created_at'] = SORT_DESC;
+//        $output['partner_updated_at'] = SORT_DESC;
 
         if (!isset($output['rating'])) {
             $output['rating'] = SORT_DESC;
