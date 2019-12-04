@@ -20,7 +20,7 @@ class History extends Entity
         'count_skipped_unique' => ['type' => self::COLUMN_INT, 'default' => null],
         'count_skipped_updated' => ['type' => self::COLUMN_INT, 'default' => null],
         'count_skipped_other' => ['type' => self::COLUMN_INT, 'default' => null],
-        'count_passsed' => ['type' => self::COLUMN_INT, 'default' => null],
+        'count_passed' => ['type' => self::COLUMN_INT, 'default' => null],
         'count_affected' => ['type' => self::COLUMN_INT, 'default' => null],
         'error' => ['type' => self::COLUMN_TEXT, 'default' => null],
         'created_at' => ['type' => self::COLUMN_TIME, self::REQUIRED],

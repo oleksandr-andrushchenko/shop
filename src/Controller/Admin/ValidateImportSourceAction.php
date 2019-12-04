@@ -44,7 +44,7 @@ class ValidateImportSourceAction
             return false;
         });
 
-        $import->walkImport(function ($row, $values) use (&$content) {
+        $import->walkImport(false, function ($row, $values) use (&$content) {
             $content->firstPassedRow = $row;
             $content->firstPassedValues = $values;
             return false;
