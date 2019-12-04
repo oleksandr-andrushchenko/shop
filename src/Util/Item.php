@@ -329,6 +329,7 @@ class Item extends Util
         $archiveColumns = $db->getColumns($archiveTable);
 
         $mva = $this->app->managers->catalog->getMvaPkToTable();
+        $mva['image_id'] = 'image';
 
         $query = new Query(['params' => []]);
         $query->text = implode(' ', [
@@ -401,6 +402,7 @@ class Item extends Util
         $archiveColumns = $db->getColumns($archiveTable);
 
         $mva = $this->app->managers->catalog->getMvaPkToTable();
+        $mva['image_id'] = 'image';
 
         $tmpArchiveColumns = array_diff($archiveColumns, array_keys($mva));
 
