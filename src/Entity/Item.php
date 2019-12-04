@@ -21,7 +21,6 @@ class Item extends Entity
         'name' => ['type' => self::COLUMN_TEXT, self::SEARCH_IN, self::SEARCH_DISPLAY, self::REQUIRED, self::FTDBMS_FIELD],
         'partner_item_id' => ['type' => self::COLUMN_TEXT, self::SEARCH_IN, self::FTDBMS_FIELD, self::REQUIRED],
         'image' => ['type' => self::COLUMN_TEXT, self::IMAGE, self::REQUIRED],
-        'image_count' => ['type' => self::COLUMN_INT, 'default' => null],
         'price' => ['type' => self::COLUMN_FLOAT, self::REQUIRED],
         'old_price' => ['type' => self::COLUMN_FLOAT, 'default' => null],
         'entity' => ['type' => self::COLUMN_TEXT],
@@ -36,6 +35,8 @@ class Item extends Entity
         'is_sport' => ['type' => self::COLUMN_INT, 'default' => 0],
         'is_size_plus' => ['type' => self::COLUMN_INT, 'default' => 0],
         'partner_link' => ['type' => self::COLUMN_TEXT, self::REQUIRED],
+        'partner_link_hash' => ['type' => self::COLUMN_TEXT, self::REQUIRED],
+
         'is_in_stock' => ['type' => self::COLUMN_INT, 'default' => 0],
         'import_source_id' => ['type' => self::COLUMN_INT, self::REQUIRED, 'entity' => __NAMESPACE__ . '\Import\Source'],
 
@@ -49,14 +50,9 @@ class Item extends Entity
         'updated_at' => ['type' => self::COLUMN_TIME, 'default' => null]
     ];
     protected static $indexes = [
-        'uk_image' => ['image'],
         'uk_source_partner_item' => ['import_source_id', 'partner_item_id'],
         'ix_category_source_updated' => ['category_id', 'import_source_id', 'partner_updated_at'],
         'ix_catalog_category_brand' => ['is_sport', 'is_size_plus', 'category_id', 'brand_id'],
-//        'ix_order_desc_relevance' => ['order_desc_relevance'],
-//        'ix_order_desc_rating' => ['order_desc_rating'],
-//        'ix_order_asc_price' => ['order_asc_price'],
-//        'ix_order_desc_price' => ['order_desc_price']
     ];
 
     public function setId($v)
@@ -107,16 +103,6 @@ class Item extends Entity
     public function getImage()
     {
         return $this->getRawAttr('image');
-    }
-
-    public function setImageCount($v)
-    {
-        return $this->setRawAttr('image_count', ($v = (int)$v) ? $v : null);
-    }
-
-    public function getImageCount()
-    {
-        return (int)$this->getRawAttr('image_count');
     }
 
     public function setPrice($v)
