@@ -18,7 +18,6 @@ class Custom extends Entity
         'h1' => ['type' => self::COLUMN_TEXT],
         'body' => ['type' => self::COLUMN_TEXT],
         'seo_texts' => ['type' => self::COLUMN_TEXT, self::JSON],
-        'meta' => ['type' => self::COLUMN_TEXT, self::JSON],
         'created_at' => ['type' => self::COLUMN_TIME, self::REQUIRED],
         'updated_at' => ['type' => self::COLUMN_TIME, 'default' => null]
     ];
