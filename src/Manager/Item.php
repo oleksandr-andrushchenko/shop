@@ -157,21 +157,7 @@ class Item extends Manager implements GoLinkBuilderInterface
         $image = $item->getImage();
         $output[] = $image;
 
-        if ($count = $item->getImageCount()) {
-            $part = substr($image, 0, strlen($image) - 1);
-
-            for ($i = 1; $i < $count; $i++) {
-                $newImage = $part . $i;
-
-                if ($newImage == $image) {
-                    $newImage = $part . ++$count;
-                }
-
-                $output[] = $newImage;
-            }
-        }
-
-        foreach ($output as $k => $v) {
+        foreach ($this->app->managers->itemImages->getImages($item) as $k => $v) {
             $output[$k] = $this->app->images->get($v);
         }
 
@@ -598,29 +584,6 @@ class Item extends Manager implements GoLinkBuilderInterface
             }
 
             $output[$id][] = $this->populateRow($item);
-        }
-
-        return $output;
-    }
-
-    /**
-     * @param array|null $where
-     *
-     * @return array
-     */
-    public function getImageToId(array $where = null)
-    {
-        $output = [];
-
-        $pk = $this->entity->getPk();
-
-        foreach ($this->copy(true)
-//                     ->setStorage($this->storage)
-                     ->setColumns([$pk, 'image'])
-                     ->setWhere($where)
-                     ->setQueryParam('log', false)
-                     ->getArrays() as $item) {
-            $output[$item['image']] = $item[$pk];
         }
 
         return $output;
