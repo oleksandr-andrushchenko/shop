@@ -5,6 +5,8 @@ namespace SNOWGIRL_SHOP\Catalog;
 use SNOWGIRL_CORE\App;
 use SNOWGIRL_CORE\Entity;
 use SNOWGIRL_CORE\Service\Logger;
+use SNOWGIRL_SHOP\App\Console;
+use SNOWGIRL_SHOP\App\Web;
 use SNOWGIRL_SHOP\Entity\Brand;
 use SNOWGIRL_SHOP\Entity\Item\Attr as ItemAttr;
 use SNOWGIRL_CORE\Helper\Arrays;
@@ -506,10 +508,7 @@ class URI
             return self::$src[$key];
         }
 
-        $entities = [Brand::class, Vendor::class];
-//        $order = self::$app->config->catalog->order_by_max_matched(false);
-
-        self::$src[$key] = new SRC($this, $entities);
+        self::$src[$key] = new SRC($this, [Brand::class, Vendor::class]);
 
         return self::$src[$key];
     }
@@ -584,7 +583,7 @@ class URI
     }
 
     /**
-     * @return App
+     * @return Web|Console
      */
     public function getApp()
     {
