@@ -109,12 +109,9 @@ class Elastic extends DataProvider
         $path[] = 'buckets';
 
 
-//        echo json_encode($params);die;
-
         $output = $this->manager->getApp()->storage->elastic(null, $this->manager->getMasterServices())
             ->searchRaw($itemTable, $params, $path);
 
-//        var_dump($output);die;
 
         return array_map(function ($item) use ($pk) {
             return [

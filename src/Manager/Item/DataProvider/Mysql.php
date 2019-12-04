@@ -37,13 +37,10 @@ class Mysql extends DataProvider
 
         $columns[] = new Expr('COUNT(*) AS ' . $db->quote('cnt'));
 
-//        var_dump($uri->getSRC()->getDataProvider('mysql'));die;
         $where = $uri->getSRC()->getDataProvider('mysql')->getWhere();
 
         unset($where[URI::PRICE_FROM]);
         unset($where[URI::PRICE_TO]);
-
-//        var_dump($where);die;
 
         return $db->selectMany($this->manager->getEntity()->getTable(), new Query([
             'columns' => $columns,
@@ -89,8 +86,6 @@ class Mysql extends DataProvider
             ->addWhere(array_filter($uri->getSRC()->getDataProvider('mysql')->getWhere(), function ($k) use ($exclude) {
                 return !in_array($k, $exclude);
             }, ARRAY_FILTER_USE_KEY));
-
-//        var_dump($copy->getItems());die;
 
         return $copy->getItems();
     }

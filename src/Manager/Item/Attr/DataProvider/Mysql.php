@@ -105,17 +105,6 @@ class Mysql extends DataProvider
             }
         }
 
-//        var_dump($db->selectMany($tableFrom, $this->manager->getQuery()->merge([
-//            'columns' => $columns,
-//            'joins' => $joins,
-//            'where' => $where,
-//            'groups' => $groups,
-//            'orders' => $orders,
-//            'offset' => $this->manager->getQuery()->offset,
-//            'limit' => $this->manager->getQuery()->limit,
-//            'indexes' => $index
-//        ])));die;
-
         return $db->selectMany($tableFrom, $this->manager->getQuery()->merge([
             'columns' => $columns,
             'joins' => $joins,

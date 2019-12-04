@@ -19,8 +19,6 @@ class Elastic extends DataProvider
 
         $tmp = $this->manager->getPriceRanges();
 
-//        var_dump($tmp);die;
-
         foreach ($tmp as $k => $r) {
             $expr = [
                 'key' => 'r_' . $r[0] . '_' . $r[1],
@@ -52,20 +50,13 @@ class Elastic extends DataProvider
             ]
         ];
 
-
-//        var_dump($tmp,$body);die;
-
         $params = [
             'size' => 0,
             'body' => $body
         ];
 
-//        var_dump(json_encode($params));die;
-
         $raw = $this->manager->getApp()->storage->elastic(null, $this->manager->getMasterServices())
             ->searchRaw($this->manager->getEntity()->getTable(), $params, ['aggregations', 'filtered', 'price_ranges', 'buckets']);
-
-//        var_dump($raw);die;
 
         $output = [];
 
@@ -80,8 +71,6 @@ class Elastic extends DataProvider
                 $output[] = $tmp2;
             }
         }
-
-//        var_dump($output);die;
 
         return $output;
     }
@@ -112,8 +101,6 @@ class Elastic extends DataProvider
             }
         }
 
-//        var_dump($tmp);die;
-
         if (!$map) {
             return [];
         }
@@ -141,9 +128,6 @@ class Elastic extends DataProvider
         ];
 
         $body['aggs']['filtered'] = array_merge($body['aggs']['filtered'], $tmp);
-
-
-//        var_dump($tmp,$body);die;
 
         $params = [
             'size' => 0,
