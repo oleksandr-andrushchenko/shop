@@ -17,6 +17,7 @@ use SNOWGIRL_SHOP\Manager\Item\Attr as ItemAttr;
 use SNOWGIRL_SHOP\Manager\Item\Archive as ItemArchive;
 use SNOWGIRL_SHOP\Manager\Item\Redirect as ItemRedirect;
 use SNOWGIRL_SHOP\Manager\Import\History as ImportHistory;
+use SNOWGIRL_SHOP\Manager\Item\Image as ItemImage;
 
 /**
  * Class Builder
@@ -45,6 +46,7 @@ use SNOWGIRL_SHOP\Manager\Import\History as ImportHistory;
  * @property ItemArchive       archiveItems
  * @property ItemRedirect      itemRedirects
  * @property ImportHistory     importHistory
+ * @property ItemImage         itemImages
  * @method Manager|Term get($class)
  * @method Manager|Term getByEntityClass($class)
  * @method Manager|ItemAttr getByTable($table)
@@ -101,6 +103,8 @@ class Builder extends \SNOWGIRL_CORE\Manager\Builder
                 return $this->get(ItemArchive::class);
             case 'itemRedirects':
                 return $this->get(ItemRedirect::class);
+            case 'itemImages':
+                return $this->get(ItemImage::class);
             case 'importHistory':
                 return $this->get(ImportHistory::class);
             default:
