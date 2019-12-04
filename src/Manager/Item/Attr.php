@@ -115,7 +115,7 @@ abstract class Attr extends Manager
             }
 
             $this->app->services->logger->make(__METHOD__ . ': can\'t find uri: ' . var_export($entity, true));
-        } else {
+        } elseif (isset($vars[0])) {
             return $vars[0];
         }
 
@@ -220,13 +220,9 @@ abstract class Attr extends Manager
 
             $pk = $this->entity->getPk();
 
-//            var_dump($this->getDataProvider()->getFiltersCountsByUri($uri, $query, $prefix));die;
-
             foreach ($this->getDataProvider()->getFiltersCountsByUri($uri, $query, $prefix) as $i) {
                 $output[$i[$pk]] = (int)$i['cnt'];
             }
-
-//            var_dump($output);die;
 
             return $output;
         });
