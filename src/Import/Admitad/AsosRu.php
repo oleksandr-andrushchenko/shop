@@ -24,7 +24,7 @@ class AsosRu extends Admitad
         $this->paramsIndex = isset($this->indexes['param']);
     }
 
-    protected function retrieveMva($row, $image)
+    protected function importAllMvaByRow($row, $partnerItemId = null)
     {
         if ($this->paramsIndex) {
             $this->params = Arrays::mapByKeyValueMaker(explode('|', $row[$this->indexes['param']]), function ($k, $v) {
@@ -33,7 +33,7 @@ class AsosRu extends Admitad
             });
         }
 
-        parent::retrieveMva($row, $image);
+        parent::importAllMvaByRow($row, $partnerItemId);
     }
 
     protected function getSizesByRow($row)
