@@ -16,7 +16,7 @@ class LamodaRu extends Admitad
         ]
     ];
 
-    protected $defaultAllowModifyOnly = false;
+//    protected $defaultAllowModifyOnly = false;
 
     /**
      * @param $row
@@ -25,12 +25,23 @@ class LamodaRu extends Admitad
      */
     protected function getCategoryByRow($row)
     {
+        if (array_key_exists('_category_id', $row)) {
+            return $row['_category_id'];
+        }
+
+        # @todo checkout && test
+        $partnerItemId = $this->getPartnerItemIdByRow($row);
+
+        if (isset($this->dbPartnerItemIdCategory[$partnerItemId])) {
+            return $this->dbPartnerItemIdCategory[$partnerItemId];
+        }
+
         $pk = 'category_id';
         $map = $this->mappings[$pk];
         $value = trim($row[$this->indexes[$this->mappings[$pk]['column']]]);
 
         if (array_key_exists('modify', $map) && array_key_exists($value, $modifies = $map['modify']) && $modifies[$value]['value']) {
-            $this->tags = array_merge($this->tags, $modifies[$value]['tags']);
+            $this->rememberMva($this->getPartnerItemIdByRow($row), 'tag_id', $modifies[$value]['tags']);
             $this->sport = $this->sport || in_array('is_sport', $modifies[$value]);
             $this->sizePlus = $this->sizePlus || in_array('is_size_plus', $modifies[$value]);
             return (int)$modifies[$value]['value'];
