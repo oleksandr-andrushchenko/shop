@@ -43,7 +43,7 @@ class Admitad extends Import
 
     public function getFilename(): string
     {
-        if ($lastOkImport = $this->getLastOkImport()) {
+        if (false && $lastOkImport = $this->getLastOkImport()) {
             return $this->source->getFile() . '&last_import=' . $lastOkImport->getCreatedAt(true)->format('Y.m.d.H.i');
         }
 
