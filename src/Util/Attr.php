@@ -387,23 +387,15 @@ class Attr extends Util
         $mvaPkToTable = $this->app->managers->catalog->getMvaPkToTable();
         $mvaPkToTable['image_id'] = 'image';
 
-        foreach ($mvaPkToTable as $mvaPk => $mvaTable) {
-            /** @var ItemAttrManager $manager */
-            $manager = $this->app->managers->getByTable($table);
-            $table = $manager->getEntity()->getTable();
-            $pk = $manager->getEntity()->getPk();
-
-            $linkManager = $manager->getMvaLinkManager();
-            $linkTable = $linkManager->getEntity()->getTable();
+        foreach ($mvaPkToTable as $pk => $table) {
+            $linkTable = 'item_' . $table;
 
             foreach ($fromToToItemId as $fromItemId => $toItemId) {
-                $query = implode(' ', [
+                $aff += $db->req(implode(' ', [
                     'INSERT IGNORE INTO ' . $db->quote($linkTable) . ' (' . $db->quote('item_id') . ', ' . $db->quote($pk) . ')',
                     'SELECT ' . $toItemId . ', ' . $db->quote($pk) . ' FROM ' . $db->quote($linkTable),
                     'WHERE ' . $db->quote('item_id') . ' = ' . $fromItemId
-                ]);
-
-                $aff += $db->req($query)->affectedRows();
+                ]))->affectedRows();
             }
         }
 
