@@ -3,6 +3,7 @@
 namespace SNOWGIRL_SHOP\Manager\Item;
 
 use SNOWGIRL_CORE\Manager;
+//use SNOWGIRL_SHOP\Manager\Item\Attr;
 use SNOWGIRL_SHOP\Entity\Item;
 
 class Image extends Manager
