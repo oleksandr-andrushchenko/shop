@@ -9,12 +9,6 @@ use SNOWGIRL_CORE\Helper\WalkChunk;
 use SNOWGIRL_CORE\Service\Storage\Query\Expr;
 use SNOWGIRL_SHOP\App\Console as App;
 
-/**
- * @todo    ...........................
- * Class FixItemsDuplicatesAndGarbageAction
- *
- * @package SNOWGIRL_SHOP\Controller\Console
- */
 class FixItemsDuplicatesAndGarbageAction
 {
     use PrepareServicesTrait;
