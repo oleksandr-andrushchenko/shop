@@ -28,7 +28,9 @@ class FixItemsDuplicatesAndGarbageAction
         $aff += $this->processDuplicates($app);
         $aff += $this->processGarbage($app);
 
-        (new DeleteItemsNonExistingMvaAction)($app);
+        if ($aff) {
+            (new DeleteItemsNonExistingMvaAction)($app);
+        }
 
         $app->response->addToBody(implode("\r\n", [
             __CLASS__,

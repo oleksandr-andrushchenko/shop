@@ -24,7 +24,7 @@ use SNOWGIRL_SHOP\Manager\Term as TermManager;
  */
 class Attr extends Util
 {
-    public function doDeleteNonExistingItemsMva(FixWhere $fixWhere)
+    public function doDeleteNonExistingItemsMva(FixWhere $fixWhere = null)
     {
         $aff = 0;
 
@@ -49,7 +49,7 @@ class Attr extends Util
                 'WHERE ' . $db->quote($pk, 'a') . ' IS NULL'
             ]))->affectedRows();
 
-            $where = $fixWhere->get();
+            $where = $fixWhere ? $fixWhere->get() : [];
             $where[] = new Expr($db->quote($itemPk, $itemTable) . ' IS NULL');
 
             $query = new Query(['params' => []]);
