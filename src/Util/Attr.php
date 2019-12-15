@@ -376,4 +376,37 @@ class Attr extends Util
 
         return $aff;
     }
+
+    public function doTransferMvaValues(array $fromToToItemId): int
+    {
+
+        $aff = 0;
+
+        $db = $this->app->services->rdbms;
+
+        $mvaPkToTable = $this->app->managers->catalog->getMvaPkToTable();
+        $mvaPkToTable['image_id'] = 'image';
+
+        foreach ($mvaPkToTable as $mvaPk => $mvaTable) {
+            /** @var ItemAttrManager $manager */
+            $manager = $this->app->managers->getByTable($table);
+            $table = $manager->getEntity()->getTable();
+            $pk = $manager->getEntity()->getPk();
+
+            $linkManager = $manager->getMvaLinkManager();
+            $linkTable = $linkManager->getEntity()->getTable();
+
+            foreach ($fromToToItemId as $fromItemId => $toItemId) {
+                $query = implode(' ', [
+                    'INSERT IGNORE INTO ' . $db->quote($linkTable) . ' (' . $db->quote('item_id') . ', ' . $db->quote($pk) . ')',
+                    'SELECT ' . $toItemId . ', ' . $db->quote($pk) . ' FROM ' . $db->quote($linkTable),
+                    'WHERE ' . $db->quote('item_id') . ' = ' . $fromItemId
+                ]);
+
+                $aff += $db->req($query)->affectedRows();
+            }
+        }
+
+        return $aff;
+    }
 }
