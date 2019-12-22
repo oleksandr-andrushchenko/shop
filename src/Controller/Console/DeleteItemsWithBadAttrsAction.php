@@ -14,9 +14,11 @@ class DeleteItemsWithBadAttrsAction
         $this->prepareServices($app);
 
         $aff = $app->utils->items->doDeleteWithNonExistingCategories();
-        $app->response->setBody(is_int($aff) ? "DONE[non-existing-categories]={$aff}" : 'FAILED');
+        $app->response->addToBody(is_int($aff) ? "DONE[non-existing-categories]={$aff}" : 'FAILED');
+
+        $app->response->addToBody("\n");
 
         $aff = $app->utils->items->doDeleteWithNonExistingBrands();
-        $app->response->setBody(is_int($aff) ? "DONE[non-existing-brands]={$aff}" : 'FAILED');
+        $app->response->addToBody(is_int($aff) ? "DONE[non-existing-brands]={$aff}" : 'FAILED');
     }
 }

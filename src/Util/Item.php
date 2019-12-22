@@ -202,14 +202,14 @@ class Item extends Util
         return true;
     }
 
-    public function doDeleteWithNonExistingCategories(FixWhere $fixWhere)
+    public function doDeleteWithNonExistingCategories(FixWhere $fixWhere = null)
     {
         $db = $this->app->services->rdbms;
         $it = $this->app->managers->items->getEntity()->getTable();
         $ck = $this->app->managers->categories->getEntity()->getPk();
         $ct = $this->app->managers->categories->getEntity()->getTable();
 
-        $where = $fixWhere->get();
+        $where = $fixWhere ? $fixWhere->get() : [];
         $where[] = new Expr($db->quote($ck, $ct) . ' IS NULL');
 
         $query = new Query(['params' => []]);
@@ -223,14 +223,14 @@ class Item extends Util
         return $this->app->services->rdbms->req($query)->affectedRows();
     }
 
-    public function doDeleteWithNonExistingBrands(FixWhere $fixWhere)
+    public function doDeleteWithNonExistingBrands(FixWhere $fixWhere = null)
     {
         $db = $this->app->services->rdbms;
         $it = $this->app->managers->items->getEntity()->getTable();
         $bk = $this->app->managers->brands->getEntity()->getPk();
         $bt = $this->app->managers->brands->getEntity()->getTable();
 
-        $where = $fixWhere->get();
+        $where = $fixWhere ? $fixWhere->get() : [];
         $where[] = new Expr($db->quote($bk, $bt) . ' IS NULL');
 
         $query = new Query(['params' => []]);
