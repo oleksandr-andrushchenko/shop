@@ -9,7 +9,7 @@ use SNOWGIRL_CORE\Entity\Page;
 use SNOWGIRL_SHOP\Catalog\URI as CatalogURI;
 
 /**
- * @todo add sales param in case of discount..
+ * @todo    add sales param in case of discount..
  *
  * Available params:
  *
@@ -49,11 +49,24 @@ class SEO
         $item = $this->uri->getSRC()->getItem();
 
         $this->params = $item->getAttrs();
+
+        if ($categoryObject = $this->app->managers->items->getCategory($item)) {
+            $category = $categoryObject->getName();
+        } else {
+            $category = 'Item';
+        }
+
+        if ($brandObject = $this->app->managers->items->getBrand($item)) {
+            $brand = $brandObject->getName();
+        } else {
+            $brand = 'Awesome';
+        }
+
         $this->params = array_merge($this->params, [
             'site' => $this->app->getSite(),
             'phone' => $this->app->config->site->phone,
-            'category' => $this->app->managers->items->getCategory($item)->getName(),
-            'brand' => $brand = $this->app->managers->items->getBrand($item)->getName(),
+            'category' => $category,
+            'brand' => $brand,
 //            'color' => ($v = $this->app->managers->items->getColor($this->getItem())) ? $v->getName() : '',
             'partner_item_id' => $item->getPartnerItemId()
         ]);
@@ -100,8 +113,10 @@ class SEO
 
     /**
      * @see https://developers.facebook.com/docs/reference/opengraph/object-type/product.item/
+     *
      * @param Layout $view
-     * @param array $params
+     * @param array  $params
+     *
      * @return $this|SEO
      * @throws \SNOWGIRL_CORE\Exception
      */
