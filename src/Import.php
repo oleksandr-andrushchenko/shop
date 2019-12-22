@@ -384,7 +384,7 @@ class Import
             if (false === $fn($row, $i++)) {
                 break;
             }
-            
+
 //            if ($this->app->isDev() && (100 == $i)) {
 //                break;
 //            }
@@ -667,6 +667,7 @@ class Import
         foreach ($this->app->managers->items->clear()
                      ->setColumns([$pk, 'partner_item_id'])
                      ->setWhere(['import_source_id' => $this->source->getId(), 'partner_item_id' => $partnerItemId])
+                     ->setQueryParam('placeholders', false)
                      ->setQueryParam('log', $this->debug)
                      ->getItems() as $item) {
             $output[$item['partner_item_id']] = $item[$pk];
@@ -684,6 +685,7 @@ class Import
         foreach ($this->app->managers->items->clear()
                      ->setColumns([$pk, 'image'])
                      ->setWhere(['import_source_id' => $this->source->getId(), 'item_id' => $itemId])
+                     ->setQueryParam('placeholders', false)
                      ->setQueryParam('log', $this->debug)
                      ->getItems() as $item) {
             $output[$item[$pk]] = $item['image'];
