@@ -50,23 +50,11 @@ class SEO
 
         $this->params = $item->getAttrs();
 
-        if ($category = $this->app->managers->items->getCategory($item)) {
-            $categoryName = $category->getName();
-        } else {
-            $categoryName = 'Item';
-        }
-
-        if ($brand = $this->app->managers->items->getBrand($item)) {
-            $brandName = $brand->getName();
-        } else {
-            $brandName = 'Awesome';
-        }
-
         $this->params = array_merge($this->params, [
             'site' => $this->app->getSite(),
             'phone' => $this->app->config->site->phone,
-            'category' => $categoryName,
-            'brand' => $brandName,
+            'category' => $this->app->managers->items->getCategory($item)->getName(),
+            'brand' => $brandName = $this->app->managers->items->getBrand($item)->getName(),
 //            'color' => ($v = $this->app->managers->items->getColor($this->getItem())) ? $v->getName() : '',
             'partner_item_id' => $item->getPartnerItemId()
         ]);
@@ -79,7 +67,7 @@ class SEO
 
         $keywords = [];
         $keywords += explode(' ', $item->getName());
-        $keywords += explode(' ', $brand);
+        $keywords += explode(' ', $brandName);
 //        $keywords[] = ($v = $this->getItem()->getColor()) ? $v->getName() : '';
         $this->params['keywords'] = implode(',', $keywords);
 
@@ -144,22 +132,6 @@ class SEO
 
         $item = $this->uri->getSRC()->getItem();
 
-        if ($category = $this->app->managers->items->getCategory($item)) {
-            $categoryName = $category->getName();
-        } else {
-            $categoryName = 'Item';
-        }
-
-        if ($brand = $this->app->managers->items->getBrand($item)) {
-            $brandName = $brand->getName();
-
-            if ($brand->isNoIndex()) {
-                $this->app->seo->setNoIndexNoFollow($view);
-            }
-        } else {
-            $brandName = 'Awesome';
-        }
-
         $view->setTitle($title = Helper::getNiceSemanticText($this->makeAttrValue('meta_title', $params['meta_title'] ?? null, $params)))
             ->setH1(Helper::getNiceSemanticText($this->makeAttrValue('h1', $params['h1'] ?? $title, $params)))
             ->setHeadPrefix('og: http://ogp.me/ns# fb: http://ogp.me/ns/fb# product: http://ogp.me/ns/product#')
@@ -190,8 +162,8 @@ class SEO
             ->addMetaProperty('product:availability', (!$item->get('archive')) && $item->isInStock() ? 'in stock' : 'out of stock')
             ->addMetaProperty('product:condition', 'new')
             ->addMetaProperty('product:age_group', 'adult')
-            ->addMetaProperty('product:brand', $brandName)
-            ->addMetaProperty('product:category', $categoryName)
+            ->addMetaProperty('product:brand', $this->app->managers->items->getBrand($item)->getName())
+            ->addMetaProperty('product:category', $this->app->managers->items->getCategory($item)->getName())
 //            ->addMetaProperty('product:color', $this->app->managers->items->getCalors($item))
 //            ->addMetaProperty('product:material', $this->app->managers->items->getMaterials($item));
 //            ->addMetaProperty('product:size', $this->app->managers->items->getSizes($item))
@@ -208,10 +180,7 @@ class SEO
         $view->addBreadcrumb($this->app->trans->makeText('catalog.catalog'), (string)new CatalogURI);
 
         $item = $this->uri->getSRC()->getItem();
-
-        if (!$category = $this->app->managers->items->getCategory($item)) {
-            $category = array_values($this->app->managers->categories->getRootObjects())[0];
-        }
+        $category = $this->app->managers->items->getCategory($item);
 
         foreach ($this->app->managers->categories->getChainedParents($category, true) as $id => $parentCategory) {
             $view->addBreadcrumb(

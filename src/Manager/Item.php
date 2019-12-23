@@ -591,22 +591,44 @@ class Item extends Manager implements GoLinkBuilderInterface
 
     /**
      * @param ItemEntity $item
+     * @param bool       $default
      *
      * @return Entity|CategoryEntity
      */
-    public function getCategory(ItemEntity $item)
+    public function getCategory(ItemEntity $item, $default = true)
     {
-        return $this->getLinked($item, 'category_id');
+        $category = $this->getLinked($item, 'category_id');
+
+        if ($default && !$category) {
+            $category = new CategoryEntity([
+                'name' => 'Special items',
+                'uri' => 'special-items',
+            ]);
+        }
+
+        return $category;
     }
 
     /**
      * @param ItemEntity $item
+     * @param bool       $default
      *
      * @return Entity|BrandEntity
      */
-    public function getBrand(ItemEntity $item)
+    public function getBrand(ItemEntity $item, $default = true)
     {
-        return $this->getLinked($item, 'brand_id');
+        $brand = $this->getLinked($item, 'brand_id');
+
+        if ($default && !$brand) {
+            $brand = new BrandEntity([
+                'name' => 'Awesome',
+                'uri' => 'awesome',
+                'image' => '',
+                'rating' => 0,
+            ]);
+        }
+
+        return $brand;
     }
 
     /**
