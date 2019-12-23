@@ -193,10 +193,14 @@ class SRC
                     $attrObject = [];
 
                     foreach (explode(',', $attrs[$attrKey]) as $attrId2) {
-                        $attrObject[] = $attrIdToAttrObject[$attrId2];
+                        if (isset($attrIdToAttrObject[$attrId2])) {
+                            $attrObject[] = $attrIdToAttrObject[$attrId2];
+                        }
                     }
 
-                    $items[$itemId]->setLinked($attrKey, isset($itemColumns[$attrKey]) ? $attrObject[0] : $attrObject);
+                    if ($attrObject) {
+                        $items[$itemId]->setLinked($attrKey, isset($itemColumns[$attrKey]) ? $attrObject[0] : $attrObject);
+                    }
                 }
             }
         }
