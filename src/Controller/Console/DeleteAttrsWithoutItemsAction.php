@@ -31,6 +31,12 @@ class DeleteAttrsWithoutItemsAction
         $itemTable = $app->managers->items->getEntity()->getTable();
 
         foreach ($app->managers->catalog->getSvaPkToTable() as $pk => $table) {
+            if (in_array($table, [
+                $app->managers->categories->getEntity()->getTable()
+            ])) {
+                continue;
+            }
+
             $aff += $db->req(implode(' ', [
                 'DELETE ' . $db->quote('a'),
                 'FROM ' . $db->quote($table) . ' ' . $db->quote('a'),

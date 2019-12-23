@@ -3,6 +3,7 @@
 namespace SNOWGIRL_SHOP\Controller\Outer;
 
 use SNOWGIRL_CORE\Controller\Outer\PrepareServicesTrait;
+use SNOWGIRL_CORE\Exception\HTTP\NotFound;
 use SNOWGIRL_CORE\Helper;
 use SNOWGIRL_SHOP\App\Web as App;
 use SNOWGIRL_SHOP\Catalog\SRC;
@@ -31,7 +32,7 @@ class ItemAction
         ]);
 
         //cache all categories...
-        $app->managers->categories->findAll();
+        $categories = $app->managers->categories->findAll();
 
         $app->request->set('uri', null);
 
@@ -55,6 +56,10 @@ class ItemAction
         $app->analytics->logItemPageHit($uri);
 
         $item = $uri->getSRC()->getItem();
+
+        if ($item->get('archive') && !isset($categories[$item->getCategoryId()])) {
+            throw new NotFound();
+        }
 
         $app->managers->items->clear();
 
