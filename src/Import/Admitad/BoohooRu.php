@@ -25,37 +25,6 @@ class BoohooRu extends Admitad
 
     protected $langs = ['ru', 'en'];
 
-    protected $paramsIndex;
-    protected $params;
-
-    protected function before()
-    {
-        $this->paramsIndex = isset($this->indexes['param']);
-    }
-
-    protected function importAllMvaByRow($row, $partnerItemId = null)
-    {
-        if ($this->paramsIndex) {
-            $this->params = Arrays::mapByKeyValueMaker(explode('|', $row[$this->indexes['param']]), function ($k, $v) {
-                $tmp = explode(':', $v);
-                return [trim($tmp[0]), trim($tmp[1])];
-            });
-        }
-
-        parent::importAllMvaByRow($row, $partnerItemId);
-    }
-
-    protected function getSizesByRow($row)
-    {
-        if ($this->paramsIndex) {
-            if (isset($this->params['size'])) {
-                return array_map('trim', preg_split('/[,\/]/', $this->params['size'], -1, PREG_SPLIT_NO_EMPTY));
-            }
-        }
-
-        return parent::getSizesByRow($row);
-    }
-
     protected $colorEnToRu = [
         'coral' => 'кораловый',
         'lilac' => 'сиреневый',
@@ -83,14 +52,32 @@ class BoohooRu extends Admitad
         '' => '',
     ];
 
-    protected function getColorsByRow($row)
+    protected function before()
     {
-        if ($this->paramsIndex) {
-            if (isset($this->params['color'])) {
-                return array_map('trim', explode(',', $this->params['color']));
-            }
-        }
+        parent::before();
 
-        return parent::getColorsByRow($row);
+        if ($this->paramsIndex) {
+            $this->paramsCallbacks['size_id'] = function ($params) {
+                if (isset($params['size'])) {
+                    return array_map('trim', preg_split('/[,\/]/', $params['size'], -1, PREG_SPLIT_NO_EMPTY));
+                }
+            };
+
+            $this->paramsCallbacks['color_id'] = function ($params) {
+                if (isset($params['color'])) {
+                    $output = [];
+
+                    $tmp = array_map('trim', explode(',', $params['color']));
+
+                    foreach ($tmp as $v) {
+                        if (isset($this->colorEnToRu[$v])) {
+                            $output[] = $this->colorEnToRu[$v];
+                        }
+                    }
+
+                    return $output ?: null;
+                }
+            };
+        }
     }
 }

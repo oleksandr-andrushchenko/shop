@@ -50,6 +50,82 @@ class Admitad extends Import
         return parent::getFilename();
     }
 
+    protected $paramsIndex;
+    protected $paramsCallbacks;
+    protected $paramsValues;
+
+    protected function before()
+    {
+        $this->paramsIndex = isset($this->indexes['param']);
+
+        if ($this->paramsIndex) {
+            $this->paramsCallbacks = [];
+
+            $this->paramsCallbacks['size_id'] = function ($params) {
+                $output = [];
+
+                if (isset($params['Размер'])) {
+                    $output = array_merge($output, array_map('trim', explode(',', $params['Размер'])));
+                }
+
+                if (isset($params['Объем'])) {
+                    $output = array_merge($output, array_map('trim', explode(',', $params['Объем'])));
+                }
+
+                return $output ?: null;
+            };
+
+            $this->paramsCallbacks['color_id'] = function ($params) {
+                if (isset($params['Цвет'])) {
+                    return array_map('trim', explode(',', $params['Цвет']));
+                }
+            };
+
+            $this->paramsCallbacks['season_id'] = function ($params) {
+                if (isset($params['Сезонность'])) {
+                    return array_map('trim', explode(',', $params['Сезонность']));
+                }
+            };
+
+            $this->paramsCallbacks['country_id'] = function ($params) {
+                if (isset($params['Страна-изготовитель'])) {
+                    return array_map('trim', explode(',', $params['Страна-изготовитель']));
+                }
+            };
+
+            $this->paramsCallbacks['material_id'] = function ($params) {
+                if (isset($params['Материал'])) {
+                    return array_map('trim', explode(',', $params['Материал']));
+                }
+            };
+        }
+    }
+
+    protected function rememberAllMvaByRow($row, $partnerItemId = null)
+    {
+        if ($this->paramsIndex) {
+            $params = Arrays::mapByKeyValueMaker(explode('|', trim($row[$this->indexes['param']])), function ($k, $v) {
+                $tmp = explode(':', $v);
+                return [trim($tmp[0]), trim($tmp[1])];
+            });
+
+            $this->paramsValues = [];
+
+            foreach ($this->paramsCallbacks as $pk => $callback) {
+                $this->paramsValues[$pk] = $callback($params);
+            }
+        }
+
+        parent::rememberAllMvaByRow($row, $partnerItemId);
+    }
+
+    protected function getParamValue($pk)
+    {
+        if ($this->paramsIndex && isset($this->paramsValues[$pk])) {
+            return $this->paramsValues[$pk];
+        }
+    }
+
     /**
      * Returns mixed names
      *
@@ -59,10 +135,8 @@ class Admitad extends Import
      */
     protected function getColorsByRow($row)
     {
-        if (isset($this->indexes['param']) && $source = trim($row[$this->indexes['param']])) {
-            if (preg_match('#Цвет:([a-zA-ZА-Яа-яЁё\s,-]+)#ui', $source, $tmp)) {
-                return explode(',', $tmp[1]);
-            }
+        if ($pk = $this->getParamValue('color_id')) {
+            return $pk;
         }
 
         return parent::getColorsByRow($row);
@@ -77,10 +151,8 @@ class Admitad extends Import
      */
     protected function getSeasonsByRow($row)
     {
-        if (isset($this->indexes['param']) && $source = trim($row[$this->indexes['param']])) {
-            if (preg_match('#Сезонность:([a-zA-ZА-Яа-яЁё\s,-]+)#ui', $source, $tmp)) {
-                return explode(',', $tmp[1]);
-            }
+        if ($pk = $this->getParamValue('season_id')) {
+            return $pk;
         }
 
         return parent::getSeasonsByRow($row);
@@ -95,10 +167,8 @@ class Admitad extends Import
      */
     protected function getCountryByRow($row)
     {
-        if (isset($this->indexes['param']) && $source = trim($row[$this->indexes['param']])) {
-            if (preg_match('#Страна-изготовитель:([a-zA-ZА-Яа-яЁё\s,-]+)#ui', $source, $tmp)) {
-                return explode(',', $tmp[1])[0];
-            }
+        if ($pk = $this->getParamValue('country_id')) {
+            return $pk;
         }
 
         return parent::getCountryByRow($row);
@@ -113,22 +183,8 @@ class Admitad extends Import
      */
     protected function getSizesByRow($row)
     {
-        if (isset($this->indexes['param']) && $source = trim($row[$this->indexes['param']])) {
-            if (preg_match('#(Размер|Объем):([a-zA-ZА-Яа-яЁё\s,0-9]+)#ui', $source, $tmp)) {
-                return explode(',', $tmp[2]);
-            }
-
-            if (preg_match('#Unit=([a-zA-ZА-Яа-яЁё\s,0-9:]+)#', $source, $tmp)) {
-                $tmp = explode(',', $tmp[1]);
-
-                foreach ($tmp as $k => $v) {
-                    if ('NS:0' == $v) {
-                        $tmp[$k] = 'NS';
-                    }
-                }
-
-                return $tmp;
-            }
+        if ($pk = $this->getParamValue('size_id')) {
+            return $pk;
         }
 
         return parent::getSizesByRow($row);
@@ -143,16 +199,8 @@ class Admitad extends Import
      */
     protected function getMaterialsByRow($row)
     {
-        if (isset($this->indexes['param']) && $source = trim($row[$this->indexes['param']])) {
-            if (preg_match_all('#Материал([^:]+)?:([a-zA-ZА-Яа-яЁё\s,-]+)#ui', $source, $tmp)) {
-                $output = [];
-
-                foreach ($tmp[2] as $v) {
-                    $output = array_merge($output, explode(',', $v));
-                }
-
-                return $output;
-            }
+        if ($pk = $this->getParamValue('material_id')) {
+            return $pk;
         }
 
         return parent::getMaterialsByRow($row);
