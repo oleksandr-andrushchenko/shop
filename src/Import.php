@@ -1741,8 +1741,8 @@ class Import
      *          partner_link
      *          image
      *
-     * @param bool          $downloadImages
-     * @param \Closure      $onAdd
+     * @param bool $downloadImages
+     * @param \Closure $onAdd
      * @param \Closure|null $onEnd
      *
      * @return bool
@@ -1813,7 +1813,6 @@ class Import
 
                 $link = $this->getPartnerLinkHashByRow($row);
                 $row['_partner_link_hash'] = $link;
-
 
                 if (!($images = $this->getImagesByRow($row)) || !$images[0]) {
                     return true;
@@ -1887,17 +1886,22 @@ class Import
                     if ($duplicates = $this->getRowDuplicates($row)) {
                         $this->log('[' . $partnerItemId . '] duplicates: ' . var_export($duplicates, true));
 
-                        $mainPartnerItemId = null;
 
-                        foreach ($duplicates as $duplicatePartnerItemId) {
-                            if (in_array($duplicatePartnerItemId, $this->existingPartnerItemId)) {
-                                $mainPartnerItemId = $duplicatePartnerItemId;
-                                break;
-                            }
-                        }
-
-                        if (null === $mainPartnerItemId) {
+                        if (in_array($partnerItemId, $this->existingPartnerItemId)) {
                             $mainPartnerItemId = $partnerItemId;
+                        } else {
+                            $mainPartnerItemId = null;
+
+                            foreach ($duplicates as $duplicatePartnerItemId) {
+                                if (in_array($duplicatePartnerItemId, $this->existingPartnerItemId)) {
+                                    $mainPartnerItemId = $duplicatePartnerItemId;
+                                    break;
+                                }
+                            }
+
+                            if (null === $mainPartnerItemId) {
+                                $mainPartnerItemId = $partnerItemId;
+                            }
                         }
 
 //                        $this->log('partner item id: ' . $partnerItemId);
@@ -1905,7 +1909,7 @@ class Import
 //                        $this->log('main partner item id: ' . $mainPartnerItemId);
 
                         foreach ($duplicates as $duplicatePartnerItemId) {
-                            if ($mainPartnerItemId != $duplicatePartnerItemId) {
+                            if (($mainPartnerItemId != $duplicatePartnerItemId) && isset($this->fileRows[$duplicatePartnerItemId])) {
                                 $this->skippedAsDuplicate[] = $duplicatePartnerItemId;
 
                                 $this->rememberAllMvaByRow($this->fileRows[$duplicatePartnerItemId], $mainPartnerItemId);
