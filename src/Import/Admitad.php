@@ -5,6 +5,7 @@ namespace SNOWGIRL_SHOP\Import;
 use SNOWGIRL_SHOP\Import;
 use SNOWGIRL_SHOP\Entity\Item;
 use SNOWGIRL_SHOP\Entity\Import\History as ImportHistory;
+use SNOWGIRL_CORE\Helper\Arrays;
 
 /**
  * @todo param processing (as for asos)
