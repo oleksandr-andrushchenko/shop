@@ -49,7 +49,7 @@ class Builder extends \SNOWGIRL_CORE\View\Builder
     {
         if (null === $this->itemRatingStarCost) {
             $tmp = $this->app->analytics->getItemRatingStarCost();
-            $this->itemRatingStarCost = null === $tmp ? 1 : $tmp;
+            $this->itemRatingStarCost = (0 < $tmp) ? $tmp : 1;
         }
 
         return $this->itemRatingStarCost;
