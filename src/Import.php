@@ -1668,8 +1668,10 @@ class Import
         foreach ($rows as $row) {
             if ($duplicates = $this->getRowDuplicates($row)) {
                 foreach ($duplicates as $duplicatePartnerItemId) {
-                    foreach ($this->getImagesByRow($this->fileRows[$duplicatePartnerItemId]) as $image) {
-                        $images[] = $image;
+                    if (isset($this->fileRows[$duplicatePartnerItemId])) {
+                        foreach ($this->getImagesByRow($this->fileRows[$duplicatePartnerItemId]) as $image) {
+                            $images[] = $image;
+                        }
                     }
                 }
             } else {
