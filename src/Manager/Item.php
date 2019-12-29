@@ -29,7 +29,7 @@ use SNOWGIRL_CORE\Service\Storage\Query;
 /**
  * @todo    split into Item\SRC and Item\URI (add alias URIs then after...)
  * Class Item
- * @property App        app
+ * @property App app
  * @property ItemEntity $entity
  * @method Item clear()
  * @method ItemEntity find($id)
@@ -230,7 +230,7 @@ class Item extends Manager implements GoLinkBuilderInterface
 
     /**
      * @param ItemEntity $item
-     * @param array      $attrs
+     * @param array $attrs
      * @param bool|false $keysAsKeys
      *
      * @return array - [attrEntity => attrId[]]
@@ -317,7 +317,7 @@ class Item extends Manager implements GoLinkBuilderInterface
 
     /**
      * @param ItemEntity $item
-     * @param array      $attrs
+     * @param array $attrs
      *
      * @return Entity|Entity[]|array - [attrEntity => attrObject[]]
      */
@@ -383,7 +383,7 @@ class Item extends Manager implements GoLinkBuilderInterface
 
     /**
      * @param ItemEntity $item
-     * @param array      $attrs
+     * @param array $attrs
      *
      * @return array
      */
@@ -548,7 +548,7 @@ class Item extends Manager implements GoLinkBuilderInterface
 
     /**
      * @param array|null $where
-     * @param int        $countPerGroup
+     * @param int $countPerGroup
      *
      * @return array
      */
@@ -591,7 +591,7 @@ class Item extends Manager implements GoLinkBuilderInterface
 
     /**
      * @param ItemEntity $item
-     * @param bool       $default
+     * @param bool $default
      *
      * @return Entity|CategoryEntity
      */
@@ -611,7 +611,7 @@ class Item extends Manager implements GoLinkBuilderInterface
 
     /**
      * @param ItemEntity $item
-     * @param bool       $default
+     * @param bool $default
      *
      * @return Entity|BrandEntity
      */
@@ -643,12 +643,21 @@ class Item extends Manager implements GoLinkBuilderInterface
 
     /**
      * @param ItemEntity $item
+     * @param bool $default
      *
      * @return Entity|VendorEntity
      */
-    public function getVendor(ItemEntity $item)
+    public function getVendor(ItemEntity $item, $default = true)
     {
-        return $this->getLinked($item, 'vendor_id');
+        $vendor = $this->getLinked($item, 'vendor_id');
+
+        if ($default && !$vendor) {
+            $vendor = new VendorEntity([
+                'name' => 'Shop',
+            ]);
+        }
+
+        return $vendor;
     }
 
     public function getGoLink(Entity $entity, $source = null)
