@@ -57,12 +57,12 @@ class ItemAction
 
         $item = $uri->getSRC()->getItem();
 
-        if ($item->get('archive') && (
-                !$app->managers->items->getCategory($item)->getId() ||
-                !$app->managers->items->getBrand($item)->getId()
-            )) {
-            throw new NotFound();
-        }
+//        if ($item->get('archive') && (
+//                !$app->managers->items->getCategory($item)->getId() ||
+//                !$app->managers->items->getBrand($item)->getId()
+//            )) {
+//            throw new NotFound();
+//        }
 
         $app->managers->items->clear();
 
