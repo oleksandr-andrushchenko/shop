@@ -321,7 +321,7 @@ class URI
                 if ($v && $entity = $manager->getAliasManager()->find($v)) {
                     $tmp[$table] = $entity->get('uri');
                 } else {
-                    self::$app->services->logger->make($table . '[id=' . $v . '] is not exists', Logger::TYPE_ERROR);
+                    self::$app->services->logger->make($table . '[id=' . $v . '] is not exists', Logger::TYPE_WARN);
                 }
             } else {
                 $table = $manager->getEntity()->getTable();
@@ -329,7 +329,7 @@ class URI
                 if ($v && $entity = $manager->find($v)) {
                     $tmp[$table] = $entity->get('uri');
                 } else {
-                    self::$app->services->logger->make($table . '[id=' . $v . '] is not exists', Logger::TYPE_ERROR);
+                    self::$app->services->logger->make($table . '[id=' . $v . '] is not exists', Logger::TYPE_WARN);
                 }
             }
         }

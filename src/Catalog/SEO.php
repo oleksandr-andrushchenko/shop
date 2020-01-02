@@ -241,7 +241,7 @@ class SEO
                 return true;
             }
 
-            $this->app->services->logger->make('invalid brand', Logger::TYPE_ERROR);
+            $this->app->services->logger->make('invalid brand', Logger::TYPE_WARN);
             return false;
         }));
 
