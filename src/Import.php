@@ -1886,7 +1886,7 @@ class Import
 
                     # manage duplicates
                     if ($duplicates = $this->getRowDuplicates($row)) {
-                        $this->log('[' . $partnerItemId . '] duplicates: ' . var_export($duplicates, true));
+                        $this->log('[' . $partnerItemId . '] duplicates: ' . implode(', ', $duplicates));
 
 
                         if (in_array($partnerItemId, $this->existingPartnerItemId)) {
