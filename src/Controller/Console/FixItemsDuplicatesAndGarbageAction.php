@@ -79,6 +79,7 @@ class FixItemsDuplicatesAndGarbageAction
 
                         $insert = [];
                         $delete = [$pk => []];
+                        $mva = [];
 
                         foreach ($pkValues as $pkValue) {
                             $pkValue = (int)$pkValue;
@@ -143,6 +144,7 @@ class FixItemsDuplicatesAndGarbageAction
 
                         $insert = [];
                         $delete = [$pk => []];
+                        $mva = [];
 
                         foreach ($pkValues as $pkValue) {
                             $pkValue = (int)$pkValue;
