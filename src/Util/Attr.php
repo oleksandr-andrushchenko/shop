@@ -379,7 +379,6 @@ class Attr extends Util
 
     public function doTransferMvaValues(array $fromToToItemId): int
     {
-
         $aff = 0;
 
         $db = $this->app->services->rdbms;
@@ -391,11 +390,15 @@ class Attr extends Util
             $linkTable = 'item_' . $table;
 
             foreach ($fromToToItemId as $fromItemId => $toItemId) {
-                $aff += $db->req(implode(' ', [
+                $query = new Query();
+                $query->text = implode(' ', [
                     'INSERT IGNORE INTO ' . $db->quote($linkTable) . ' (' . $db->quote('item_id') . ', ' . $db->quote($pk) . ')',
                     'SELECT ' . $toItemId . ', ' . $db->quote($pk) . ' FROM ' . $db->quote($linkTable),
                     'WHERE ' . $db->quote('item_id') . ' = ' . $fromItemId
-                ]))->affectedRows();
+                ]);
+                $query->placeholders = false;
+
+                $aff += $db->req($query)->affectedRows();
             }
         }
 
