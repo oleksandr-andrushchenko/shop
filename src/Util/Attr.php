@@ -45,9 +45,11 @@ class Attr extends Util
             $affTmp1 = $db->req(implode(' ', [
                 'DELETE ' . $db->quote('ia'),
                 'FROM ' . $db->quote($linkTable) . ' ' . $db->quote('ia'),
-                'LEFT JOIN ' . $db->quote($table) . ' a USING (' . $db->quote($pk) . ')',
+                'LEFT JOIN ' . $db->quote($table) . ' ' . $db->quote('a') . ' USING (' . $db->quote($pk) . ')',
                 'WHERE ' . $db->quote($pk, 'a') . ' IS NULL'
             ]))->affectedRows();
+
+            $this->output($affTmp1 . ' deleted from ' . $linkTable . ' [not exists in ' . $table . ']');
 
             $where = $fixWhere ? $fixWhere->get() : [];
             $where[] = new Expr($db->quote($itemPk, $itemTable) . ' IS NULL');
@@ -62,9 +64,11 @@ class Attr extends Util
 
             $affTmp2 = $db->req($query)->affectedRows();
 
+            $this->output($affTmp2 . ' deleted from ' . $linkTable . ' [not exists in ' . $itemTable . ']');
+
             $affTmp = $affTmp1 + $affTmp2;
 
-            $this->output($affTmp . '[' . $affTmp1 . '+' . $affTmp2 . '] ' . $table . ' attrs deleted');
+            $this->output($affTmp . ' deleted in total from ' . $linkTable);
             $aff += $affTmp;
         }
 
