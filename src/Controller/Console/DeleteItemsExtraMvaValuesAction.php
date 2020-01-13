@@ -17,7 +17,7 @@ class DeleteItemsExtraMvaValuesAction
     use PrepareServicesTrait;
     use OutputTrait;
 
-    const MVA_VALUES_LIMIT = 2;
+    const MVA_VALUES_LIMIT = 3;
 
     /**
      * @todo sync with Import::walkImport()
@@ -55,7 +55,7 @@ class DeleteItemsExtraMvaValuesAction
             $table = $manager->getEntity()->getTable();
             $pk = $manager->getEntity()->getPk();
 
-            $affTmp += $db->deleteFromEachGroup('item_' . $table, $itemPk, self::MVA_VALUES_LIMIT, null, $pk, true);
+            $affTmp = $db->deleteFromEachGroup('item_' . $table, $itemPk, self::MVA_VALUES_LIMIT, null, $pk, true);
 
             $this->output($affTmp . ' deleted from item_' . $table . ' [more then ' . self::MVA_VALUES_LIMIT . ' values]', $app);
             $aff += $affTmp;
