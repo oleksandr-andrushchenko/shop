@@ -60,4 +60,19 @@ class Child extends Manager
 
         return self::$createdAndFilled = true;
     }
+
+    public function getGroupedArrays(): array
+    {
+        $output = [];
+
+        foreach ($this->getArrays() as $row) {
+            if (!isset($output[$row['category_id']])) {
+                $output[$row['category_id']] = [];
+            }
+
+            $output[$row['category_id']][] = $row['child_category_id'];
+        }
+
+        return $output;
+    }
 }
