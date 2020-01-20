@@ -1341,13 +1341,18 @@ class Import
         return trim($row[$this->indexes[$this->mappings['partner_link']['column']]]);
     }
 
+    protected function normalizePartnerLink($link)
+    {
+        return $link;
+    }
+
     protected function getPartnerLinkHashByRow($row)
     {
         if (array_key_exists('_partner_link_hash', $row)) {
             return $row['_partner_link_hash'];
         }
 
-        return md5($this->getPartnerLinkByRow($row));
+        return md5($this->normalizePartnerLink($this->getPartnerLinkByRow($row)));
     }
 
     protected function getEntityByRow($row)
@@ -1774,6 +1779,8 @@ class Import
             $this->linkGroups = [];
             $this->imageGroups = [];
 
+            $linkCategories = [];
+
             # db
             $this->dbRows = [];
 
@@ -1791,12 +1798,20 @@ class Import
 
                 # garbage:image
                 $this->addToGroup($category, $image, $partnerItemId, $this->imageGroups);
+
+                if (!isset($linkCategories[$link])) {
+                    $linkCategories[$link] = [];
+                }
+
+                $linkCategories[$link][] = $category;
             }
+
+            $categoryChildren = $this->app->managers->categoriesToChildren->getGroupedArrays();
 
             # file
             $this->fileRows = [];
 
-            $this->walkFilteredFile(function ($row, $i) {
+            $this->walkFilteredFile(function ($row, $i) use ($linkCategories, $categoryChildren) {
                 if (!$partnerItemId = $this->getPartnerItemIdByRow($row)) {
                     return true;
                 }
@@ -1807,20 +1822,39 @@ class Import
                     return true;
                 }
 
-                $row['_category_id'] = $category;
-
-                if (!$row['_partner_link'] = $this->getPartnerLinkByRow($row)) {
+                if (!$rawLink = $this->getPartnerLinkByRow($row)) {
                     return true;
                 }
 
-                $link = $this->getPartnerLinkHashByRow($row);
+                $row['_partner_link'] = $rawLink;
+
+                if (!$link = $this->getPartnerLinkHashByRow($row)) {
+                    return true;
+                }
+
                 $row['_partner_link_hash'] = $link;
 
-                if (!($images = $this->getImagesByRow($row)) || !$images[0]) {
+                if (!$images = $this->getImagesByRow($row)) {
+                    return true;
+                }
+
+                if (!!$images[0]) {
                     return true;
                 }
 
                 $row['_images'] = $images;
+
+                # todo change category if duplicate already exists in different one
+
+                if (isset($linkCategories[$link]) && isset($categoryChildren[$category])) {
+                    foreach ($linkCategories[$link] as $linkCategory) {
+                        if (in_array($linkCategory, $categoryChildren[$category])) {
+                            $category = $linkCategory;
+                        }
+                    }
+                }
+
+                $row['_category_id'] = $category;
 
                 # todo improve logic (separate table)
                 # todo what if already saved image is not first?
