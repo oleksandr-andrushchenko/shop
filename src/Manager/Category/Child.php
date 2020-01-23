@@ -61,7 +61,7 @@ class Child extends Manager
         return self::$createdAndFilled = true;
     }
 
-    public function getGroupedArrays(): array
+    public function getGroupedArrays(bool $doNotIncludeSelf = false): array
     {
         $output = [];
 
@@ -70,7 +70,13 @@ class Child extends Manager
                 $output[$row['category_id']] = [];
             }
 
-            $output[$row['category_id']][] = $row['child_category_id'];
+            if ($doNotIncludeSelf) {
+                if ($row['category_id'] != $row['child_category_id']) {
+                    $output[$row['category_id']][] = $row['child_category_id'];
+                }
+            } else {
+                $output[$row['category_id']][] = $row['child_category_id'];
+            }
         }
 
         return $output;
