@@ -1806,7 +1806,7 @@ class Import
                 $linkCategories[$link][] = $category;
             }
 
-            $categoryChildren = $this->app->managers->categoriesToChildren->getGroupedArrays();
+            $categoryChildren = $this->app->managers->categoriesToChildren->getGroupedArrays(true);
 
             # file
             $this->fileRows = [];
@@ -1838,7 +1838,7 @@ class Import
                     return true;
                 }
 
-                if (!!$images[0]) {
+                if (!$images[0]) {
                     return true;
                 }
 
