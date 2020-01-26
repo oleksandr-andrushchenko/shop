@@ -23,7 +23,7 @@ class DropImportSourceCacheAction
             throw (new NotFound)->setNonExisting('source');
         }
 
-        $aff = $app->managers->sources->getImport($source)->dropCache();
+        $aff = $app->managers->sources->getImport($source)->dropCache(true);
 
         $app->response->setBody('AFF: ' . var_export($aff, true));
     }
