@@ -26,6 +26,7 @@ use SNOWGIRL_SHOP\Entity\Country;
 use SNOWGIRL_SHOP\Item\FixWhere;
 use SNOWGIRL_CORE\Service\Storage\Query\Expr;
 use DateTime;
+use Throwable;
 
 /**
  * Class Import (for ImportSource::TYPE_PARTNER)
@@ -38,6 +39,7 @@ use DateTime;
 class Import
 {
     protected const LIMIT = 500;
+    protected const FILE_CACHE_MINUTES = 10;
 
     /**
      * @var Web|Console
@@ -134,21 +136,29 @@ class Import
         return $this;
     }
 
-    protected function getCsvFilename($tmp = null): string
+    protected function getCsvFilename($dynamicPart = null): string
     {
+        $now = new DateTime('now');
+        $today = new DateTime('today');
+        $diff = $now->diff($today);
+
         return implode('/', [
             $this->app->dirs['@tmp'],
             implode('_', [
                 'import_source',
                 $this->source->getId(),
-                ($tmp ?: md5($this->getFilename())) . '.csv'
+                ($dynamicPart ?: implode('-', [
+                    md5($this->getFilename()),
+                    $today->format('Y_m_d'),
+                    floor(($diff->h * 60 + $diff->i) / self::FILE_CACHE_MINUTES)
+                ])) . '.csv'
             ])
         ]);
     }
 
     protected $cacheDropped;
 
-    public function dropCache(): ?bool
+    public function dropCache($history = false): ?bool
     {
         if (!$this->cacheDropped) {
             $this->log('dropping cache...');
@@ -160,12 +170,16 @@ class Import
 
             try {
                 FileSystem::deleteFilesByPattern($this->getCsvFilename('*'));
-                $this->app->managers->importHistory->deleteMany(['import_source_id' => $this->source->getId()]);
+
+                if ($history) {
+                    $this->app->managers->importHistory->deleteMany(['import_source_id' => $this->source->getId()]);
+                }
+
                 $this->history = null;
                 $this->initMeta();
 
                 $this->cacheDropped = true;
-            } catch (\Throwable $exception) {
+            } catch (Throwable $exception) {
                 return false;
             }
         }
@@ -769,7 +783,7 @@ class Import
 
                             $data['nameToId'][$nameOrIdLower] = $id;
                             $data['uriToId'][$uri] = $id;
-                        } catch (\Throwable $ex) {
+                        } catch (Throwable $ex) {
                             $this->app->services->logger->makeException($ex);
                             $this->log('can\'t insert entity: ' . var_export($entity, true));
                         }
@@ -1054,7 +1068,7 @@ class Import
             $aff = $insert ? $manager->insertMany($insert, ['ignore' => true, 'log' => $this->debug]) : 0;
 
             $this->log('AFF ' . $table . ': ' . $aff);
-        } catch (\Throwable $ex) {
+        } catch (Throwable $ex) {
             $this->log('Error on image[' . $table . '] insert: ' . $ex->getMessage());
             $this->app->services->logger->makeException($ex);
         }
@@ -1129,7 +1143,7 @@ class Import
 
                                         break;
                                     }
-                                } catch (\Throwable $ex) {
+                                } catch (Throwable $ex) {
                                     $this->app->services->logger->makeException($ex);
 
                                     if (Exception::_check($ex, 'Duplicate entry')) {
@@ -1164,7 +1178,7 @@ class Import
                 $aff = $insert ? $manager->getMvaLinkManager()->insertMany($insert, ['ignore' => true, 'log' => $this->debug]) : 0;
 
                 $this->log('AFF ' . $manager->getMvaLinkManager()->getEntity()->getTable() . ': ' . $aff);
-            } catch (\Throwable $ex) {
+            } catch (Throwable $ex) {
                 $this->log('Error on mva[' . $manager->getMvaLinkManager()->getEntity()->getTable() . '] insert: ' . $ex->getMessage());
                 $this->app->services->logger->makeException($ex);
             }
@@ -1492,7 +1506,7 @@ class Import
                 } else {
                     $app->services->logger->make('Vendor "' . $app->managers->sources->getVendor($importSource)->getName() . '" is disabled');
                 }
-            } catch (\Throwable $ex) {
+            } catch (Throwable $ex) {
                 $app->services->logger->makeException($ex);
                 $app->services->logger->make('Import (import source id = ' . $importSource->getId() . ') failed!');
             }
@@ -1504,12 +1518,13 @@ class Import
     protected function getHash(): string
     {
         return md5(implode('', [
-            (new Script($this->getDownloadedCsvFileName()))->getUniqueHash(),
-            md5(implode('', [
+//            (new Script($this->getDownloadedCsvFileName()))->getUniqueHash(),
+            $this->getDownloadedCsvFileName(),
+            implode('', [
                 $this->getFilename(),
                 $this->source->getFileFilter(),
                 $this->source->getFileMapping()
-            ]))
+            ]),
         ]));
     }
 
@@ -2019,7 +2034,7 @@ class Import
             $onEnd && $onEnd();
 
             return true;
-        } catch (\Throwable $ex) {
+        } catch (Throwable $ex) {
             $this->app->services->logger->makeException($ex);
             $this->error = $ex->getTraceAsString();
             return false;
@@ -2204,15 +2219,17 @@ class Import
         $this->createPid();
 
         try {
+            $this->dropCache();
+
             $hash = $this->getHash();
 
-            $history = $this->getLastOkImport();
+//            $history = $this->getLastOkImport();
 
-            if ($history && $history->getHash() == $hash) {
-                # @todo restore
+//            if ($history && $history->getHash() == $hash) {
+            # @todo restore
 //                $this->log('SKIPPED by hash');
 //                return null;
-            }
+//            }
 
             $this->createHistory($hash);
 
@@ -2279,7 +2296,7 @@ class Import
             }
 
             $this->deleteOldFiles();
-        } catch (\Throwable $ex) {
+        } catch (Throwable $ex) {
             $this->app->services->logger->makeException($ex);
         }
 
