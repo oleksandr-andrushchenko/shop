@@ -73,13 +73,25 @@ class Admitad extends Import
                     $output = array_merge($output, array_map('trim', explode(',', $params['Объем'])));
                 }
 
+                if (isset($params['size'])) {
+                    $output = array_merge($output, array_map('trim', explode(',', $params['size'])));
+                }
+
                 return $output ?: null;
             };
 
             $this->paramsCallbacks['color_id'] = function ($params) {
+                $output = [];
+
                 if (isset($params['Цвет'])) {
-                    return array_map('trim', explode(',', $params['Цвет']));
+                    return array_merge($output, array_map('trim', explode(',', $params['Цвет'])));
                 }
+
+                if (isset($params['color'])) {
+                    return array_merge($output, array_map('trim', explode(',', $params['color'])));
+                }
+
+                return $output ?: null;
             };
 
             $this->paramsCallbacks['season_id'] = function ($params) {
