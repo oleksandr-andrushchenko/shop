@@ -65,16 +65,8 @@ class Admitad extends Import
             $this->paramsCallbacks['size_id'] = function ($params) {
                 $output = [];
 
-                if (isset($params['Размер'])) {
-                    $output = array_merge($output, array_map('trim', explode(',', $params['Размер'])));
-                }
-
-                if (isset($params['Объем'])) {
-                    $output = array_merge($output, array_map('trim', explode(',', $params['Объем'])));
-                }
-
-                if (isset($params['size'])) {
-                    $output = array_merge($output, array_map('trim', explode(',', $params['size'])));
+                foreach (['Размер', 'Объем', 'size', 'Size'] as $k) {
+                    $output = array_merge($output, array_map('trim', explode(',', $params[$k])));
                 }
 
                 return $output ?: null;
@@ -83,12 +75,8 @@ class Admitad extends Import
             $this->paramsCallbacks['color_id'] = function ($params) {
                 $output = [];
 
-                if (isset($params['Цвет'])) {
-                    return array_merge($output, array_map('trim', explode(',', $params['Цвет'])));
-                }
-
-                if (isset($params['color'])) {
-                    return array_merge($output, array_map('trim', explode(',', $params['color'])));
+                foreach (['Цвет', 'color', 'Color'] as $k) {
+                    $output = array_merge($output, array_map('trim', explode(',', $params[$k])));
                 }
 
                 return $output ?: null;
