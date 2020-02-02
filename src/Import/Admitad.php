@@ -109,10 +109,20 @@ class Admitad extends Import
     protected function rememberAllMvaByRow($row, $partnerItemId = null)
     {
         if ($this->paramsIndex) {
-            $params = Arrays::mapByKeyValueMaker(explode('|', trim($row[$this->indexes['param']])), function ($k, $v) {
+            $params = [];
+
+            foreach (explode('|', trim($row[$this->indexes['param']])) as $tmp) {
                 $tmp = explode(':', $v);
-                return [trim($tmp[0]), trim($tmp[1])];
-            });
+
+                if (isset($tmp[0]) && isset($tmp[1])) {
+                    $params[trim($tmp[0])] = trim($tmp[1]);
+                }
+            }
+
+//            $params = Arrays::mapByKeyValueMaker(explode('|', trim($row[$this->indexes['param']])), function ($k, $v) {
+//                $tmp = explode(':', $v);
+//                return [trim($tmp[0]), trim($tmp[1])];
+//            });
 
             $this->paramsValues = [];
 
