@@ -400,12 +400,6 @@ class Category extends Attr
      */
     public function makeTreeHtml(URI $uri = null)
     {
-        if (null === $uri) {
-            $this->menuItems = $this->findMany(array_keys($this->getRawParents()));
-//            $this->menuItems = $this->getAllItems();
-            return $this->makeAdminTreeHtml();
-        }
-
         //@todo find out what's going on here
 //        $this->makeItemsCounts(new URI);
 
@@ -518,46 +512,6 @@ class Category extends Attr
 
         if (2 == count($tmp)) {
             return '';
-        }
-
-        return implode('', $tmp);
-    }
-
-    /**
-     * @param array|null $ids
-     *
-     * @return null|string
-     */
-    protected function makeAdminTreeHtml(array $ids = null)
-    {
-        if ($isRoot = (null === $ids)) {
-            $ids = $this->getRootId();
-        }
-
-        if (!$ids) {
-            return '';
-        }
-
-        $tmp = [];
-
-        if ($isRoot) {
-            $tmp[] = '<div class="dd" id="category-tree">';
-        }
-
-        $tmp[] = '<ol class="dd-list">';
-
-        foreach ($ids as $id) {
-            $tmp[] = '<li class="dd-item dd3-item" data-id="' . $id . '">';
-            $tmp[] = '<div class="dd-handle dd3-handle" title="Переместить"></div>';
-            $tmp[] = '<div class="dd3-content">' . $id . ' &mdash; ' . $this->menuItems[$id]->getBreadcrumb() . ': ' . $this->menuItems[$id]->getName() . '</div>';
-            $tmp[] = $this->makeAdminTreeHtml($this->getDirectChildrenId($id));
-            $tmp[] = '</li>';
-        }
-
-        $tmp[] = '</ol>';
-
-        if ($isRoot) {
-            $tmp[] = '</div>';
         }
 
         return implode('', $tmp);
