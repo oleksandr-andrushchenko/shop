@@ -23,7 +23,7 @@ class RefreshImportSourceAction
 
         $source = $app->managers->sources->find($id);
 
-        $app->managers->sources->getImport($source)->dropCache(true);
+        $app->managers->sources->getImport($source)->dropCache();
 
         $app->request->redirectBack();
     }
