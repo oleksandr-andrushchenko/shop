@@ -112,7 +112,7 @@ class Admitad extends Import
             $params = [];
 
             foreach (explode('|', trim($row[$this->indexes['param']])) as $tmp) {
-                $tmp = explode(':', $v);
+                $tmp = explode(':', $tmp);
 
                 if (isset($tmp[0]) && isset($tmp[1])) {
                     $params[trim($tmp[0])] = trim($tmp[1]);
