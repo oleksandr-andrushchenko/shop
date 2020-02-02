@@ -66,7 +66,9 @@ class Admitad extends Import
                 $output = [];
 
                 foreach (['Размер', 'Объем', 'size', 'Size'] as $k) {
-                    $output = array_merge($output, array_map('trim', explode(',', $params[$k])));
+                    if (isset($params[$k])) {
+                        $output = array_merge($output, array_map('trim', explode(',', $params[$k])));
+                    }
                 }
 
                 return $output ?: null;
@@ -76,7 +78,9 @@ class Admitad extends Import
                 $output = [];
 
                 foreach (['Цвет', 'color', 'Color'] as $k) {
-                    $output = array_merge($output, array_map('trim', explode(',', $params[$k])));
+                    if (isset($params[$k])) {
+                        $output = array_merge($output, array_map('trim', explode(',', $params[$k])));
+                    }
                 }
 
                 return $output ?: null;
