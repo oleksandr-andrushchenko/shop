@@ -106,4 +106,21 @@ class Alias extends Manager
 
         return $output;
     }
+
+    public function getGroupedByCategoryObjects(): array
+    {
+        $output = [];
+
+        foreach ($this->getObjects() as $alias) {
+            $categoryId = $alias->get('category_id');
+
+            if (!isset($output[$categoryId])) {
+                $output[$categoryId] = [];
+            }
+
+            $output[$categoryId][] = $alias;
+        }
+
+        return $output;
+    }
 }
