@@ -8,9 +8,9 @@ use SNOWGIRL_SHOP\Import\Admitad;
 class AsosRu extends Admitad
 {
     protected $filters = [
-        'param' => [
-            'equal' => ['Female']
-        ],
+//        'param' => [
+//            'equal' => ['Female']
+//        ],
 //        'currencyId' => [
 //            'equal' => ['RUB']
 //        ]
