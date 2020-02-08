@@ -206,12 +206,8 @@ $this->getLayout()
                                     </span>
                                 <?php } ?>
                             <?php } else { ?>
-                                <span class="import-status label label-default">Нет данных</span>
+                                <span class="import-status label label-default" title="Нет записей">Нет данных</span>
                             <?php } ?>
-
-                            <span class="import-status label label-<?php echo $isOkLastImport ? 'success' : 'danger' ?>">
-                                <?php echo $isOkLastImport ? 'Недавно' : 'Давно' ?>
-                            </span>
 
                             <label><select name="class_name" class="form-control" required>
                                     <option value="">&mdash; Класс</option>

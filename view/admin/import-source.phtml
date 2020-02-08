@@ -8,11 +8,15 @@ use SNOWGIRL_CORE\Script\Css;
 use SNOWGIRL_CORE\Script\Js;
 use SNOWGIRL_CORE\View\Widget\Form\Input\Value;
 use SNOWGIRL_SHOP\Entity\Import\Source as ImportSource;
+use SNOWGIRL_SHOP\Entity\Import\History as ImportSourceHistory;
 
 /** @var View $this */
 /** @var ImportSource $source */
 /** @var Vendor $vendor */
+/** @var Vendor $vendor */
+/** @var ImportSourceHistory $lastImport */
 $source = $this->source;
+$lastImport = $this->lastImport;
 
 $filter = $source->getFileFilter(true);
 $mapping = $source->getFileMapping(true);
@@ -38,9 +42,61 @@ $this->getLayout()
 
 <div>
     Импорт:
-    <span class="import-status label label-<?php echo $this->isOkLastImport ? 'success' : 'danger' ?>">
-        <?php echo $this->isOkLastImport ? 'Недавно' : 'Давно' ?>
-    </span>
+    <?php if ($lastImport) { ?>
+        <?php if ($when = $lastImport->getWhen()) { ?>
+            <?php $recent = explode(':', $when)[0] < 1 ?>
+
+            <span class="import-status label label-<?php echo $recent ? 'success' : 'danger' ?>"
+                  title="Время начала последнего импорта">
+                                        <?php echo $when ?>
+                                    </span>
+        <?php } else { ?>
+            <span class="import-status label label-danger"
+                  title="Время начала последнего импорта">Нет данных</span>
+        <?php } ?>
+
+        <?php if ($duration = $lastImport->getDuration()) { ?>
+            <?php $long = explode(':', $when)[0] < 3 ?>
+
+            <span class="import-status label label-<?php echo $long ? 'success' : 'danger' ?>"
+                  title="Длительность последнего импорта">
+                                        <?php echo $duration ?>
+                                    </span>
+        <?php } else { ?>
+            <span class="import-status label label-danger"
+                  title="Длительность последнего импорта">Нет данных</span>
+        <?php } ?>
+
+        <?php if ($lastImport->getError()) { ?>
+            <span class="import-status label label-danger">С ошибками</span>
+        <?php } else { ?>
+            <span class="import-status label label-success">Без ошибок</span>
+            <span class="import-status label label-info"
+                  title="<?php echo implode('/', [
+                      'total',
+                      'filtered-filter',
+                      'filtered-modifier',
+                      'skipped-unique',
+                      'skipped-updated',
+                      'skipped-other',
+                      'passed',
+                      'affected',
+                  ]) ?>">
+                                        <?php echo implode('/', [
+                                            $lastImport->getCountTotal(),
+                                            $lastImport->getCountFilteredFilter(),
+                                            $lastImport->getCountFilteredModifier(),
+                                            $lastImport->getCountSkippedUnique(),
+                                            $lastImport->getCountSkippedUpdated(),
+                                            $lastImport->getCountSkippedOther(),
+                                            $lastImport->getCountPassed(),
+                                            $lastImport->getCountAffected(),
+                                        ]) ?>
+                                    </span>
+        <?php } ?>
+    <?php } else { ?>
+        <span class="import-status label label-default" title="Нет записей">Нет данных</span>
+    <?php } ?>
 </div>
 
 <div class="row">

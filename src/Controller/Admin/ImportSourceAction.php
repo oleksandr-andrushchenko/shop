@@ -35,7 +35,7 @@ class ImportSourceAction
 
         $content->addParams([
             'source' => $source,
-            'isOkLastImport' => $app->managers->importHistory->isOkLastImport($source),
+            'lastImport' => $app->managers->importHistory->getLast($source),
             'name' => $app->request->get('name', $source->getName()),
             'file' => $app->request->get('file', $source->getFile()),
             'uri' => $app->request->get('uri', $source->getUri()),
