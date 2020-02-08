@@ -4,6 +4,7 @@ namespace SNOWGIRL_SHOP\Entity\Import;
 
 use SNOWGIRL_CORE\Exception;
 use SNOWGIRL_CORE\Entity;
+use SNOWGIRL_CORE\DateTime;
 
 class History extends Entity
 {
@@ -175,5 +176,35 @@ class History extends Entity
     public function getUpdatedAt($datetime = false)
     {
         return $datetime ? self::timeToDatetime($this->getRawAttr('updated_at')) : $this->getRawAttr('updated_at');
+    }
+
+    public function getWhen(): ?string
+    {
+        if (!$createdAt = $this->getCreatedAt(true)) {
+            return null;
+        }
+
+        if (!$diff = (new DateTime)->diff($createdAt)) {
+            return null;
+        }
+
+        return $diff->format('%a:%H:%I:%S');
+    }
+
+    public function getDuration(): ?string
+    {
+        if (!$createdAt = $this->getCreatedAt(true)) {
+            return null;
+        }
+
+        if (!$updatedAt = $this->getUpdatedAt(true)) {
+            return null;
+        }
+
+        if (!$diff = $updatedAt->diff($createdAt)) {
+            return null;
+        }
+
+        return $diff->format('%a:%H:%I:%S');
     }
 }
