@@ -1,13 +1,17 @@
 <?php
+
 use SNOWGIRL_CORE\View;
 use SNOWGIRL_CORE\Script\Css;
 use SNOWGIRL_CORE\Script\Js;
 use SNOWGIRL_SHOP\Entity\Vendor;
 use SNOWGIRL_SHOP\Entity\Import\Source as ImportSource;
+use SNOWGIRL_SHOP\Entity\Import\History as ImportSourceHistory;
 
 /** @var View $this */
 /** @var Vendor $vendor */
 /** @var ImportSource $importSource */
+/** @var ImportSourceHistory $lastImport */
+
 $this->getLayout()
     ->setTitle($title = 'Офферы')
     ->addBreadcrumb($title)
@@ -29,8 +33,9 @@ $this->getLayout()
                             <input type="hidden" name="id" value="<?php echo $vendor->getId() ?>">
                             <input type="hidden" name="is_active" value="0">
 
-                            <a href="<?php echo $this->app->managers->vendors->getLink($vendor) ?>" target="_blank"><span
-                                    class="fa fa-share"></span></a>
+                            <a href="<?php echo $this->app->managers->vendors->getLink($vendor) ?>"
+                               target="_blank"><span
+                                        class="fa fa-share"></span></a>
 
                             <label><input name="is_active" value="1"
                                           type="checkbox" <?php echo $vendor->isActive() ? 'checked' : '' ?>>
@@ -40,7 +45,7 @@ $this->getLayout()
                                     <option value="">&mdash; Класс</option>
                                     <?php foreach ($this->vendorClasses as $value => $label) { ?>
                                         <option
-                                            value="<?php echo $value ?>" <?php echo $vendor->getClassName() == $value ? 'selected' : '' ?>>
+                                                value="<?php echo $value ?>" <?php echo $vendor->getClassName() == $value ? 'selected' : '' ?>>
                                             <?php echo $label ?>
                                         </option>
                                     <?php } ?>
@@ -80,7 +85,8 @@ $this->getLayout()
                 <label for="vendor-partner-link" class="col-md-2 control-label">Партнерская ссылка</label>
 
                 <div class="col-md-10">
-                    <input type="text" name="partner_link" id="vendor-partner-link" placeholder="Партнерская ссылка на основной каталог"
+                    <input type="text" name="partner_link" id="vendor-partner-link"
+                           placeholder="Партнерская ссылка на основной каталог"
                            class="form-control">
                 </div>
             </div>
@@ -130,7 +136,7 @@ $this->getLayout()
         <?php if (0 < count($this->importSources)) { ?>
             <ul>
                 <?php foreach ($this->importSources as $importSource) {
-                    $isOkLastImport = $this->app->managers->importHistory->isOkLastImport($importSource);
+                    $lastImport = $this->app->managers->importHistory->getLast($importSource);
                     ?>
                     <li>
                         <form action="<?php echo href('admin', ['action' => 'row', 'table' => $importSource->getTable()]) ?>"
@@ -140,12 +146,68 @@ $this->getLayout()
 
                             <?php if ($importSource->getUri()) { ?>
                                 <a href="<?php echo $importSource->getUri() ?>" target="_blank"><span
-                                        class="fa fa-share"></span></a>
+                                            class="fa fa-share"></span></a>
                             <?php } ?>
 
                             <label><input name="is_cron" value="1"
                                           type="checkbox" <?php echo $importSource->isCron() ? 'checked' : '' ?>>
                             </label>
+
+                            <?php if ($lastImport) { ?>
+                                <?php if ($when = $lastImport->getWhen()) { ?>
+                                    <?php $recent = explode(':', $when)[0] < 1 ?>
+
+                                    <span class="import-status label label-<?php echo $recent ? 'success' : 'danger' ?>"
+                                          title="Время начала последнего импорта">
+                                        <?php echo $when ?>
+                                    </span>
+                                <?php } else { ?>
+                                    <span class="import-status label label-danger"
+                                          title="Время начала последнего импорта">Нет данных</span>
+                                <?php } ?>
+
+                                <?php if ($duration = $lastImport->getDuration()) { ?>
+                                    <?php $long = explode(':', $when)[0] < 3 ?>
+
+                                    <span class="import-status label label-<?php echo $long ? 'success' : 'danger' ?>"
+                                          title="Длительность последнего импорта">
+                                        <?php echo $duration ?>
+                                    </span>
+                                <?php } else { ?>
+                                    <span class="import-status label label-danger"
+                                          title="Длительность последнего импорта">Нет данных</span>
+                                <?php } ?>
+
+                                <?php if ($lastImport->getError()) { ?>
+                                    <span class="import-status label label-danger">С ошибками</span>
+                                <?php } else { ?>
+                                    <span class="import-status label label-success">Без ошибок</span>
+                                    <span class="import-status label label-info"
+                                          title="<?php echo implode('/', [
+                                              'total',
+                                              'filtered-filter',
+                                              'filtered-modifier',
+                                              'skipped-unique',
+                                              'skipped-updated',
+                                              'skipped-other',
+                                              'passed',
+                                              'affected',
+                                          ]) ?>">
+                                        <?php echo implode('/', [
+                                            $lastImport->getCountTotal(),
+                                            $lastImport->getCountFilteredFilter(),
+                                            $lastImport->getCountFilteredModifier(),
+                                            $lastImport->getCountSkippedUnique(),
+                                            $lastImport->getCountSkippedUpdated(),
+                                            $lastImport->getCountSkippedOther(),
+                                            $lastImport->getCountPassed(),
+                                            $lastImport->getCountAffected(),
+                                        ]) ?>
+                                    </span>
+                                <?php } ?>
+                            <?php } else { ?>
+                                <span class="import-status label label-default">Нет данных</span>
+                            <?php } ?>
 
                             <span class="import-status label label-<?php echo $isOkLastImport ? 'success' : 'danger' ?>">
                                 <?php echo $isOkLastImport ? 'Недавно' : 'Давно' ?>
@@ -155,7 +217,7 @@ $this->getLayout()
                                     <option value="">&mdash; Класс</option>
                                     <?php foreach ($this->importClasses as $value => $label) { ?>
                                         <option
-                                            value="<?php echo $value ?>" <?php echo $importSource->getClassName() == $value ? 'selected' : '' ?>>
+                                                value="<?php echo $value ?>" <?php echo $importSource->getClassName() == $value ? 'selected' : '' ?>>
                                             <?php echo $label ?>
                                         </option>
                                     <?php } ?>
@@ -189,7 +251,7 @@ $this->getLayout()
                 <div class="col-md-10">
                     <input type="text" name="name" id="import-source-name" placeholder="Уникальное имя"
                            class="form-control" required>
-                        <span
+                    <span
                             class="help-block">Например: "lamoda.admitad - Одежда" или "lamoda.admitad - Аксессуары"</span>
                 </div>
             </div>
