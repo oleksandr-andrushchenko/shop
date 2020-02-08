@@ -25,21 +25,36 @@ class History extends Manager
         $tmp = $this->copy(true)
             ->setWhere([
                 'import_source_id' => $importSource->getId(),
-                'error' => null
             ])
             ->setOrders([$this->getEntity()->getPk() => SORT_DESC])
             ->setLimit(1)
             ->getObject();
 
         if ($tmp) {
+            if ($tmp->getError()) {
+                return false;
+            }
+
             return (time() - strtotime($tmp->getCreatedAt())) / (24 * 60 * 60) < 1;
         }
 
         return null;
     }
 
+    public function getLast(ImportSource $importSource): ?ImportHistoryEntity
+    {
+        return $this->copy(true)
+            ->setWhere([
+                'import_source_id' => $importSource->getId(),
+            ])
+            ->setOrders([$this->getEntity()->getPk() => SORT_DESC])
+            ->setLimit(1)
+            ->getObject();
+    }
+
     /**
      * @todo fix
+     *
      * @param ImportSource[] $importSources
      *
      * @return array
