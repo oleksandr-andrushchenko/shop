@@ -115,7 +115,14 @@ class Admitad extends Import
                 $tmp = explode(':', $tmp);
 
                 if (isset($tmp[0]) && isset($tmp[1])) {
-                    $params[trim($tmp[0])] = trim($tmp[1]);
+                    $k = trim($tmp[0]);
+                    $v = trim($tmp[1]);
+
+                    if (isset($params[$k])) {
+                        $params[$k] .= ',' . $v;
+                    } else {
+                        $params[$k] = $v;
+                    }
                 }
             }
 
