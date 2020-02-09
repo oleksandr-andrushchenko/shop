@@ -1257,7 +1257,21 @@ class Import
             return $row['_name'];
         }
 
-        return trim($row[$this->indexes[$this->mappings['name']['column']]]);
+        return $this->clearText($row[$this->indexes[$this->mappings['name']['column']]]);
+    }
+
+    protected function getDescriptionByRow($row)
+    {
+        if (isset($this->mappings['description']) && isset($this->indexes[$this->mappings['description']['column']])) {
+            $value = $this->clearText($row[$this->indexes[$this->mappings['description']['column']]]);
+
+            if ($value) {
+                return $value;
+            }
+        }
+
+
+        return null;
     }
 
     protected function getImagesByRow($row)
@@ -1371,9 +1385,10 @@ class Import
 
     protected function getEntityByRow($row)
     {
-        if (isset($this->mappings['entity'])) {
+        if (isset($this->mappings['entity']) && isset($this->indexes[$this->mappings['entity']['column']])) {
+            $value = $this->clearText($row[$this->indexes[$this->mappings['entity']['column']]]);
+
             $map = $this->mappings['entity'];
-            $value = trim($row[$this->indexes[$this->mappings['entity']['column']]]);
 
             if (array_key_exists('modify', $map) && array_key_exists($value, $modifies = $map['modify']) && strlen($modifies[$value]['value'])) {
                 $value = $modifies[$value]['value'];
@@ -1724,6 +1739,7 @@ class Import
             ]], $query->params),
             $db->makeWhereSQL(['import_source_id' => $this->source->getId(), 'image_id' => $images], $query->params)
         ]);
+        $query->log = $this->debug;
 
         foreach ($db->req($query)->reqToArrays() as $row) {
             $output[] = $row['image_id'];
@@ -1935,7 +1951,7 @@ class Import
 
                     # manage duplicates
                     if ($duplicates = $this->getRowDuplicates($row)) {
-                        $this->log('[' . $partnerItemId . '] duplicates: ' . implode(', ', $duplicates));
+//                        $this->log('[' . $partnerItemId . '] duplicates: ' . implode(', ', $duplicates));
 
 
                         if (in_array($partnerItemId, $this->existingPartnerItemId)) {
@@ -2096,23 +2112,10 @@ class Import
             $values['old_price'] = $this->getOldPriceByRow($row);
             $values['is_in_stock'] = $this->getIsInStockByRow($row);
             $values['entity'] = $this->getEntityByRow($row);
+            $values['description'] = $this->getDescriptionByRow($row);
             $values['is_sport'] = $this->sport ? 1 : 0;
             $values['is_size_plus'] = $this->sizePlus ? 1 : 0;
             $values['partner_updated_at'] = $this->getPartnerUpdatedAtByRow($row);
-
-            foreach (array_diff($this->itemColumns, array_keys($values)) as $dbColumn) {
-                if (isset($this->mappings[$dbColumn])) {
-                    $map = $this->mappings[$dbColumn];
-
-                    $value = trim($row[$this->indexes[$map['column']]]);
-
-                    if (array_key_exists('modify', $map) && array_key_exists($value, $modifies = $map['modify']) && null !== $modifies[$value]['value']) {
-                        $value = $modifies[$value]['value'];
-                    }
-
-                    $values[$dbColumn] = $value;
-                }
-            }
 
             foreach ($this->requiredColumns as $dbColumn) {
                 if (isset($values[$dbColumn]) && !mb_strlen($values[$dbColumn])) {
@@ -2322,6 +2325,16 @@ class Import
     public function getItemTargetLink(Item $item)
     {
         return null;
+    }
+
+    protected function clearText($text)
+    {
+        $text = htmlspecialchars_decode($text);
+        $text = html_entity_decode($text);
+        $text = strip_tags($text);
+        $text = trim($text);
+
+        return $text;
     }
 
     protected function log(string $msg, string $type = Logger::TYPE_DEBUG)
