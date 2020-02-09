@@ -1386,9 +1386,8 @@ class Import
     protected function getEntityByRow($row)
     {
         if (isset($this->mappings['entity']) && isset($this->indexes[$this->mappings['entity']['column']])) {
-            $value = $this->clearText($row[$this->indexes[$this->mappings['entity']['column']]]);
-
             $map = $this->mappings['entity'];
+            $value = $this->clearText($row[$this->indexes[$map['column']]]);
 
             if (array_key_exists('modify', $map) && array_key_exists($value, $modifies = $map['modify']) && strlen($modifies[$value]['value'])) {
                 $value = $modifies[$value]['value'];
@@ -1397,7 +1396,7 @@ class Import
             return $value;
         }
 
-        return '';
+        return null;
     }
 
     protected function getPartnerUpdatedAtByRow($row)
