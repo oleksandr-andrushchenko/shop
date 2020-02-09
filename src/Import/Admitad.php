@@ -77,7 +77,7 @@ class Admitad extends Import
             $this->paramsCallbacks['color_id'] = function ($params) {
                 $output = [];
 
-                foreach (['Цвет', 'color', 'Color'] as $k) {
+                foreach (['Цвет', 'color', 'Color', 'ЦВЕТ', 'ОСНОВНОЙ ЦВЕТ'] as $k) {
                     if (isset($params[$k])) {
                         $output = array_merge($output, array_map('trim', explode(',', $params[$k])));
                     }
@@ -99,10 +99,17 @@ class Admitad extends Import
             };
 
             $this->paramsCallbacks['material_id'] = function ($params) {
-                if (isset($params['Материал'])) {
-                    return array_map('trim', explode(',', $params['Материал']));
+                $output = [];
+
+                foreach (['Материал', 'СОСТАВ'] as $k) {
+                    if (isset($params[$k])) {
+                        $output = array_merge($output, array_map('trim', explode(',', $params[$k])));
+                    }
                 }
+
+                return $output ?: null;
             };
+
         }
     }
 
