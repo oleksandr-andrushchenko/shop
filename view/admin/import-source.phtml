@@ -48,8 +48,8 @@ $this->getLayout()
 
             <span class="import-status label label-<?php echo $recent ? 'success' : 'danger' ?>"
                   title="Время начала последнего импорта">
-                                        <?php echo $when ?>
-                                    </span>
+                <?php echo $lastImport->getCreatedAt(true)->format('H:i:s') ?>
+            </span>
         <?php } else { ?>
             <span class="import-status label label-danger"
                   title="Время начала последнего импорта">Нет данных</span>
@@ -60,8 +60,8 @@ $this->getLayout()
 
             <span class="import-status label label-<?php echo $long ? 'success' : 'danger' ?>"
                   title="Длительность последнего импорта">
-                                        <?php echo $duration ?>
-                                    </span>
+                <?php echo $duration ?>
+            </span>
         <?php } else { ?>
             <span class="import-status label label-danger"
                   title="Длительность последнего импорта">Нет данных</span>
@@ -82,17 +82,17 @@ $this->getLayout()
                       'passed',
                       'affected',
                   ]) ?>">
-                                        <?php echo implode('/', [
-                                            $lastImport->getCountTotal(),
-                                            $lastImport->getCountFilteredFilter(),
-                                            $lastImport->getCountFilteredModifier(),
-                                            $lastImport->getCountSkippedUnique(),
-                                            $lastImport->getCountSkippedUpdated(),
-                                            $lastImport->getCountSkippedOther(),
-                                            $lastImport->getCountPassed(),
-                                            $lastImport->getCountAffected(),
-                                        ]) ?>
-                                    </span>
+                <?php echo implode('/', [
+                    $lastImport->getCountTotal(),
+                    $lastImport->getCountFilteredFilter(),
+                    $lastImport->getCountFilteredModifier(),
+                    $lastImport->getCountSkippedUnique(),
+                    $lastImport->getCountSkippedUpdated(),
+                    $lastImport->getCountSkippedOther(),
+                    $lastImport->getCountPassed(),
+                    $lastImport->getCountAffected(),
+                ]) ?>
+            </span>
         <?php } ?>
     <?php } else { ?>
         <span class="import-status label label-default" title="Нет записей">Нет данных</span>
@@ -492,7 +492,8 @@ $this->getLayout()
                                             <input type="text" class="form-control raw-tags" placeholder="tags">
                                         <?php } ?>
                                         <a class="btn btn-default btn-delete-map-item-modify"
-                                           title="Удалить модификатор"><span class="glyphicon glyphicon-minus"></span></a>
+                                           title="Удалить модификатор"><span
+                                                    class="glyphicon glyphicon-minus"></span></a>
                                     </div>
                                 <?php } ?>
                             <?php } ?>

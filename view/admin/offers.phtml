@@ -21,7 +21,7 @@ $this->getLayout()
 ?>
 
 <div class="row">
-    <div class="col-md-6 vendors vs">
+    <div class="col-md-4 vendors vs">
         <h2>Поставщики (vendors)</h2>
 
         <?php if (0 < count($this->vendors)) { ?>
@@ -130,7 +130,7 @@ $this->getLayout()
         </form>
     </div>
 
-    <div class="col-md-6 import-sources vs">
+    <div class="col-md-8 import-sources vs">
         <h2>Источники (import sources)</h2>
 
         <?php if (0 < count($this->importSources)) { ?>
@@ -159,7 +159,7 @@ $this->getLayout()
 
                                     <span class="import-status label label-<?php echo $recent ? 'success' : 'danger' ?>"
                                           title="Время начала последнего импорта">
-                                        <?php echo $when ?>
+                                        <?php echo $lastImport->getCreatedAt(true)->format('H:i:s') ?>
                                     </span>
                                 <?php } else { ?>
                                     <span class="import-status label label-danger"
