@@ -290,7 +290,7 @@ CREATE TABLE `item` (
   `image` char(32) NOT NULL,
   `price` decimal(8,2) DEFAULT NULL,
   `old_price` decimal(8,2) DEFAULT NULL,
-  `entity` tinytext NOT NULL,
+  `entity` tinytext DEFAULT NULL,
   `description` text DEFAULT NULL,
   `rating` smallint(5) unsigned NOT NULL DEFAULT 0,
   `category_id` smallint(5) unsigned DEFAULT NULL,
