@@ -2,7 +2,7 @@
 
 namespace SNOWGIRL_SHOP\Manager\Page\Catalog\DataProvider;
 
-class Elastic extends \SNOWGIRL_CORE\Manager\DataProvider\Elastic
+class Indexer extends \SNOWGIRL_CORE\Manager\DataProvider\Indexer
 {
     protected function getListByQuerySort(): array
     {

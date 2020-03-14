@@ -4,7 +4,7 @@ namespace SNOWGIRL_SHOP\Controller\Outer;
 
 use SNOWGIRL_CORE\Controller\Outer\PrepareServicesTrait;
 use SNOWGIRL_CORE\Helper;
-use SNOWGIRL_SHOP\App\Web as App;
+use SNOWGIRL_SHOP\Http\HttpApp as App;
 use SNOWGIRL_SHOP\Catalog\URI;
 use SNOWGIRL_SHOP\Manager\Item\Attr as ItemAttrManager;
 

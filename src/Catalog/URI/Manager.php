@@ -2,13 +2,14 @@
 
 namespace SNOWGIRL_SHOP\Catalog\URI;
 
+use SNOWGIRL_CORE\AbstractApp as App;
 use SNOWGIRL_CORE\Entity;
-use SNOWGIRL_CORE\Service\Storage\Query\Expr;
+use SNOWGIRL_CORE\Http\HttpRequest;
+use SNOWGIRL_CORE\Query\Expression;
 use SNOWGIRL_CORE\Request;
-use SNOWGIRL_CORE\Service\Logger;
-use SNOWGIRL_CORE\Service\Rdbms as DB;
-use SNOWGIRL_CORE\Service\Storage\Query;
-use SNOWGIRL_CORE\App;
+use SNOWGIRL_CORE\Service\Db as DB;
+use SNOWGIRL_CORE\Query;
+use SNOWGIRL_CORE\AbstractApp;
 use SNOWGIRL_SHOP\Catalog\URI;
 use SNOWGIRL_SHOP\Manager\Builder as Managers;
 use SNOWGIRL_SHOP\Entity\Page\Catalog as PageCatalog;
@@ -27,18 +28,11 @@ class Manager
     public function __construct(App $app)
     {
         $this->managers = $app->managers;
-        $this->db = $app->managers->catalog->getStorage();
-        $this->logger = $app->services->logger;
+        $this->db = $app->managers->catalog->getDb();
+        $this->logger = $app->container->logger;
     }
 
-    /**
-     * @param Request $request
-     * @param bool    $domain
-     *
-     * @return bool|URI
-     * @throws \Exception
-     */
-    public function createFromRequest(Request $request, $domain = false)
+    public function createFromRequest(HttpRequest $request, $domain = false)
     {
         $params = $this->parseRequestPath($request, $page);
 
@@ -61,7 +55,7 @@ class Manager
 
     protected function getComponentsTableToPk()
     {
-        $components = $this->managers->catalog->getComponentsOrderByRdbmsKey();
+        $components = $this->managers->catalog->getComponentsOrderByDbKey();
 
         return Arrays::mapByKeyValueMaker($components, function ($k, $entity) {
             false && $k;
@@ -75,13 +69,13 @@ class Manager
      *
      * @todo optimize loop... then remove URI's cache prefetch
      *
-     * @param Request          $request
+     * @param Request $request
      * @param PageCatalog|null $page
      *
      * @return array|bool
      * @throws \Exception
      */
-    protected function parseRequestPath(Request $request, PageCatalog &$page = null)
+    protected function parseRequestPath(HttpRequest $request, PageCatalog &$page = null)
     {
         $output = [];
 
@@ -135,7 +129,7 @@ class Manager
             //@todo log 404 separately...
 //            $this->checkRedirectIndex($page, $request);
 
-//            throw new NotFound;
+//            throw new NotFoundHttpException;
             return false;
         }
 
@@ -146,8 +140,8 @@ class Manager
      * @todo cache & optimize...
      * @todo add name_hash columns for index build???!?
      *
-     * @param array      $uri - attrs uri array
-     * @param null       $unknown
+     * @param array $uri - attrs uri array
+     * @param null $unknown
      * @param bool|false $activeOnly
      *
      * @return array
@@ -178,7 +172,7 @@ class Manager
 //                $where['is_404'] = 0;
 
                 return implode(' ', [
-                    $this->db->makeSelectSQL(new Expr(implode(', ', [
+                    $this->db->makeSelectSQL(new Expression(implode(', ', [
                         '\'' . $table . '\' AS ' . $this->db->quote('table'),
                         $this->db->quote('uri'),
                         $this->db->quote($componentsTableToPk[$table]) . ' AS ' . $this->db->quote('id')
@@ -188,7 +182,7 @@ class Manager
                 ]);
             }, $table)) . ') AS ' . $this->db->quote('t') . ' GROUP BY ' . $this->db->quote('uri');
 
-        $req = $this->db->req($req)->reqToArrays();
+        $req = $this->db->reqToArrays($req);
 
         $known = [];
 
@@ -196,11 +190,11 @@ class Manager
             $tables = explode(',', $item['table']);
 
             if (1 < count($tables)) {
-                $this->logger->make(implode(' ', [
+                $this->logger->error(implode(' ', [
                     'Cross-table "' . $item['uri'] . '" uri',
                     'duplicates found in',
                     '"' . implode('", "', $tables) . '"'
-                ]), Logger::TYPE_ERROR);
+                ]));
             }
 
             $output[$componentsTableToPk[$tables[0]]] = $item['id'];
@@ -245,7 +239,7 @@ class Manager
     {
         /** @var PageCatalog $page */
         $page = $this->managers->catalog
-            ->setWhere(new Expr(implode(' ', [
+            ->setWhere(new Expression(implode(' ', [
                 $this->db->quote('uri_history') . ' IS NOT NULL',
                 'AND',
                 'FIND_IN_SET(?, ' . $this->db->quote('uri_history') . ')'
@@ -265,7 +259,7 @@ class Manager
     }
 
     /**
-     * @param array   $rawUri
+     * @param array $rawUri
      * @param Request $request
      *
      * @return bool
@@ -288,7 +282,7 @@ class Manager
      * @todo ...
      * @todo fix... (check live logs...)
      *
-     * @param array   $rawUri
+     * @param array $rawUri
      * @param Request $request
      *
      * @return bool
@@ -336,7 +330,7 @@ class Manager
     }
 
     /**
-     * @param array   $params
+     * @param array $params
      * @param Request $request
      *
      * @return bool
@@ -355,8 +349,8 @@ class Manager
     protected $checkRedirectWithPartialsParamsCache;
 
     /**
-     * @param array   $unknownUriArray
-     * @param array   $params
+     * @param array $unknownUriArray
+     * @param array $params
      * @param         $sayIfCanOnly
      * @param Request $request
      *
@@ -426,7 +420,7 @@ class Manager
     }
 
     /**
-     * @param array   $rawUri
+     * @param array $rawUri
      * @param Request $request
      *
      * @return bool
@@ -446,7 +440,7 @@ class Manager
     /**
      * @todo remove...
      *
-     * @param URI    $uri
+     * @param URI $uri
      * @param string $domain
      *
      * @return mixed|string
@@ -487,13 +481,13 @@ class Manager
 
         $redirect = new Redirect($tmp);
 
-        return $this->managers->redirects->insertOne($redirect, true);
+        return $this->managers->redirects->insertOne($redirect, ['ignore' => true]);
     }
 
     /**
      * Hard-weight operation...
      *
-     * @param URI      $uri
+     * @param URI $uri
      * @param \Closure $itemMapper
      *
      * @return URI[]
@@ -551,7 +545,7 @@ class Manager
         return $output;
     }
 
-    protected function checkRedirectIndex($path, Request $request)
+    protected function checkRedirectIndex($path, HttpRequest $request)
     {
         false && $path;
         $request->redirectToRoute('default', [], 301);

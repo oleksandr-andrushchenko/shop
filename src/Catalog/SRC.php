@@ -2,9 +2,10 @@
 
 namespace SNOWGIRL_SHOP\Catalog;
 
+use SNOWGIRL_CORE\AbstractApp as App;
 use SNOWGIRL_SHOP\Catalog\SRC\DataProvider;
 
-use SNOWGIRL_CORE\App;
+use SNOWGIRL_CORE\AbstractApp;
 use SNOWGIRL_CORE\Helper\Arrays;
 use SNOWGIRL_CORE\Entity;
 use SNOWGIRL_CORE\Manager;
@@ -14,36 +15,49 @@ use SNOWGIRL_CORE\Entity\Page;
 
 use SNOWGIRL_SHOP\Entity\Page\Catalog as PageCatalog;
 use SNOWGIRL_SHOP\Entity\Page\Catalog\Custom as PageCatalogCustom;
+use stdClass;
 
 class SRC
 {
-    protected $uri;
-    /** @var array */
-    protected $entities;
-    protected $masterServices;
+    private $uri;
+    /**
+     * @var Entity[]
+     */
+    private $entities;
+
+    private $dataProvider;
+
+    private $items;
+    private $totalCount;
+    private $offset;
+    private $limit;
+    private static $showValues;
+    private static $orderValues;
+    private $page;
+    private $catalogPage;
+    private $catalogCustomPage;
 
     /**
      * @todo    !!! create separate Strategies (classes implemented from common interface) instead of raw mods
      *
-     * @param URI   $uri
+     * @param URI $uri
      * @param array $entities - attrs entities to collect (used in templates, e.g. - entity.item.catalog.phtml )
      */
     public function __construct(URI $uri, array $entities = [])
     {
         $this->uri = $uri;
         $this->entities = Manager::mapEntitiesAddPksAsKeys($entities);
-        $this->masterServices = $this->getURI()->getApp()->managers->items->getMasterServices();
     }
-
-    protected $dataProvider;
 
     public function getDataProvider(string $forceProvider = null): DataProvider
     {
-        $provider = $this->getURI()->getApp()->config->{'data.provider'}->src('mysql');
+        $provider = $this->getURI()->getApp()->config('data.provider.src', 'db');
 
         if ((null === $forceProvider) || ($forceProvider == $provider)) {
             if (null == $this->dataProvider) {
                 $class = __CLASS__ . '\\DataProvider\\' . ucfirst($provider);
+
+//                var_dump($class);die;
 
                 $this->dataProvider = new $class($this);
             }
@@ -56,27 +70,27 @@ class SRC
         return new $class($this);
     }
 
-    public function getURI()
+    public function getURI(): URI
     {
         return $this->uri;
     }
 
     public function getMasterServices()
     {
-        return $this->masterServices;
+        return $this->uri->getApp()->managers->items->getMasterServices();
     }
 
-    public function getEntities()
+    public function getEntities(): array
     {
         return $this->entities;
     }
 
-    protected function getItemsRawCacheKey()
+    private function getItemsRawCacheKey(): string
     {
         return md5(serialize([$this->getURI()->getParams(), array_keys($this->entities)]));
     }
 
-    protected function getItemsIdToAttrsCacheKey()
+    private function getItemsIdToAttrsCacheKey(): string
     {
         return implode('-', [
             $this->getURI()->getApp()->managers->items->getEntity()->getTable(),
@@ -85,7 +99,7 @@ class SRC
         ]);
     }
 
-    protected function getItemsCountCacheKey()
+    private function getItemsCountCacheKey(): string
     {
         return implode('-', [
             $this->getURI()->getApp()->managers->items->getEntity()->getTable(),
@@ -94,46 +108,45 @@ class SRC
         ]);
     }
 
-    public function getItemsIdToAttrs()
+    public function getItemsIdToAttrs(): array
     {
-        $key = $this->getItemsIdToAttrsCacheKey();
+        $cacheKey = $this->getItemsIdToAttrsCacheKey();
+        $cache = $this->getURI()->getApp()->container->cache($this->getMasterServices());
 
-        if (false !== ($output = $this->getURI()->getApp()->services->mcms(null, null, $this->masterServices)->get($key))) {
-            return $output;
+        if (!$cache->has($cacheKey, $output)) {
+            $output = [];
+
+            foreach ($this->getDataProvider()->getItemsAttrs() as $item) {
+                $id = (int)$item['item_id'];
+                unset($item['item_id']);
+                $output[$id] = $item;
+            }
+
+            $cache->set($cacheKey, $output);
         }
 
-        $output = [];
-
-        foreach ($this->getDataProvider()->getItemsAttrs() as $item) {
-            $id = (int)$item['item_id'];
-            unset($item['item_id']);
-            $output[$id] = $item;
-        }
-
-        $this->getURI()->getApp()->services->mcms(null, null, $this->masterServices)->set($key, $output);
         return $output;
     }
 
-    public function getItemsId()
+    public function getItemsId(): array
     {
         $tmp = $this->entities;
         $this->entities = [];
         $output = array_keys($this->getItemsIdToAttrs());
         $this->entities = $tmp;
+
         return $output;
     }
-
-    protected $items;
 
     /**
      * @param bool|false $total
      *
      * @return Item[]
      */
-    public function getItems(&$total = false)
+    public function getItems(&$total = false): array
     {
         if (null === $total) {
-            $this->getURI()->getApp()->services->mcms(null, null, $this->masterServices)->prefetch([
+            $this->getURI()->getApp()->container->cache($this->getMasterServices())->getMulti([
                 $this->getItemsIdToAttrsCacheKey(),
                 $this->getItemsCountCacheKey()
             ]);
@@ -210,12 +223,7 @@ class SRC
         return $this->items;
     }
 
-    /**
-     * @param bool|false $mostRated
-     *
-     * @return null|Item
-     */
-    public function getFirstItem($mostRated = false)
+    public function getFirstItem(bool $mostRated = false): ?Item
     {
         if ($items = $this->getItems()) {
             $output = $items[0];
@@ -234,21 +242,33 @@ class SRC
         return null;
     }
 
-    protected $totalCount;
+    public function call(string $key, callable $valueGenerator, int $lifetime = null)
+    {
+        if (!$this->has($key, $value)) {
+            $this->set($key, $value = $valueGenerator(), $lifetime);
+        }
 
-    public function getTotalCount()
+        return $value;
+    }
+
+    public function getTotalCount(): int
     {
         if (null === $this->totalCount) {
-            $this->totalCount = $this->getURI()->getApp()->services->mcms(null, null, $this->masterServices)
-                ->call($this->getItemsCountCacheKey(), function () {
-                    return $this->getDataProvider()->getTotalCount();
-                });
+            $key = $this->getItemsCountCacheKey();
+
+            if (!$this->getURI()->getApp()->container->cache($this->getMasterServices())->has($key, $output)) {
+                $output = $this->getDataProvider()->getTotalCount();
+
+                $this->getURI()->getApp()->container->cache($this->getMasterServices())->set($key, $output);
+            }
+
+            $this->totalCount = $output;
         }
 
         return $this->totalCount;
     }
 
-    public function getOrderInfo()
+    public function getOrderInfo(): stdClass
     {
         $v = $this->getURI()->get(URI::ORDER);
 
@@ -268,11 +288,10 @@ class SRC
         ];
     }
 
-    protected $offset;
-
-    public function setOffset($offset)
+    public function setOffset($offset): SRC
     {
         $this->offset = $offset;
+
         return $this;
     }
 
@@ -285,11 +304,10 @@ class SRC
         return $this->offset;
     }
 
-    protected $limit;
-
-    public function setLimit($rowCount)
+    public function setLimit($rowCount): SRC
     {
         $this->limit = $rowCount;
+
         return $this;
     }
 
@@ -313,22 +331,19 @@ class SRC
         return $this->getURI()->get(URI::PAGE_NUM, 1);
     }
 
-    protected static $showValues;
-
-    public static function getShowValues(App $app)
+    public static function getShowValues(App $app): array
     {
-        return self::$showValues ?: self::$showValues = explode(',', $app->config->catalog->show);
+        return self::$showValues ?: self::$showValues = explode(',', $app->config('catalog.show'));
     }
 
     public static function getDefaultShowValue(App $app)
     {
         $tmp = self::getShowValues($app);
+
         return current($tmp);
     }
 
-    protected static $orderValues;
-
-    public static function getOrderValues()
+    public static function getOrderValues(): array
     {
         return self::$orderValues ?: self::$orderValues = [
             '-relevance',
@@ -343,10 +358,11 @@ class SRC
     public static function getDefaultOrderValue()
     {
         $tmp = self::getOrderValues();
+
         return current($tmp);
     }
 
-    public function getItemsPricesRange()
+    public function getItemsPricesRange(): array
     {
         $tmp = [];
 
@@ -360,7 +376,7 @@ class SRC
         ];
     }
 
-    public static function getTypesToColumns()
+    public static function getTypesToColumns(): array
     {
         return array_merge(array_combine(URI::TYPE_PARAMS, array_fill(0, count(URI::TYPE_PARAMS), null)), [
             URI::SPORT => 'is_sport',
@@ -387,17 +403,12 @@ class SRC
         return $output;
     }
 
-    public function isLastPage()
+    public function isLastPage(): bool
     {
         return $this->getPageNum() == $this->getLastPage();
     }
 
-    protected $page;
-
-    /**
-     * @return Page
-     */
-    public function getPage()
+    public function getPage(): Page
     {
         if (null === $this->page) {
             $this->page = $this->getURI()->getApp()->managers->pages->findByKey('catalog');
@@ -406,26 +417,19 @@ class SRC
         return $this->page;
     }
 
-    protected $catalogPage;
-
-    /**
-     * @param PageCatalog $page
-     *
-     * @return $this
-     */
-    public function setCatalogPage(PageCatalog $page)
+    public function setCatalogPage(PageCatalog $page): SRC
     {
         $this->catalogPage = $page;
+
         return $this;
     }
 
     /**
      * @param bool $retrieve
      *
-     * @return bool|mixed|null|PageCatalog
-     * @throws \Exception
+     * @return bool|PageCatalog
      */
-    public function getCatalogPage($retrieve = false)
+    public function getCatalogPage(bool $retrieve = false)
     {
         if (null !== $this->catalogPage) {
             return $this->catalogPage;
@@ -451,15 +455,12 @@ class SRC
         return $this->catalogPage = $page;
     }
 
-    protected $catalogCustomPage;
-
     /**
      * @param bool $retrieve
      *
      * @return bool|PageCatalogCustom
-     * @throws \Exception
      */
-    public function getCatalogCustomPage($retrieve = false)
+    public function getCatalogCustomPage(bool $retrieve = false)
     {
         if (null !== $this->catalogCustomPage) {
             return $this->catalogCustomPage;
@@ -476,11 +477,7 @@ class SRC
         return $this->catalogCustomPage = $page;
     }
 
-    /**
-     * @return array|null
-     * @throws \Exception
-     */
-    public function getAliases()
+    public function getAliases(): array
     {
         if ($page = $this->getCatalogPage()) {
             return $page->getMetaKey('aliases', []);

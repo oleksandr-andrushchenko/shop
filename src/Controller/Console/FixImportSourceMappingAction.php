@@ -3,7 +3,7 @@
 namespace SNOWGIRL_SHOP\Controller\Console;
 
 use SNOWGIRL_CORE\Controller\Console\PrepareServicesTrait;
-use SNOWGIRL_CORE\Exception\HTTP\BadRequest;
+use SNOWGIRL_CORE\Http\Exception\BadRequestHttpException;
 use SNOWGIRL_SHOP\App\Console as App;
 
 class FixImportSourceMappingAction
@@ -15,11 +15,11 @@ class FixImportSourceMappingAction
         $this->prepareServices($app);
 
         if (!$oldColumnName = $app->request->get('param_1')) {
-            throw (new BadRequest)->setInvalidParam('old_column_name');
+            throw (new BadRequestHttpException)->setInvalidParam('old_column_name');
         }
 
         if (!$newColumnName = $app->request->get('param_2')) {
-            throw (new BadRequest)->setInvalidParam('new_column_name');
+            throw (new BadRequestHttpException)->setInvalidParam('new_column_name');
         }
 
         $aff = 0;

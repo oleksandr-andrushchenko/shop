@@ -3,7 +3,7 @@
 namespace SNOWGIRL_SHOP\Util;
 
 use SNOWGIRL_CORE\Util;
-use SNOWGIRL_CORE\App;
+use SNOWGIRL_CORE\AbstractApp;
 use SNOWGIRL_SHOP\Entity\Color as ColorEntity;
 
 /**

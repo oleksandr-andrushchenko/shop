@@ -3,24 +3,24 @@
 namespace SNOWGIRL_SHOP\Manager\Item\Attr\DataProvider;
 
 use SNOWGIRL_CORE\Entity;
-use SNOWGIRL_CORE\Service\Storage\Query\Expr;
+use SNOWGIRL_CORE\Query\Expression;
 use SNOWGIRL_SHOP\Catalog\URI;
 use SNOWGIRL_SHOP\Manager\Item\Attr\DataProvider;
 use SNOWGIRL_CORE\Helper\Arrays;
 use SNOWGIRL_SHOP\Manager\Page\Catalog as PageCatalogManager;
 
-class Rdbms extends DataProvider
+class Db extends DataProvider
 {
-    use \SNOWGIRL_CORE\Manager\DataProvider\Traits\Rdbms;
+    use \SNOWGIRL_CORE\Manager\DataProvider\Traits\Db;
 
     public function getFiltersCountsByUri(URI $uri, $query = null, $prefix = false)
     {
-        $simple = $this->manager->getApp()->config->catalog->use_simple_queries(false);
+        $simple = $this->manager->getApp()->config('catalog.use_simple_queries', false);
 
         $pk = $this->manager->getEntity()->getPk();
         $class = $this->manager->getEntity()->getClass();
 
-        $where = $uri->getSRC()->getDataProvider('rdbms')->getWhere();
+        $where = $uri->getSRC()->getDataProvider('db')->getWhere();
 
         if ($this->manager->getQuery()->where) {
             $where = array_merge($where, Arrays::cast($this->manager->getQuery()->where));
@@ -41,53 +41,53 @@ class Rdbms extends DataProvider
         $itemTable = $this->manager->getApp()->managers->items->getEntity()->getTable();
         $itemPk = $this->manager->getApp()->managers->items->getEntity()->getPk();
 
-        $db = $this->manager->getApp()->services->rdbms(null, null, $this->manager->getMasterServices());
+        $db = $this->manager->getApp()->container->db($this->manager->getMasterServices());
 
         if (in_array($class, $mva)) {
             $linkTable = $this->manager->makeLinkTableNameByEntityClass($class);
 
             if (array_diff(array_keys($where), array_keys($mva))) {
                 $tableFrom = $itemTable;
-                $joins[] = new Expr('INNER JOIN ' . $db->quote($linkTable) . ' USING(' . $db->quote($itemPk) . ')');
+                $joins[] = new Expression('INNER JOIN ' . $db->quote($linkTable) . ' USING(' . $db->quote($itemPk) . ')');
             } else {
                 $tableFrom = $linkTable;
             }
 
-            $columns[] = new Expr($db->quote($pk, $linkTable));
-            $groups[] = new Expr($db->quote($pk, $linkTable));
+            $columns[] = new Expression($db->quote($pk, $linkTable));
+            $groups[] = new Expression($db->quote($pk, $linkTable));
         } else {
             $tableFrom = $itemTable;
-            $columns[] = new Expr($db->quote($pk, $tableFrom));
-            $groups[] = new Expr($db->quote($pk, $tableFrom));
+            $columns[] = new Expression($db->quote($pk, $tableFrom));
+            $groups[] = new Expression($db->quote($pk, $tableFrom));
         }
 
-        $columns[] = new Expr('COUNT(*) AS ' . $db->quote('cnt'));
+        $columns[] = new Expression('COUNT(*) AS ' . $db->quote('cnt'));
 
         if ($this->manager->getQuery()->limit) {
             if ($simple) {
-                $orders[] = new Expr($db->quote('cnt') . ' DESC');
+                $orders[] = new Expression($db->quote('cnt') . ' DESC');
             } else {
-                $orders[] = new Expr('ROUND(COUNT(*) / 1000) DESC');
-                $orders[] = new Expr('ROUND(' . $db->quote('rating', $table) . ' / 100) DESC');
+                $orders[] = new Expression('ROUND(COUNT(*) / 1000) DESC');
+                $orders[] = new Expression('ROUND(' . $db->quote('rating', $table) . ' / 100) DESC');
             }
         }
 
         if ($this->manager->getQuery()->limit || $query) {
             if ($simple) {
                 if ($query) {
-                    $joins[] = new Expr('INNER JOIN ' . $db->quote($table) . ' USING(' . $db->quote($pk) . ')');
+                    $joins[] = new Expression('INNER JOIN ' . $db->quote($table) . ' USING(' . $db->quote($pk) . ')');
                 }
             } else {
-                $joins[] = new Expr('INNER JOIN ' . $db->quote($table) . ' USING(' . $db->quote($pk) . ')');
+                $joins[] = new Expression('INNER JOIN ' . $db->quote($table) . ' USING(' . $db->quote($pk) . ')');
             }
 
             if ($query) {
                 //@todo if changed - sync with parent::getObjectsByQuery()
                 $qc = $db->quote($this->manager->findColumns(Entity::SEARCH_IN)[0], $table);
-                $columns[] = new Expr('CHAR_LENGTH(' . $qc . ') AS ' . $db->quote('length'));
-                $where[] = new Expr($qc . ' LIKE ?', ($prefix ? '' : '%') . $query . '%');
-                $orders[] = new Expr('CASE WHEN ' . $qc . ' LIKE ? THEN 1 ELSE 2 END', $query . '%');
-                $orders[] = new Expr($db->quote('length') . ' ASC');
+                $columns[] = new Expression('CHAR_LENGTH(' . $qc . ') AS ' . $db->quote('length'));
+                $where[] = new Expression($qc . ' LIKE ?', ($prefix ? '' : '%') . $query . '%');
+                $orders[] = new Expression('CASE WHEN ' . $qc . ' LIKE ? THEN 1 ELSE 2 END', $query . '%');
+                $orders[] = new Expression($db->quote('length') . ' ASC');
             }
         }
 

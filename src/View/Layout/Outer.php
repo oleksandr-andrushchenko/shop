@@ -2,8 +2,7 @@
 
 namespace SNOWGIRL_SHOP\View\Layout;
 
-use SNOWGIRL_CORE\Script\Css;
-use SNOWGIRL_CORE\Script\Js;
+use SNOWGIRL_CORE\View\Layout;
 
 /**
  * @todo    set active menu item on default actions (e.g. poyasa-remni-i-podtyazhki = catalog, poyasa = catalog etc...)
@@ -21,38 +20,38 @@ class Outer extends \SNOWGIRL_CORE\View\Layout\Outer
      *
      * @return \SNOWGIRL_CORE\View\Layout
      */
-    protected function addCssNodes()
+    protected function addCssNodes(): Layout
     {
         return parent::addCssNodes()
-            ->addHeadCss(new Css('@shop/core.css'))
-            ->addLazyCss(new Css('@core/rating.css'))
-            ->addLazyCss(new Css('https://fonts.googleapis.com/css?family=Chonburi&display=swap'))
-            ->addLazyCss(new Css('.price .val,.old-price .val{font-family: \'Chonburi\', cursive;}', true));
+            ->addHeadCss('@shop/core.css')
+            ->addLazyCss('@core/rating.css')
+            ->addLazyCss('https://fonts.googleapis.com/css?family=Chonburi&display=swap')
+            ->addLazyCss('.price .val,.old-price .val{font-family: \'Chonburi\', cursive;}', true);
     }
 
-    protected function addJsNodes()
+    protected function addJsNodes(): Layout
     {
-        return $this->addJs(new Js('//ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js'))
-            ->addJs(new Js('@core/core.js'))
-            ->addJs(new Js('@shop/core.js'));
+        return $this->addJs('//ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js')
+            ->addJs('@core/core.js')
+            ->addJs('@shop/core.js');
     }
 
-    protected function makeHeader()
+    protected function makeHeader(): string
     {
         return $this->stringifyContent('@core/layout/header.phtml');
     }
 
-    protected function makeBreadcrumbs()
+    protected function makeBreadcrumbs(): string
     {
         return $this->stringifyContent('@core/layout/breadcrumbs.phtml');
     }
 
-    protected function makeContent()
+    protected function makeContent(): string
     {
         return $this->stringifyContent('@shop/layout/content.phtml');
     }
 
-    protected function makeFooter()
+    protected function makeFooter(): string
     {
         return $this->stringifyContent('@core/layout/footer.phtml');
     }

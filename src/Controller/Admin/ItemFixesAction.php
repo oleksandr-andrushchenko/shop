@@ -3,8 +3,8 @@
 namespace SNOWGIRL_SHOP\Controller\Admin;
 
 use SNOWGIRL_CORE\Helper\Arrays;
-use SNOWGIRL_CORE\Service\Storage\Query\Expr;
-use SNOWGIRL_SHOP\App\Web as App;
+use SNOWGIRL_CORE\Query\Expression;
+use SNOWGIRL_SHOP\Http\HttpApp as App;
 use SNOWGIRL_CORE\Controller\Admin\PrepareServicesTrait;
 use SNOWGIRL_SHOP\Import;
 use SNOWGIRL_SHOP\Manager\Item as ItemManager;
@@ -42,7 +42,7 @@ class ItemFixesAction
 
         $src = $app->managers->items->clear();
 
-        $db = $app->services->rdbms;
+        $db = $app->container->db;
 
         $srcWhat = ['*'];
         $srcWhere = [];

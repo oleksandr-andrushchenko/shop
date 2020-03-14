@@ -5,7 +5,6 @@ namespace SNOWGIRL_SHOP\Manager;
 use SNOWGIRL_CORE\Entity;
 use SNOWGIRL_CORE\Exception;
 use SNOWGIRL_CORE\Helper;
-use SNOWGIRL_CORE\Service\Logger;
 use SNOWGIRL_SHOP\Entity\Category as CategoryEntity;
 use SNOWGIRL_SHOP\Catalog\URI;
 use SNOWGIRL_SHOP\Manager\Category\Alias;
@@ -45,8 +44,7 @@ class Category extends Attr
      * @param Entity $entity
      *
      * @return bool
-     * @throws Exception
-     * @throws Exception\EntityAttr\Required
+     * @throws Throwable
      */
     protected function onUpdated(Entity $entity)
     {
@@ -215,7 +213,7 @@ class Category extends Attr
 
     public function deleteTreeCache()
     {
-        $output = $this->getCacheObject()->delete($this->getAllIDsCacheKey());
+        $output = $this->getCache()->delete($this->getAllIDsCacheKey());
         $this->treeCache = null;
         return $output;
     }
@@ -240,9 +238,9 @@ class Category extends Attr
             if ($category = $this->find($id)) {
                 $output[$id] = $category;
             } else {
-                $this->app->services->logger->makeForce('Категория[' . $id . '] не была найдена', Logger::TYPE_ERROR);
-                $this->app->services->logger->makeForce(debug_backtrace(), Logger::TYPE_ERROR);
-//                $this->getCacheObject()->flush();
+                $this->app->container->logger->makeForce('Категория[' . $id . '] не была найдена', Logger::TYPE_ERROR);
+                $this->app->container->logger->makeForce(debug_backtrace(), Logger::TYPE_ERROR);
+//                $this->getCache()->flush();
             }
         }
 

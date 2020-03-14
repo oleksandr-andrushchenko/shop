@@ -2,11 +2,8 @@
 
 namespace SNOWGIRL_SHOP\Catalog;
 
-use SNOWGIRL_CORE\App;
+use SNOWGIRL_CORE\AbstractApp as App;
 use SNOWGIRL_CORE\Entity;
-use SNOWGIRL_CORE\Service\Logger;
-use SNOWGIRL_SHOP\App\Console;
-use SNOWGIRL_SHOP\App\Web;
 use SNOWGIRL_SHOP\Entity\Brand;
 use SNOWGIRL_SHOP\Entity\Item\Attr as ItemAttr;
 use SNOWGIRL_CORE\Helper\Arrays;
@@ -16,52 +13,39 @@ use SNOWGIRL_SHOP\Manager\Item\Attr as AttrManager;
 
 class URI
 {
-    const CATALOG = 'catalog';
-    const SALES = 'sales';
-    const SPORT = 'sport';
-    const SIZE_PLUS = 'size-plus';
+    public const CATALOG = 'catalog';
+    public const SALES = 'sales';
+    public const SPORT = 'sport';
+    public const SIZE_PLUS = 'size-plus';
     //@todo CHEEP...
-    const CHEEP = 'cheep';//price asc
+    public const CHEEP = 'cheep';//price asc
     //@todo EXPENSIVE...
-    const EXPENSIVE = 'expensive';//price desc
+    public const EXPENSIVE = 'expensive';//price desc
 
-//    const QUERY = 'query';
-    const PRICE_FROM = 'price_from';
-    const PRICE_TO = 'price_to';
+//    public const QUERY = 'query';
+    public const PRICE_FROM = 'price_from';
+    public const PRICE_TO = 'price_to';
 
-    const ORDER = 'sort';
-    const PER_PAGE = 'show';
-    const PAGE_NUM = 'page';
+    public const ORDER = 'sort';
+    public const PER_PAGE = 'show';
+    public const PAGE_NUM = 'page';
 
-    const EVEN_NOT_STANDARD_PER_PAGE = 'even_not_standard_per_page';
+    public const EVEN_NOT_STANDARD_PER_PAGE = 'even_not_standard_per_page';
 
     //defined dynamic
-    const OUTPUT_DEFINED = 0;
+    public const OUTPUT_DEFINED = 0;
     //prev + safe dynamic
-    const OUTPUT_DEFINED_SAFE = 1;
+    public const OUTPUT_DEFINED_SAFE = 1;
     //prev + all extra dynamic
-    const OUTPUT_FULL = 2;
-
-    /** @var App */
-    protected static $app;
-
-    protected $normalizedParams;
-    protected $deNormalizedParams;
-    protected $domain;
-    protected $map;
-
-    /** @var Entity[] */
-    protected static $componentsPkToClass;
-    protected static $filterParams;
-
-    const VIEW_PARAMS = [
+    public const OUTPUT_FULL = 2;
+    public const VIEW_PARAMS = [
         self::ORDER,
         self::PER_PAGE,
         self::PAGE_NUM,
         self::EVEN_NOT_STANDARD_PER_PAGE
     ];
 
-    const DEFINED_PARAMS = [
+    public const DEFINED_PARAMS = [
 //        self::QUERY,
         self::PRICE_FROM,
         self::PRICE_TO,
@@ -70,27 +54,63 @@ class URI
         self::PAGE_NUM
     ];
 
-    const SAFE_PARAMS = [];
-
-    protected static $attrPathParams;
-
-    const TYPE_PARAMS = [
+    public const SAFE_PARAMS = [];
+    public const TYPE_PARAMS = [
         self::SPORT,
         self::SIZE_PLUS,
         self::SALES
     ];
 
-    const NON_ATTR_PATH_PARAMS = self::TYPE_PARAMS;
+    public const NON_ATTR_PATH_PARAMS = self::TYPE_PARAMS;
 
-    protected static $pathParams;
-    protected static $addUriPrefix;
+    /**
+     * @var App|Web|Console
+     */
+    private static $app;
+
+    private $normalizedParams;
+    private $deNormalizedParams;
+    private $domain;
+    private $map;
+
+    /** @var Entity[] */
+    private static $componentsPkToClass;
+    private static $filterParams;
+
+    private static $attrPathParams;
+
+    private static $pathParams;
+    private static $addUriPrefix;
+    private $isCatalogPage;
+    private static $src = [];
+    private $seo;
+    private $cacheKey;
+    private $aliases;
+
+    private $output;
+
+    public function __construct(array $params = [], $domain = false)
+    {
+        $this
+            ->setDomain($domain)
+            ->setMap([
+                'filter' => self::$filterParams,
+                'view' => self::VIEW_PARAMS,
+                'attr' => self::$attrPathParams,
+                'defined' => self::DEFINED_PARAMS,
+                'type' => self::TYPE_PARAMS,
+                'safe' => self::SAFE_PARAMS
+            ])
+            ->setOutput([])
+            ->setParams($params);
+    }
 
     public static function setApp(App $app)
     {
-        /** @var App $app */
+        /** @var Web|Console $app */
         self::$app = $app;
 
-        $components = $app->managers->catalog->getComponentsOrderByRdbmsKey();
+        $components = $app->managers->catalog->getComponentsOrderByDbKey();
         self::$componentsPkToClass = Arrays::mapByKeyMaker($components, function ($entity) {
             /** @var Entity $entity */
             return $entity::getPk();
@@ -110,7 +130,7 @@ class URI
         ]);
 
         self::$pathParams = array_merge(self::$attrPathParams, self::NON_ATTR_PATH_PARAMS);
-        self::$addUriPrefix = !!self::$app->config->catalog->add_uri_prefix(false);
+        self::$addUriPrefix = !!self::$app->config('catalog.add_uri_prefix', false);
     }
 
     public static function addUriPrefix()
@@ -118,54 +138,39 @@ class URI
         return self::$addUriPrefix;
     }
 
-    public static function getPathParams()
+    public static function getPathParams(): array
     {
         return self::$pathParams;
     }
 
-    public function __construct(array $params = [], $domain = false)
-    {
-        $this
-            ->setDomain($domain)
-            ->setMap([
-                'filter' => self::$filterParams,
-                'view' => self::VIEW_PARAMS,
-                'attr' => self::$attrPathParams,
-                'defined' => self::DEFINED_PARAMS,
-                'type' => self::TYPE_PARAMS,
-                'safe' => self::SAFE_PARAMS
-            ])
-            ->setOutput([])
-            ->setParams($params);
-    }
-
-//    protected $aliases;
-//
 //    public function setAliases(array $v)
 //    {
 //        $this->aliases = $v;
 //        return $this;
 //    }
 
-    public function setDomain($domain)
+    public function setDomain($domain): URI
     {
         $this->domain = $domain;
+
         return $this;
     }
 
-    public function setMap($map)
+    public function setMap($map): URI
     {
         $this->map = $map;
+
         return $this;
     }
 
-    public function setOutput(array $output)
+    public function setOutput(array $output): URI
     {
         $this->output = $output;
+
         return $this;
     }
 
-    public function setParams(array $params)
+    public function setParams(array $params): URI
     {
         $this->normalizedParams = $this->getNormalizedParams($params);
         $this->dropCache();
@@ -173,7 +178,7 @@ class URI
         return $this;
     }
 
-    protected function getNormalizedParams(array $params)
+    private function getNormalizedParams(array $params): array
     {
         foreach ($params as $k => $v) {
             if (is_array($v)) {
@@ -199,7 +204,7 @@ class URI
         $this->dropCache();
     }
 
-    public static function getPagePath(array $params = [], $array = false)
+    public static function getPagePath(array $params = [], bool $array = false)
     {
         $output = [
             'vendor',
@@ -225,13 +230,11 @@ class URI
         }, $output)), $params);
     }
 
-    protected $isCatalogPage;
-
     /**
      * @todo check and if need - fix
      * @return bool
      */
-    public function isCatalogPage()
+    public function isCatalogPage(): bool
     {
         if (null !== $this->isCatalogPage) {
             return $this->isCatalogPage;
@@ -254,13 +257,13 @@ class URI
 
     /**
      * @param array $params
-     * @param bool  $aliases
-     * @param int   $mode
+     * @param bool $aliases
+     * @param int $mode
      *
      * @return array|mixed|string
      * @throws \Exception
      */
-    public function getPathByParams(array &$params, $aliases = false, $mode = self::OUTPUT_DEFINED)
+    public function getPathByParams(array &$params, bool $aliases = false, $mode = self::OUTPUT_DEFINED): string
     {
         $attrPathParams = array_filter($params, function ($k) {
             return in_array($k, self::$attrPathParams);
@@ -321,7 +324,7 @@ class URI
                 if ($v && $entity = $manager->getAliasManager()->find($v)) {
                     $tmp[$table] = $entity->get('uri');
                 } else {
-                    self::$app->services->logger->make($table . '[id=' . $v . '] is not exists', Logger::TYPE_WARN);
+                    self::$app->container->logger->warning($table . '[id=' . $v . '] is not exists');
                 }
             } else {
                 $table = $manager->getEntity()->getTable();
@@ -329,7 +332,7 @@ class URI
                 if ($v && $entity = $manager->find($v)) {
                     $tmp[$table] = $entity->get('uri');
                 } else {
-                    self::$app->services->logger->make($table . '[id=' . $v . '] is not exists', Logger::TYPE_WARN);
+                    self::$app->container->logger->warning($table . '[id=' . $v . '] is not exists');
                 }
             }
         }
@@ -348,13 +351,15 @@ class URI
         return $uri;
     }
 
-    protected function dropCache()
+    private function dropCache(): URI
     {
         $this->deNormalizedParams = null;
         $this->output = [];
+
+        return $this;
     }
 
-    public function getParams()
+    public function getParams(): array
     {
         if (null === $this->deNormalizedParams) {
             $params = $this->normalizedParams;
@@ -378,7 +383,7 @@ class URI
         return $this->deNormalizedParams;
     }
 
-    public function getParamsArray()
+    public function getParamsArray(): array
     {
         $output = array_merge(self::$filterParams, self::VIEW_PARAMS);
         $output = array_combine($output, array_fill(0, count($output), null));
@@ -387,7 +392,7 @@ class URI
         return $output;
     }
 
-    public function getParamsByNames($names)
+    public function getParamsByNames($names): array
     {
         $names = is_array($names) ? $names : [$names];
 
@@ -396,12 +401,12 @@ class URI
         }, ARRAY_FILTER_USE_KEY);
     }
 
-    public function getOrParamsKeysByNames($names)
+    public function getOrParamsKeysByNames($names): array
     {
         return array_keys($this->getParamsByNames($names));
     }
 
-    public function getParamsByTypes($types)
+    public function getParamsByTypes($types): array
     {
         $types = is_array($types) ? $types : [$types];
 
@@ -422,85 +427,78 @@ class URI
     /**
      * @todo normalize value...
      *
-     * @param $k
-     * @param $v
+     * @param $key
+     * @param int $param
      *
      * @return URI
      */
-    public function set($k, $v = 1)
+    public function set($key, $param = 1): URI
     {
-        $this->normalizedParams[$k] = $v;
+        $this->normalizedParams[$key] = $param;
         $this->dropCache();
+
         return $this;
     }
 
-    public function _unset($k)
+    public function _unset(string $key)
     {
 //        unset($this->normalizedParams[$k]);
 //        $this->dropCache();
 //        return $this;
-        return $this->set($k, null);
+
+        return $this->set($key, null);
     }
 
-    public function get($key, $default = null)
+    public function get(string $key, $default = null)
     {
         $tmp = $this->getParams();
+
         return $tmp[$key] ?? $default;
     }
 
-    public function push($k, $v)
+    public function push(string $key, $param): URI
     {
-        if (!isset($this->normalizedParams[$k])) {
-            $this->normalizedParams[$k] = [];
+        if (!isset($this->normalizedParams[$key])) {
+            $this->normalizedParams[$key] = [];
         }
 
-        $this->normalizedParams[$k][] = $v;
+        $this->normalizedParams[$key][] = $param;
         $this->dropCache();
+
         return $this;
     }
 
-    public function pop($k, $v)
+    public function pop(string $key, $param): URI
     {
-        if (!isset($this->normalizedParams[$k])) {
-            $this->normalizedParams[$k] = [];
+        if (!isset($this->normalizedParams[$key])) {
+            $this->normalizedParams[$key] = [];
         }
 
-        $this->normalizedParams[$k] = array_diff($this->normalizedParams[$k], [$v]);
+        $this->normalizedParams[$key] = array_diff($this->normalizedParams[$key], [$param]);
         $this->dropCache();
+
         return $this;
     }
 
-    public function hasParam($k, $v)
+    public function hasParam(string $key, $param): bool
     {
-        return in_array($v, $this->normalizedParams[$k] ?? []);
+        return in_array($param, $this->normalizedParams[$key] ?? []);
     }
 
-    /**
-     * @param            $k
-     * @param            $v
-     * @param bool|false $isWas
-     *
-     * @return URI
-     */
-    public function inverse($k, $v, &$isWas = false)
+    public function inverse(string $key, $param, &$isWas = false): URI
     {
-        $isWas = $this->hasParam($k, $v);
+        $isWas = $this->hasParam($key, $param);
 
         if ($isWas) {
-            $this->pop($k, $v);
+            $this->pop($key, $param);
         } else {
-            $this->push($k, $v);
+            $this->push($key, $param);
         }
 
         return $this;
     }
 
-    protected static $src = [];
-
-    /**
-     * @return SRC
-     */
-    public function getSRC()
+    public function getSRC(): SRC
     {
         $key = $this->getCacheKey();
 
@@ -513,12 +511,8 @@ class URI
         return self::$src[$key];
     }
 
-    protected $seo;
 
-    /**
-     * @return SEO
-     */
-    public function getSEO()
+    public function getSEO(): SEO
     {
         return $this->seo ?: $this->seo = new SEO($this);
     }
@@ -542,33 +536,18 @@ class URI
         return null;
     }
 
-    /**
-     * @return URI
-     */
-    public function copy()
+    public function copy(): URI
     {
         return new self($this->normalizedParams);
 //        return new static($this->getParamsArray());
     }
 
-    protected $cacheKey;
-
-    protected function getCacheKey()
+    private function getCacheKey()
     {
         return $this->cacheKey ?: $this->cacheKey = md5(serialize($this->getParams()));
     }
 
-    protected $output;
-
-    /**
-     * @param int  $mode
-     * @param bool $aliases
-     * @param bool $isNoFollow
-     *
-     * @return mixed
-     * @throws \Exception
-     */
-    public function output($mode = self::OUTPUT_DEFINED, $aliases = false, &$isNoFollow = false)
+    public function output($mode = self::OUTPUT_DEFINED, bool $aliases = false, &$isNoFollow = false): string
     {
         if (isset($this->output[$mode])) {
             $isNoFollow = false !== strpos($this->output[$mode], '?');
@@ -578,26 +557,21 @@ class URI
         $params = $this->getParams();
         $params['uri'] = $this->getPathByParams($params, $aliases, $mode);
 
-        $this->output[$mode] = self::$app->router->makeLink('catalog', $params, $this->domain);
+        $this->output[$mode] = $this->getApp()->router->makeLink('catalog', $params, $this->domain);
+
         return $this->output($mode, $aliases, $isNoFollow);
     }
 
     /**
      * @return Web|Console
      */
-    public function getApp()
+    public function getApp(): App
     {
         return self::$app;
     }
 
-    /**
-     * @return mixed
-     * @throws \Exception
-     */
     public function __toString()
     {
         return $this->output();
     }
 }
-
-URI::setApp(App::$instance);

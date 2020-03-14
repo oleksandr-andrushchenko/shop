@@ -7,7 +7,7 @@ use SNOWGIRL_CORE\Entity\Contact;
 use SNOWGIRL_CORE\Entity\Subscribe;
 use SNOWGIRL_CORE\Entity\User;
 use SNOWGIRL_CORE\Util;
-use SNOWGIRL_CORE\App;
+use SNOWGIRL_CORE\AbstractApp;
 use SNOWGIRL_SHOP\Entity\Stock;
 use SNOWGIRL_CORE\Entity\Page\Regular as PageRegular;
 
@@ -28,7 +28,7 @@ class Site extends Util
      */
     public function doAddTablesIdColumns($siteId)
     {
-        $db = $this->app->services->rdbms;
+        $db = $this->app->container->db;
 
         $column = 'site_id';
         $options = 'tinyint(1) NOT NULL DEFAULT \'0\'';

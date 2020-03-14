@@ -7,11 +7,11 @@ use SNOWGIRL_CORE\Exception;
 use SNOWGIRL_CORE\Helper\WalkChunk;
 use SNOWGIRL_CORE\Helper\WalkChunk2;
 use SNOWGIRL_CORE\Manager;
-use SNOWGIRL_CORE\Service\Rdbms;
-use SNOWGIRL_CORE\Service\Storage\Query\Expr;
+use SNOWGIRL_CORE\Service\Db;
+use SNOWGIRL_CORE\Query\Expression;
 use SNOWGIRL_CORE\Service\Nosql\Mongo;
-use SNOWGIRL_CORE\Service\Rdbms\Mysql;
-use SNOWGIRL_CORE\Service\Storage\Query;
+use SNOWGIRL_CORE\Service\Db\Mysql;
+use SNOWGIRL_CORE\Query;
 use SNOWGIRL_CORE\Util;
 use SNOWGIRL_SHOP\App\Console as App;
 use SNOWGIRL_SHOP\Catalog\SRC;
@@ -35,17 +35,17 @@ class Item extends Util
 {
     public function doFixSeoNames()
     {
-        $db = $this->app->services->rdbms;
+        $db = $this->app->container->db;
 
         (new WalkChunk(1000))
             ->setFnGet(function ($page, $size) use ($db) {
-                return $db->req(implode(' ', [
+                return $db->reqToArrays(implode(' ', [
                     'SELECT ' . $db->quote('b') . '.*, COUNT(*) AS ' . $db->quote('cnt'),
                     'FROM ' . $db->quote(Brand::getTable()) . ' AS ' . $db->quote('b'),
                     'INNER JOIN ' . $db->quote(ItemEntity::getTable()) . ' AS ' . $db->quote('i') . ' USING(' . $db->quote(Brand::getPk()) . ')',
                     'GROUP BY ' . $db->quote(Brand::getPk(), 'b'),
                     'LIMIT ' . (($page - 1) * $size) . ', ' . $size
-                ]))->reqToArrays();
+                ]));
             })
             ->setFnDo(function ($items) use ($db) {
                 foreach ($items as $item) {
@@ -146,8 +146,8 @@ class Item extends Util
                         //else {
                         //@todo...
                         //}
-                    } catch (Exception $ex) {
-                        $this->app->services->logger->makeException($ex);
+                    } catch (Throwable $e) {
+                        $this->app->container->logger->error($e);
                     }
                 }
             })
@@ -160,7 +160,7 @@ class Item extends Util
     {
         $table = $this->app->managers->items->getEntity()->getTable();
         $pk = $this->app->managers->items->getEntity()->getPk();
-        $db = $this->app->services->rdbms;
+        $db = $this->app->container->db;
         $after = 'is_in_stock';
 
         foreach (SRC::getOrderValues() as $order) {
@@ -185,7 +185,7 @@ class Item extends Util
                 'INNER JOIN (',
                 'SELECT ' . $db->quote($pk) . ', @num:=@num+1 AS ' . $db->quote('num'),
                 'FROM ' . $db->quote($table),
-                $db->makeOrderSQL($src->getDataProvider('mysql')->getOrder(), $query->params),
+                $db->makeOrderSQL($src->getDataProvider('db')->getOrder(), $query->params),
                 ') AS ' . $db->quote('i2') . ' USING(' . $db->quote($pk) . ')',
                 'SET ' . $db->quote($info->cache_column, 'i') . ' = ' . $db->quote('num', 'i2')
             ]);
@@ -204,13 +204,13 @@ class Item extends Util
 
     public function doDeleteWithNonExistingCategories(FixWhere $fixWhere = null)
     {
-        $db = $this->app->services->rdbms;
+        $db = $this->app->container->db;
         $it = $this->app->managers->items->getEntity()->getTable();
         $ck = $this->app->managers->categories->getEntity()->getPk();
         $ct = $this->app->managers->categories->getEntity()->getTable();
 
         $where = $fixWhere ? $fixWhere->get() : [];
-        $where[] = new Expr($db->quote($ck, $ct) . ' IS NULL');
+        $where[] = new Expression($db->quote($ck, $ct) . ' IS NULL');
 
         $query = new Query(['params' => []]);
         $query->text = implode(' ', [
@@ -220,18 +220,18 @@ class Item extends Util
             $db->makeWhereSQL($where, $query->params)
         ]);
 
-        return $this->app->services->rdbms->req($query)->affectedRows();
+        return $this->app->container->db->req($query)->affectedRows();
     }
 
     public function doDeleteWithNonExistingBrands(FixWhere $fixWhere = null)
     {
-        $db = $this->app->services->rdbms;
+        $db = $this->app->container->db;
         $it = $this->app->managers->items->getEntity()->getTable();
         $bk = $this->app->managers->brands->getEntity()->getPk();
         $bt = $this->app->managers->brands->getEntity()->getTable();
 
         $where = $fixWhere ? $fixWhere->get() : [];
-        $where[] = new Expr($db->quote($bk, $bt) . ' IS NULL');
+        $where[] = new Expression($db->quote($bk, $bt) . ' IS NULL');
 
         $query = new Query(['params' => []]);
         $query->text = implode(' ', [
@@ -241,18 +241,18 @@ class Item extends Util
             $db->makeWhereSQL($where, $query->params)
         ]);
 
-        return $this->app->services->rdbms->req($query)->affectedRows();
+        return $this->app->container->db->req($query)->affectedRows();
     }
 
     public function doFixWithNonExistingCountries(FixWhere $fixWhere)
     {
-        $db = $this->app->services->rdbms;
+        $db = $this->app->container->db;
         $pk = $this->app->managers->countries->getEntity()->getPk();
 
         $id = $this->app->managers->countries->getList($pk);
 
         $where = $fixWhere->get();
-        $where[] = new Expr($db->quote($pk) . ' NOT IN (' . implode(',', $id) . ')');
+        $where[] = new Expression($db->quote($pk) . ' NOT IN (' . implode(',', $id) . ')');
 
         return $this->app->managers->items->updateMany([$pk => null], $where);
     }
@@ -285,7 +285,7 @@ class Item extends Util
 
     public function doCreateArchiveTable()
     {
-        $db = $this->app->services->rdbms;
+        $db = $this->app->container->db;
 
         $itemTable = $this->app->managers->items->getEntity()->getTable();
         $showCreate = $db->showCreateTable($itemTable);
@@ -320,7 +320,7 @@ class Item extends Util
 
         $this->doCreateArchiveTable();
 
-        $db = $this->app->services->rdbms;
+        $db = $this->app->container->db;
 
         $itemTable = $this->app->managers->items->getEntity()->getTable();
         $itemPk = $this->app->managers->items->getEntity()->getPk();
@@ -393,7 +393,7 @@ class Item extends Util
     {
         $aff = 0;
 
-        $db = $this->app->services->rdbms;
+        $db = $this->app->container->db;
 
         $itemTable = $this->app->managers->items->getEntity()->getTable();
         $itemPk = $this->app->managers->items->getEntity()->getPk();
@@ -479,14 +479,14 @@ class Item extends Util
             $mvaIds[$pk] = $this->app->managers->getByTable($table)->getList();
         }
 
-        $mysql = $this->app->storage->mysql;
+        $mysql = $this->app->container->db;
 
         (new WalkChunk2(1000))
             ->setFnGet(function ($lastId, $size) use ($mysql, $itemPk) {
                 $where = [];
 
                 if ($lastId) {
-                    $where[] = new Expr($mysql->quote($itemPk) . ' > ?', $lastId);
+                    $where[] = new Expression($mysql->quote($itemPk) . ' > ?', $lastId);
                 }
 
                 return $this->app->managers->archiveItems
@@ -564,13 +564,13 @@ class Item extends Util
 
     public function doFixDuplicates($importSourceId)
     {
-        $db = $this->app->services->rdbms;
+        $db = $this->app->container->db;
         $table = $this->app->managers->items->getEntity()->getTable();
         $pk = $this->app->managers->items->getEntity()->getPk();
 
         (new WalkChunk(1000))
             ->setFnGet(function ($page, $size) use ($importSourceId, $db, $table, $pk) {
-                return $db->req(implode(' ', [
+                return $db->reqToArrays(implode(' ', [
                     'SELECT ' . implode(', ', [
                         $db->quote('image'),
                         'GROUP_CONCAT(' . $db->quote($pk) . ') AS ' . $db->quote($pk),
@@ -583,7 +583,7 @@ class Item extends Util
                     'HAVING ' . $db->quote('cnt') . ' > 1',
 //                    'LIMIT ' . (($page - 1) * $size) . ', ' . $size
                     'LIMIT ' . $size
-                ]))->reqToArrays();
+                ]));
             })
             ->setFnDo(function ($rows) use ($db, $pk) {
                 $insert = [];
@@ -639,12 +639,12 @@ class Item extends Util
     {
         if ($categoryIds = $this->app->managers->categories->clear()->getList()) {
             $where = $fixWhere ? $fixWhere->get() : [];
-            $where[] = new Expr($this->app->services->rdbms->quote('category_id') . ' NOT IN (' . implode(', ', $categoryIds) . ')');
+            $where[] = new Expression($this->app->container->db->quote('category_id') . ' NOT IN (' . implode(', ', $categoryIds) . ')');
 
             $aff = $this->app->managers->items->deleteMany($where);
 
             if ($isOk = $aff > 0) {
-                $this->app->services->logger->make('There are were ' . $aff . 'items with invalid categories... Deleted...');
+                $this->app->container->logger->debug('There are were ' . $aff . 'items with invalid categories... Deleted...');
             }
 
             return $isOk;
@@ -666,10 +666,11 @@ class Item extends Util
      * [                vendor_id, created_at, updated_at]
      *
      * @param FixWhere|null $fixWhere
+     * @param array $params
      *
      * @return bool
      */
-    public function doFixItemsCategories(FixWhere $fixWhere = null)
+    public function doFixItemsCategories(FixWhere $fixWhere = null, array $params = [])
     {
         $manager = $this->app->managers->categoriesToEntities;
 
@@ -678,7 +679,7 @@ class Item extends Util
 //        $time = time();
 
         //the highest priority
-        $manager->updateByParentsAndEntities($fixWhere);
+        $manager->updateByParentsAndEntities($fixWhere, $params);
 
         if (!$fixWhere) {
             $fixWhere = new FixWhere($this->app);
@@ -688,14 +689,14 @@ class Item extends Util
 //        $fixWhere->setUpdatedAtTo($time, true);
         $fixWhere->setUpdatedAtIsNull(true);
 
-//        $manager->updateByParentsAndNamesLikeCategories($fixWhere);
+//        $manager->updateByParentsAndNamesLikeCategories($fixWhere, $params);
 
-//        $manager->updateByEntities($fixWhere);
+//        $manager->updateByEntities($fixWhere, $params);
 
-//        $manager->updateByEntitiesLikeEntities($fixWhere);
-//        $manager->updateByNamesLikeEntities($fixWhere);
+//        $manager->updateByEntitiesLikeEntities($fixWhere, $params);
+//        $manager->updateByNamesLikeEntities($fixWhere, $params);
 
-        $manager->updateByParentsAndNamesLikeEntities($fixWhere);
+        $manager->updateByParentsAndNamesLikeEntities($fixWhere, $params);
 
         //update for admin
         $manager->generate(true);
@@ -705,7 +706,7 @@ class Item extends Util
 
     public function doTransferByAttrs($source, $target)
     {
-        return $this->app->services->rdbms->makeTransaction(function (Rdbms $db) use ($target, $source) {
+        return $this->app->container->db->makeTransaction(function (Db $db) use ($target, $source) {
             $affGlobal = 0;
 
             $mva = Manager::mapEntitiesAddPksAsKeys($this->app->managers->catalog->getMvaComponents());
@@ -782,7 +783,7 @@ class Item extends Util
 
             //update page_catalog
             //@todo improve...
-            $aff = $this->app->managers->catalog->updateMany($target, $source, true);
+            $aff = $this->app->managers->catalog->updateMany($target, $source, ['ignore' => true]);
 
             $affGlobal += $aff;
 
@@ -799,7 +800,7 @@ class Item extends Util
     public function doInMongoTransfer()
     {
         /** @var Mysql $rdbms */
-        $rdbms = $this->app->services->rdbms;
+        $rdbms = $this->app->container->db;
 
         /** @var Mongo $nosql */
         $nosql = $this->app->services->nosql;
@@ -838,7 +839,7 @@ class Item extends Util
                         $linkTable = 'item_' . $attrTable;
                         return 'LEFT JOIN ' . $rdbms->quote($linkTable) . ' ON' . $rdbms->quote($pk, $table) . ' = ' . $rdbms->quote($pk, $linkTable);
                     }, $mva)),
-                    $lastId ? $rdbms->makeWhereSQL(new Expr($rdbms->quote($pk, $table) . ' > ?', $lastId), $query->params, $table) : '',
+                    $lastId ? $rdbms->makeWhereSQL(new Expression($rdbms->quote($pk, $table) . ' > ?', $lastId), $query->params, $table) : '',
 //                    $rdbms->makeWhereSQL(['item_id' => 309018], $query->params, $table),
                     $rdbms->makeGroupSQL($pk, $query->params, $table),
                     $rdbms->makeOrderSQL([$pk => SORT_ASC], $query->params, $table),
@@ -848,7 +849,7 @@ class Item extends Util
 //                print_r($query->text);
 //                die;
 
-                return $rdbms->req($query)->reqToArrays();
+                return $rdbms->reqToArrays($query);
             })
             ->setFnDo(function ($items) use ($nosql, $entity, $pk, $table, $sva, $mva, &$aff) {
                 $items = array_map(function ($item) use ($pk, $sva, $mva, $entity) {
@@ -924,11 +925,11 @@ class Item extends Util
         return $aff;
     }
 
-    public function doIndexFtdbms(int $reindexDays = 0)
+    public function doIndexIndexer(int $reindexDays = 0)
     {
-        return $this->doIndexElastic(new Expr(implode(' OR ', [
-            $this->app->storage->mysql->quote('created_at') . ' >= (CURDATE() - INTERVAL ? DAY)',
-            $this->app->storage->mysql->quote('updated_at') . ' >= (CURDATE() - INTERVAL ? DAY)',
+        return $this->doIndexElastic(new Expression(implode(' OR ', [
+            $this->app->container->db->quote('created_at') . ' >= (CURDATE() - INTERVAL ? DAY)',
+            $this->app->container->db->quote('updated_at') . ' >= (CURDATE() - INTERVAL ? DAY)',
         ]), $reindexDays, $reindexDays));
     }
 
@@ -1002,11 +1003,10 @@ class Item extends Util
     {
         $index = $index ?: $this->app->managers->items->getEntity()->getTable();
 
-        $elastic = $this->app->storage->elastic;
+        $indexerManager = $this->app->container->indexer->getManager();
+        $indexerManager->deleteIndex($index);
 
-        $elastic->deleteIndex($index);
-
-        if (!$elastic->createIndex($index, $this->getElasticMappings())) {
+        if (!$indexerManager->createIndex($index, $this->getElasticMappings())) {
             return false;
         }
 
@@ -1017,7 +1017,7 @@ class Item extends Util
     {
         $aff = 0;
 
-        $elastic = $this->app->storage->elastic;
+        $indexerManager = $this->app->container->indexer;
 
         /** @var string|Entity $entity */
         $entity = $this->app->managers->items->getEntity();
@@ -1079,14 +1079,14 @@ class Item extends Util
 
         $mappingKeys = array_keys($this->getElasticMappings()['properties']);
 
-        $mysql = $this->app->storage->mysql;
+        $mysql = $this->app->container->db;
 
         (new WalkChunk2(1000))
             ->setFnGet(function ($lastId, $size) use ($mysql, $itemPk, $itemTable, $mva, $columns, $where) {
                 $query = new Query(['params' => []]);
 
                 if ($lastId) {
-                    $where[] = new Expr($mysql->quote($itemPk, $itemTable) . ' > ?', $lastId);
+                    $where[] = new Expression($mysql->quote($itemPk, $itemTable) . ' > ?', $lastId);
                 }
 
                 $query->text = implode(' ', [
@@ -1109,10 +1109,10 @@ class Item extends Util
                     $mysql->makeLimitSQL(0, $size, $query->params)
                 ]);
 
-                return $mysql->req($query)->reqToArrays();
+                return $mysql->reqToArrays($query);
             })
             ->setFnDo(function ($items) use (
-                $elastic, $entity, $itemPk, $index, $sva, $mva, $columnsOptions, $mappingKeys, $categoryManager,
+                $indexerManager, $entity, $itemPk, $index, $sva, $mva, $columnsOptions, $mappingKeys, $categoryManager,
                 $injectAttrIdToName, $managers, $searchColumns, &$aff
             ) {
                 $items = Arrays::mapByKeyValueMaker($items, function ($i, $item) use (
@@ -1236,7 +1236,7 @@ class Item extends Util
                     return [$id, $item];
                 });
 
-                $aff += $elastic->indexMany($index, $items);
+                $aff += $indexerManager->indexMany($index, $items);
 
                 return end($items) ? key($items) : false;
             })
@@ -1245,19 +1245,15 @@ class Item extends Util
         return $aff;
     }
 
-    public function doIndexElastic($where = null): int
+    public function doIndexElastic(): int
     {
-//        if ($where) {
-//            return $this->doDeleteMissingElastic() + $this->doRawIndexElastic(null, $where);
-//        }
-
-        $elastic = $this->app->storage->elastic;
+        $indexerManager = $this->app->container->indexer;
         $alias = $this->app->managers->items->getEntity()->getTable();
         $newIndex = $alias . '_' . time();
 
         $this->doCreateElasticIndex($newIndex);
 
-        return $elastic->switchAliasIndex($alias, $newIndex, function ($index) {
+        return $indexerManager->switchAliasIndex($alias, $newIndex, function ($index) {
             return $this->doRawIndexElastic($index);
         });
     }

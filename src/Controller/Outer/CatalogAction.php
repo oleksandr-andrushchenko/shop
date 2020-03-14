@@ -4,7 +4,7 @@ namespace SNOWGIRL_SHOP\Controller\Outer;
 
 use SNOWGIRL_CORE\Controller\Outer\PrepareServicesTrait;
 use SNOWGIRL_CORE\Helper\Arrays;
-use SNOWGIRL_SHOP\App\Web as App;
+use SNOWGIRL_SHOP\Http\HttpApp as App;
 use SNOWGIRL_SHOP\Catalog\SEO;
 use SNOWGIRL_SHOP\Catalog\SRC;
 use SNOWGIRL_SHOP\Catalog\URI;
@@ -34,7 +34,7 @@ class CatalogAction
 
         $app->managers->categories->clear();
 
-        $app->services->mcms->prefetch([
+        $app->container->cache->getMulti([
             $app->managers->categories->getAllIDsCacheKey(),
             $app->managers->pages->getMenuCacheKey(),
         ]);
@@ -174,7 +174,7 @@ class CatalogAction
             'showTags' => $categoryId && $app->managers->categories->isLeaf($category),
             'vkontakteLike' => $app->views->vkontakteLike($view)->stringify(),
             'facebookLike' => $app->views->facebookLike($view)->stringify(),
-            'asyncFilters' => $app->config->catalog->async_filters(false)
+            'asyncFilters' => $app->config('catalog.async_filters', false)
         ]);
 
         if ($content->hasItems) {

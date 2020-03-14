@@ -44,7 +44,7 @@ class Admitad extends Import
 
     public function getFilename(): string
     {
-        if (false && $lastOkImport = $this->getLastOkImport()) {
+        if ($lastOkImport = $this->getLastOkImport()) {
             return $this->source->getFile() . '&last_import=' . $lastOkImport->getCreatedAt(true)->format('Y.m.d.H.i');
         }
 
@@ -92,11 +92,11 @@ class Admitad extends Import
                 }
             };
 
-            $this->paramsCallbacks['country_id'] = function ($params) {
-                if (isset($params['Страна-изготовитель'])) {
-                    return array_map('trim', explode(',', $params['Страна-изготовитель']));
-                }
-            };
+//            $this->paramsCallbacks['country_id'] = function ($params) {
+//                if (isset($params['Страна-изготовитель'])) {
+//                    return array_map('trim', explode(',', $params['Страна-изготовитель']));
+//                }
+//            };
 
             $this->paramsCallbacks['material_id'] = function ($params) {
                 $output = [];

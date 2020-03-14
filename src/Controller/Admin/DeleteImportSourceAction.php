@@ -2,9 +2,9 @@
 
 namespace SNOWGIRL_SHOP\Controller\Admin;
 
-use SNOWGIRL_CORE\Exception\HTTP\BadRequest;
+use SNOWGIRL_CORE\Http\Exception\BadRequestHttpException;
 use SNOWGIRL_CORE\View\Layout;
-use SNOWGIRL_SHOP\App\Web as App;
+use SNOWGIRL_SHOP\Http\HttpApp as App;
 use SNOWGIRL_CORE\Controller\Admin\PrepareServicesTrait;
 use SNOWGIRL_SHOP\Entity\Import\Source as ImportSource;
 use SNOWGIRL_SHOP\RBAC;
@@ -20,7 +20,7 @@ class DeleteImportSourceAction
         $app->rbac->checkPerm(RBAC::PERM_DELETE_IMPORT_SOURCE);
 
         if (!$id = $app->request->get('id')) {
-            throw (new BadRequest)->setInvalidParam('id');
+            throw (new BadRequestHttpException)->setInvalidParam('id');
         }
 
         $source = $app->managers->sources->find($id);

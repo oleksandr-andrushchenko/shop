@@ -2,26 +2,25 @@
 
 namespace SNOWGIRL_SHOP\View\Layout;
 
-use SNOWGIRL_CORE\Script\Css;
-use SNOWGIRL_CORE\Script\Js;
+use SNOWGIRL_CORE\View\Layout;
 use SNOWGIRL_SHOP\RBAC;
 
 class Admin extends \SNOWGIRL_CORE\View\Layout\Admin
 {
-    protected function addCssNodes()
+    protected function addCssNodes(): Layout
     {
         return parent::addCssNodes()
-            ->addHeadCss(new Css('@shop/core.css'));
+            ->addHeadCss('@shop/core.css');
     }
 
-    protected function addJsNodes()
+    protected function addJsNodes(): Layout
     {
         return parent::addJsNodes()
-            ->addJs(new Js('@shop/core.js'))
-            ->addJs(new Js('@shop/admin/core.js'));
+            ->addJs('@shop/core.js')
+            ->addJs('@shop/admin/core.js');
     }
 
-    protected function addMenuNodes()
+    protected function addMenuNodes(): Layout
     {
         parent::addMenuNodes();
 

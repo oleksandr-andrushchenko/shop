@@ -3,7 +3,7 @@
 namespace SNOWGIRL_SHOP\Controller\Console;
 
 use SNOWGIRL_CORE\Controller\Console\PrepareServicesTrait;
-use SNOWGIRL_CORE\Exception\HTTP\BadRequest;
+use SNOWGIRL_CORE\Http\Exception\BadRequestHttpException;
 use SNOWGIRL_CORE\Image;
 use SNOWGIRL_SHOP\App\Console as App;
 
@@ -16,7 +16,7 @@ class DownloadImageAction
         $this->prepareServices($app);
 
         if (!$target = $app->request->get('param_1')) {
-            throw (new BadRequest)->setInvalidParam('target');
+            throw (new BadRequestHttpException)->setInvalidParam('target');
         }
 
         $hash = $app->request->get('param_2', null);

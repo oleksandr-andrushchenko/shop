@@ -3,7 +3,7 @@
 namespace SNOWGIRL_SHOP\Controller\Admin;
 
 use SNOWGIRL_CORE\View\Layout;
-use SNOWGIRL_SHOP\App\Web as App;
+use SNOWGIRL_SHOP\Http\HttpApp as App;
 use SNOWGIRL_CORE\Controller\Admin\PrepareServicesTrait;
 use SNOWGIRL_SHOP\RBAC;
 

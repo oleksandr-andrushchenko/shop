@@ -48,8 +48,8 @@ abstract class Attr extends Entity
     /**
      * @param $v
      *
-     * @return Entity|Attr
-     * @throws \SNOWGIRL_CORE\Exception\EntityAttr\Required
+     * @return Entity
+     * @throws Entity\EntityException
      */
     public function setName($v)
     {

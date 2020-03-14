@@ -3,14 +3,14 @@
 namespace SNOWGIRL_SHOP\Util;
 
 use SNOWGIRL_CORE\Util;
-use SNOWGIRL_SHOP\App\Console;
-use SNOWGIRL_SHOP\App\Web;
+use SNOWGIRL_SHOP\Console\ConsoleApp;
 use SNOWGIRL_SHOP\Entity\Import\Source as ImportSource;
+use SNOWGIRL_SHOP\Http\HttpApp;
 
 /**
  * Class Source
  *
- * @property Web|Console app
+ * @property HttpApp|ConsoleApp app
  * @package SNOWGIRL_SHOP\Util
  */
 class Source extends Util

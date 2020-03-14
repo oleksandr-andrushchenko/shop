@@ -2,13 +2,13 @@
 
 namespace SNOWGIRL_SHOP\Controller\Outer;
 
-use SNOWGIRL_SHOP\App\Web as App;
+use SNOWGIRL_SHOP\Http\HttpApp as App;
 
 trait GetFiltersCountsObjectTrait
 {
     public function getFiltersCountsObject(App $app)
     {
-        return $app->config->catalog->filters_counts([
+        return $app->config('catalog.filters_counts', [
             'tag' => 10,
             'brand' => 100,
             'country' => null,

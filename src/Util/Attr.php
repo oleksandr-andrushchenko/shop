@@ -6,10 +6,10 @@ use SNOWGIRL_CORE\Entity;
 use SNOWGIRL_CORE\Helper\WalkChunk;
 use SNOWGIRL_CORE\Helper\WalkChunk2;
 use SNOWGIRL_CORE\Manager;
-use SNOWGIRL_CORE\Service\Storage\Query\Expr;
+use SNOWGIRL_CORE\Query\Expression;
 use SNOWGIRL_CORE\Service\Nosql\Mongo;
-use SNOWGIRL_CORE\Service\Rdbms\Mysql;
-use SNOWGIRL_CORE\Service\Storage\Query;
+use SNOWGIRL_CORE\Service\Db\Mysql;
+use SNOWGIRL_CORE\Query;
 use SNOWGIRL_CORE\Util;
 use SNOWGIRL_SHOP\App\Console as App;
 use SNOWGIRL_SHOP\Item\FixWhere;
@@ -24,11 +24,11 @@ use SNOWGIRL_SHOP\Manager\Term as TermManager;
  */
 class Attr extends Util
 {
-    public function doDeleteNonExistingItemsMva(FixWhere $fixWhere = null)
+    public function doDeleteNonExistingItemsMva(FixWhere $fixWhere = null, array $params = [])
     {
         $aff = 0;
 
-        $db = $this->app->services->rdbms;
+        $db = $this->app->container->db;
 
         $itemTable = $this->app->managers->items->getEntity()->getTable();
         $itemPk = $this->app->managers->items->getEntity()->getPk();
@@ -42,25 +42,32 @@ class Attr extends Util
             $linkManager = $manager->getMvaLinkManager();
             $linkTable = $linkManager->getEntity()->getTable();
 
-            $affTmp1 = $db->req(implode(' ', [
+            $query = new Query();
+            $query->params = [];
+            $query->text = implode(' ', [
                 'DELETE ' . $db->quote('ia'),
                 'FROM ' . $db->quote($linkTable) . ' ' . $db->quote('ia'),
                 'LEFT JOIN ' . $db->quote($table) . ' ' . $db->quote('a') . ' USING (' . $db->quote($pk) . ')',
                 'WHERE ' . $db->quote($pk, 'a') . ' IS NULL'
-            ]))->affectedRows();
+            ]);
+            $query->merge($params);
+
+            $affTmp1 = $db->req($query)->affectedRows();
 
             $this->output($affTmp1 . ' deleted from ' . $linkTable . ' [not exists in ' . $table . ']');
 
             $where = $fixWhere ? $fixWhere->get() : [];
-            $where[] = new Expr($db->quote($itemPk, $itemTable) . ' IS NULL');
+            $where[] = new Expression($db->quote($itemPk, $itemTable) . ' IS NULL');
 
-            $query = new Query(['params' => []]);
+            $query = new Query();
+            $query->params = [];
             $query->text = implode(' ', [
                 'DELETE ' . $db->quote('ia'),
                 'FROM ' . $db->quote($linkTable) . ' ' . $db->quote('ia'),
                 'LEFT JOIN ' . $db->quote($itemTable) . ' USING (' . $db->quote($itemPk) . ')',
                 $db->makeWhereSQL($where, $query->params)
             ]);
+            $query->merge($params);
 
             $affTmp2 = $db->req($query)->affectedRows();
 
@@ -83,7 +90,7 @@ class Attr extends Util
         $pk = $manager->getEntity()->getPk();
 
         if ($manager->getEntity() instanceof Category) {
-            $manager->setOrders([new Expr('LENGTH(`name`) DESC'), 'name' => SORT_ASC]);
+            $manager->setOrders([new Expression('LENGTH(`name`) DESC'), 'name' => SORT_ASC]);
         }
 
         foreach ($manager->setColumns([$pk, 'name'])->getArrays() as $row) {
@@ -125,7 +132,7 @@ class Attr extends Util
         $pk = $manager->getEntity()->getPk();
 
         if ($manager->getEntity() instanceof Category) {
-            $manager->setOrders([new Expr('LENGTH(`name`) DESC'), 'name' => SORT_ASC]);
+            $manager->setOrders([new Expression('LENGTH(`name`) DESC'), 'name' => SORT_ASC]);
         }
 
         $manager->setColumns([$pk, 'name', 'uri']);
@@ -272,7 +279,7 @@ class Attr extends Util
 
                 foreach ($inserts as $table => $insert) {
                     if ($insert && $aff = $managers[$table]->insertMany($insert, ['ignore' => true])) {
-                        $this->app->services->logger->make($aff . ' updated for attr="' . $table . '"');
+                        $this->app->container->logger->debug($aff . ' updated for attr="' . $table . '"');
                     }
                 }
             })
@@ -286,7 +293,7 @@ class Attr extends Util
         $aff = 0;
 
         /** @var Mysql $rdbms */
-        $rdbms = $this->app->services->rdbms;
+        $rdbms = $this->app->container->db;
 
         /** @var Mongo $nosql */
         $nosql = $this->app->services->nosql;
@@ -327,13 +334,13 @@ class Attr extends Util
                             return $rdbms->quote($column, $table);
                         }, $columns)),
                         'FROM ' . $rdbms->quote($table),
-                        $lastId ? $rdbms->makeWhereSQL(new Expr($rdbms->quote($pk, $table) . ' > ?', $lastId), $query->params, $table) : '',
+                        $lastId ? $rdbms->makeWhereSQL(new Expression($rdbms->quote($pk, $table) . ' > ?', $lastId), $query->params, $table) : '',
                         $rdbms->makeGroupSQL($pk, $query->params, $table),
                         $rdbms->makeOrderSQL([$pk => SORT_ASC], $query->params, $table),
                         $rdbms->makeLimitSQL(0, $size, $query->params)
                     ]);
 
-                    return $rdbms->req($query)->reqToArrays();
+                    return $rdbms->reqToArrays($query);
                 })
                 ->setFnDo(function ($items) use ($nosql, $entity, $pk, $table, &$affTmp) {
                     $items = array_map(function ($item) use ($pk, $entity) {
@@ -385,7 +392,7 @@ class Attr extends Util
     {
         $aff = 0;
 
-        $db = $this->app->services->rdbms;
+        $db = $this->app->container->db;
 
         $mvaPkToTable = $this->app->managers->catalog->getMvaPkToTable();
         $mvaPkToTable['image_id'] = 'image';

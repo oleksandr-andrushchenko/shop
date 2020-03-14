@@ -2,12 +2,15 @@
 
 namespace SNOWGIRL_SHOP\Item\URI;
 
-use SNOWGIRL_CORE\App;
-use SNOWGIRL_CORE\Service\Storage\Query\Expr;
+use SNOWGIRL_CORE\AbstractApp as App;
+use SNOWGIRL_CORE\Http\HttpRequest;
+use SNOWGIRL_CORE\Query\Expression;
 use SNOWGIRL_CORE\Request;
-use SNOWGIRL_CORE\Service\Rdbms as DB;
-use SNOWGIRL_SHOP\App\Console;
-use SNOWGIRL_SHOP\App\Web;
+use SNOWGIRL_CORE\Route;
+use SNOWGIRL_CORE\Router;
+use SNOWGIRL_CORE\Db\DbInterface;
+use SNOWGIRL_SHOP\Console\ConsoleApp;
+use SNOWGIRL_SHOP\Http\HttpApp;
 use SNOWGIRL_SHOP\Item\SRC;
 use SNOWGIRL_SHOP\Item\URI;
 use SNOWGIRL_SHOP\Manager\Builder as Managers;
@@ -16,31 +19,41 @@ use SNOWGIRL_SHOP\Catalog\URI as CatalogURI;
 /**
  * Class Manager
  *
- * @property App|Web|Console
+ * @property HttpApp|ConsoleApp app
  * @package SNOWGIRL_SHOP\Item\URI
  */
 class Manager
 {
-    /** @var Managers */
+    /**
+     * @var Managers
+     */
     protected $managers;
 
-    /** @var DB */
+    /**
+     * @var DbInterface
+     */
     protected $db;
+
+    /**
+     * @var Router
+     */
+    protected $router;
 
     public function __construct(App $app)
     {
         $this->managers = $app->managers;
-        $this->db = $app->services->rdbms;
+        $this->db = $app->container->db;
+        $this->router = $app->router;
     }
 
     /**
-     * @param Request $request
-     * @param bool    $domain
+     * @param HttpRequest $request
+     * @param bool $domain
      *
      * @return bool|URI
      * @throws \Exception
      */
-    public function createFromRequest(Request $request, $domain = false)
+    public function createFromRequest(HttpRequest $request, $domain = false)
     {
         $params = $this->parseRequestPath($request);
 
@@ -55,12 +68,12 @@ class Manager
     }
 
     /**
-     * @param Request $request
+     * @param HttpRequest $request
      *
      * @return array|bool
      * @throws \Exception
      */
-    protected function parseRequestPath(Request $request)
+    protected function parseRequestPath(HttpRequest $request)
     {
         $output = [];
 
@@ -90,7 +103,7 @@ class Manager
             //@todo log 404 separately...
 //            $this->checkRedirectIndex($rawUri, $request);
 
-//            throw new NotFound;
+//            throw new NotFoundHttpException;
             return false;
         }
 
@@ -98,13 +111,13 @@ class Manager
     }
 
     /**
-     * @param         $path
-     * @param Request $request
+     * @param $path
+     * @param HttpRequest $request
      *
      * @return bool
-     * @throws \Exception
+     * @throws \SNOWGIRL_CORE\Exception
      */
-    protected function checkRedirectWithBestMatch($path, Request $request)
+    protected function checkRedirectWithBestMatch($path, HttpRequest $request)
     {
         $params = [];
 
@@ -123,7 +136,7 @@ class Manager
 
             $brand = $this->managers->brands->clear()
                 ->setWhere(['uri' => $tmp])
-                ->setOrders(new Expr('LENGTH(' . $this->db->quote('uri') . ') DESC'))
+                ->setOrders(new Expression('LENGTH(' . $this->db->quote('uri') . ') DESC'))
                 ->getObject();
 
             if ($brand) {
@@ -137,7 +150,7 @@ class Manager
         return false;
     }
 
-    protected function checkRedirectWithItemTable($id, Request $request)
+    protected function checkRedirectWithItemTable($id, HttpRequest $request)
     {
         if ($id = $this->managers->itemRedirects->getByIdFrom($id)) {
             if (!$item = $this->managers->items->find($id)) {
@@ -154,7 +167,7 @@ class Manager
         return false;
     }
 
-    protected function checkRedirectWithTable($path, Request $request)
+    protected function checkRedirectWithTable($path, HttpRequest $request)
     {
         if ($uri = $this->managers->redirects->getByUriFrom($path)) {
             $request->redirectToRoute('default', ['action' => $uri], 301);
@@ -164,7 +177,7 @@ class Manager
         return false;
     }
 
-    protected function checkRedirectWithLessRequirements($path, Request $request)
+    protected function checkRedirectWithLessRequirements($path, HttpRequest $request)
     {
         false && $path;
 
@@ -176,7 +189,7 @@ class Manager
         return false;
     }
 
-    protected function checkRedirectIndex($path, Request $request)
+    protected function checkRedirectIndex($path, HttpRequest $request)
     {
         false && $path;
         $request->redirectToRoute('default', [], 301);

@@ -1,9 +1,6 @@
-<!---->
 <?php
 
 use SNOWGIRL_CORE\View;
-use SNOWGIRL_CORE\Script\Css;
-use SNOWGIRL_CORE\Script\Js;
 use SNOWGIRL_CORE\Entity;
 use SNOWGIRL_SHOP\Entity\Category;
 use SNOWGIRL_CORE\Image;
@@ -20,12 +17,12 @@ $this->getLayout()
     ->setTitle($title = 'Фиксы категорий')
     ->addBreadcrumb($title)
     ->setH1('Фиксы')
-    ->addHeadCss(new Css('@core/admin/database.css'))
-    ->addHeadCss(new Css('@shop/admin/item-fixes.css'))
-    ->addHeadCss(new Css('@shop/admin/category-fixes.css'))
-    ->addHeadCss(new Css('@core/jquery.easyzoom.css'))
-    ->addJs(new Js('@core/jquery.easyzoom.js'))
-    ->addJs(new Js('@shop/admin/category-fixes.js'));
+    ->addHeadCss('@core/admin/database.css')
+    ->addHeadCss('@shop/admin/item-fixes.css')
+    ->addHeadCss('@shop/admin/category-fixes.css')
+    ->addHeadCss('@core/jquery.easyzoom.css')
+    ->addJs('@core/jquery.easyzoom.js')
+    ->addJs('@shop/admin/category-fixes.js');
 
 $manager = $this->app->managers->categories;
 ?>
@@ -48,7 +45,8 @@ $manager = $this->app->managers->categories;
 
     <div class="form-group">
         <label>Категория* <?php echo clone $this->categoryPicker ?></label>
-        <label>Сущность* <input type="text" name="entity" id="entity" class="form-control" placeholder="entity" required/></label>
+        <label>Сущность* <input type="text" name="entity" id="entity" class="form-control" placeholder="entity"
+                                required/></label>
         <label>Стоп-слова <?php echo $this->app->views->tagInput(['name' => 'stop_words', 'multiple' => true], $this) ?></label>
     </div>
 
@@ -211,7 +209,8 @@ $manager = $this->app->managers->categories;
                                                 [
                                                 <?php echo $itemEntity->getCount() ?>
                                                 <?php if ($itemEntity->getStopWords()) { ?>
-                                                    | <strike><?php echo implode('</strike>, <strike>', $itemEntity->getStopWords(true)) ?></strike>
+                                                    |
+                                                    <strike><?php echo implode('</strike>, <strike>', $itemEntity->getStopWords(true)) ?></strike>
                                                 <?php } ?>
                                                 ]
                                             </label>

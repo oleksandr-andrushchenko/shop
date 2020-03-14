@@ -3,7 +3,7 @@
 namespace SNOWGIRL_SHOP\Manager;
 
 use SNOWGIRL_CORE\Entity;
-use SNOWGIRL_CORE\Service\Storage\Query\Expr;
+use SNOWGIRL_CORE\Query\Expression;
 use SNOWGIRL_SHOP\Manager\Item\Attr;
 use SNOWGIRL_SHOP\Entity\Vendor as VendorEntity;
 use SNOWGIRL_SHOP\Vendor as VendorAdapter;
@@ -53,14 +53,19 @@ class Vendor extends Attr implements GoLinkBuilderInterface
      */
     public function getNonEmptyObjects()
     {
-        return $this->populateList($this->app->services->mcms->call($this->getNonEmptyCacheKey(), function () {
+        $key = $this->getNonEmptyCacheKey();
+
+        if (!$this->app->container->cache->has($key, $list)) {
             $pk = $this->entity->getPk();
 
-            $columns = new Expr('DISTINCT(' . $pk . ') AS ' . $this->app->services->rdbms->quote($pk));
+            $columns = new Expression('DISTINCT(' . $pk . ') AS ' . $this->app->container->db->quote($pk));
 
-            return $this->app->managers->items->clear()
-                ->getColumn($pk, $columns);
-        }));
+            $list = $this->app->managers->items->clear()->getColumn($pk, $columns);
+
+            $this->app->container->cache->set($key, $list);
+        }
+
+        return $this->populateList($list);
     }
 
     /**

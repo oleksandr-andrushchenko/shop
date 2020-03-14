@@ -2,7 +2,7 @@
 
 namespace SNOWGIRL_SHOP\Controller\Outer;
 
-use SNOWGIRL_SHOP\App\Web as App;
+use SNOWGIRL_SHOP\Http\HttpApp as App;
 use SNOWGIRL_SHOP\Catalog\URI;
 
 class GetCatalogFiltersSizesView

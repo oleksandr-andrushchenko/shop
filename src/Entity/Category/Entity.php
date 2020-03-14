@@ -17,12 +17,12 @@ class Entity extends \SNOWGIRL_CORE\Entity
         'is_active' => ['type' => self::COLUMN_INT, 'default' => 0]
     ];
 
-    public function setId($v)
+    public function setId($v): \SNOWGIRL_CORE\Entity
     {
         return $this->setRequiredAttr('id', (int)$v);
     }
 
-    public function getId($makeCompositeId = true)
+    public function getId(bool $makeCompositeId = true)
     {
         return (int)$this->getRawAttr('id');
     }

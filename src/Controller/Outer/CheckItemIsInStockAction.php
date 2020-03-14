@@ -3,10 +3,10 @@
 namespace SNOWGIRL_SHOP\Controller\Outer;
 
 use SNOWGIRL_CORE\Controller\Outer\PrepareServicesTrait;
-use SNOWGIRL_CORE\Exception\HTTP\BadRequest;
+use SNOWGIRL_CORE\Http\Exception\BadRequestHttpException;
 use SNOWGIRL_CORE\Exception\HTTP\MethodNotAllowed;
-use SNOWGIRL_CORE\Exception\HTTP\NotFound;
-use SNOWGIRL_SHOP\App\Web as App;
+use SNOWGIRL_CORE\Http\Exception\NotFoundHttpException;
+use SNOWGIRL_SHOP\Http\HttpApp as App;
 
 class CheckItemIsInStockAction
 {
@@ -21,11 +21,11 @@ class CheckItemIsInStockAction
         }
 
         if (!$id = $app->request->get('id')) {
-            throw (new BadRequest)->setInvalidParam('id');
+            throw (new BadRequestHttpException)->setInvalidParam('id');
         }
 
         if (!$item = $app->managers->items->find($id)) {
-            throw (new NotFound)->setNonExisting('item');
+            throw (new NotFoundHttpException)->setNonExisting('item');
         }
 
         if ($item->isInStock()) {
@@ -37,13 +37,10 @@ class CheckItemIsInStockAction
                 $item->setIsInStock(true);
                 $app->managers->items->updateOne($item);
 
-                if ($app->services->mcms->isOn()) {
-                    //do manual cache coz of ftdbms storage
-                    $app->services->mcms->set(
-                        $app->managers->items->getCacheKeyByEntity($item),
-                        $item->getAttrs()
-                    );
-                }
+                $app->container->cache->set(
+                    $app->managers->items->getCacheKeyByEntity($item),
+                    $item->getAttrs()
+                );
             }
         }
 

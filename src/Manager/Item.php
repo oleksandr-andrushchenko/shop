@@ -2,9 +2,9 @@
 
 namespace SNOWGIRL_SHOP\Manager;
 
-use SNOWGIRL_CORE\App;
+use SNOWGIRL_CORE\AbstractApp;
 use SNOWGIRL_CORE\Helper\Arrays;
-use SNOWGIRL_CORE\Service\Storage\Query\Expr;
+use SNOWGIRL_CORE\Query\Expression;
 use SNOWGIRL_CORE\Entity;
 use SNOWGIRL_SHOP\Catalog\SRC;
 use SNOWGIRL_SHOP\Catalog\URI;
@@ -24,7 +24,7 @@ use SNOWGIRL_SHOP\Entity\Category as CategoryEntity;
 use SNOWGIRL_SHOP\Entity\Color as ColorEntity;
 use SNOWGIRL_SHOP\Entity\Country as CountryEntity;
 use SNOWGIRL_SHOP\Entity\Vendor as VendorEntity;
-use SNOWGIRL_CORE\Service\Storage\Query;
+use SNOWGIRL_CORE\Query;
 
 /**
  * @todo    split into Item\SRC and Item\URI (add alias URIs then after...)
@@ -46,6 +46,7 @@ class Item extends Manager implements GoLinkBuilderInterface
 
         $output = parent::onDeleted($entity);
         $output = $output && $this->app->images->get($entity->getImage())->delete();
+
         return $output;
     }
 
@@ -73,7 +74,7 @@ class Item extends Manager implements GoLinkBuilderInterface
             [BrandEntity::class]
         ];
 
-        $components = PageCatalogManager::getComponentsOrderByRdbmsKey();
+        $components = PageCatalogManager::getComponentsOrderByDbKey();
         $types = URI::TYPE_PARAMS;
 
         $limit = 7;
@@ -253,15 +254,15 @@ class Item extends Manager implements GoLinkBuilderInterface
         } else {
             $key = $this->getMvaCacheKey($item, array_keys($mva));
 
-            $output = $this->getCacheObject()->call($key, function () use ($item, $mva) {
+            if (!$this->getCache()->has($key, $output)) {
                 $pk = $this->entity->getPk();
                 $table = $this->entity->getTable();
 
-                $db = $this->app->services->rdbms(null, null, $this->masterServices);
+                $db = $this->app->container->db($this->masterServices);
 
                 $columns = [];
                 $joins = [];
-                $where = [new Expr($db->quote($pk, $table) . ' = ?', $item->getId())];
+                $where = [new Expression($db->quote($pk, $table) . ' = ?', $item->getId())];
 
                 foreach ($mva as $attrPk => $attrEntity) {
                     /** @var Entity $attrEntity */
@@ -269,7 +270,7 @@ class Item extends Manager implements GoLinkBuilderInterface
                     /** @var Entity $entity */
                     $table2 = 'item_' . $attrEntity::getTable();
                     $joins[] = 'LEFT JOIN ' . $db->quote($table2) . ' ON ' . $db->quote($pk, $table) . ' = ' . $db->quote('item_id', $table2);
-                    $columns[] = new Expr('GROUP_CONCAT(DISTINCT ' . $db->quote($attrPk) . ') AS ' . $db->quote($attrPk));
+                    $columns[] = new Expression('GROUP_CONCAT(DISTINCT ' . $db->quote($attrPk) . ') AS ' . $db->quote($attrPk));
                 }
 
                 $query = new Query(['params' => []]);
@@ -280,10 +281,10 @@ class Item extends Manager implements GoLinkBuilderInterface
                     $db->makeWhereSQL($where, $query->params)
                 ]);
 
-                $output = $db->req($query)->reqToArray();
+                $output = $db->reqToArray($query);
 
-                return $output;
-            });
+                $this->getCache()->set($key, $output);
+            }
         }
 
         $tmp = array_map(function ($attrId) {
@@ -406,7 +407,7 @@ class Item extends Manager implements GoLinkBuilderInterface
     {
         $output = [];
 
-        $tmp = explode(',', $this->app->config->catalog->price);
+        $tmp = explode(',', $this->app->config('catalog.price'));
         array_unshift($tmp, 0);
         $tmp[] = 9999999;
 
@@ -436,7 +437,7 @@ class Item extends Manager implements GoLinkBuilderInterface
     }
 
     /**
-     * @todo replace inner selects with joins in case of Rdbms...
+     * @todo replace inner selects with joins in case of Db...
      *
      * @param URI $uri
      *
@@ -444,37 +445,36 @@ class Item extends Manager implements GoLinkBuilderInterface
      */
     public function getPricesByUri(URI $uri)
     {
-        $cache = $this->getCacheObject();
-        $k = $this->getPricesByUriCacheKey($uri);
+        $cacheKey = $this->getPricesByUriCacheKey($uri);
+        $cache = $this->getCache();
 
-        if (false !== ($output = $cache->get($k))) {
-            return $output;
-        }
+        if (!$cache->has($cacheKey, $items)) {
+            $items = [];
 
-        $items = [];
-
-        foreach ($this->getDataProvider()->getPricesByUri($uri) as $row) {
-            foreach ($row as $k => $v) {
-                if (1 == $v && 'cnt' != $k) {
-                    $tmp2 = explode('_', $k);
-                    $items[] = (object)[
-                        'from' => (int)$tmp2[1],
-                        'to' => (int)$tmp2[2],
-                        'cnt' => $row['cnt']
-                    ];
+            foreach ($this->getDataProvider()->getPricesByUri($uri) as $row) {
+                foreach ($row as $k => $v) {
+                    if (1 == $v && 'cnt' != $k) {
+                        $tmp2 = explode('_', $k);
+                        $items[] = (object)[
+                            'from' => (int)$tmp2[1],
+                            'to' => (int)$tmp2[2],
+                            'cnt' => $row['cnt']
+                        ];
+                    }
                 }
             }
+
+            usort($items, function ($a, $b) {
+                if ($a->from == $b->from) {
+                    return 0;
+                }
+
+                return ($a->from > $b->from) ? 1 : -1;
+            });
+
+            $cache->set($cacheKey, $items);
         }
 
-        usort($items, function ($a, $b) {
-            if ($a->from == $b->from) {
-                return 0;
-            }
-
-            return ($a->from > $b->from) ? 1 : -1;
-        });
-
-        $cache->set($k, $items);
         return $items;
     }
 
@@ -499,50 +499,49 @@ class Item extends Manager implements GoLinkBuilderInterface
      */
     public function getTypesByUri(URI $uri)
     {
-        $cache = $this->getCacheObject();
-        $k = $this->getTypesByUriCacheKey($uri);
+        $cache = $this->getCache();
+        $cacheKey = $this->getTypesByUriCacheKey($uri);
 
-        if (false !== ($output = $cache->get($k))) {
-            return $output;
-        }
+        if (!$cache->has($cacheKey, $output)) {
+            $tmp = $this->getDataProvider()->getTypesByUri($uri, $map, $current);
 
-        $tmp = $this->getDataProvider()->getTypesByUri($uri, $map, $current);
+            $tmp2 = [];
 
-        $tmp2 = [];
+            foreach ($map as $uriKey => $dbKey) {
+                if ($current[$uriKey]) {
+                    $tmp2[$uriKey] = null;
+                } else {
+                    $tmp2[$uriKey] = 0;
 
-        foreach ($map as $uriKey => $dbKey) {
-            if ($current[$uriKey]) {
-                $tmp2[$uriKey] = null;
-            } else {
-                $tmp2[$uriKey] = 0;
+                    $state = array_merge($current, [$uriKey => 1]);
 
-                $state = array_merge($current, [$uriKey => 1]);
-
-                foreach ($tmp as $row) {
-                    foreach ($state as $uriKey2 => $isset) {
-                        if ($isset && !$row[$map[$uriKey2]]) {
-                            continue 2;
+                    foreach ($tmp as $row) {
+                        foreach ($state as $uriKey2 => $isset) {
+                            if ($isset && !$row[$map[$uriKey2]]) {
+                                continue 2;
+                            }
                         }
-                    }
 
-                    $tmp2[$uriKey] += $row['cnt'];
+                        $tmp2[$uriKey] += $row['cnt'];
+                    }
                 }
             }
-        }
 
-        $output = [];
+            $output = [];
 
-        foreach ($tmp2 as $type => $count) {
-            if ((null === $count) || ($count > 0)) {
-                $output[$type] = (object)[
-                    'name' => $type,
-                    'count' => $count,
-                    'active' => !!$uri->get($type)
-                ];
+            foreach ($tmp2 as $type => $count) {
+                if ((null === $count) || ($count > 0)) {
+                    $output[$type] = (object)[
+                        'name' => $type,
+                        'count' => $count,
+                        'active' => !!$uri->get($type)
+                    ];
+                }
             }
+
+            $cache->set($cacheKey, $output);
         }
 
-        $cache->set($k, $output);
         return $output;
     }
 
@@ -560,7 +559,7 @@ class Item extends Manager implements GoLinkBuilderInterface
         $columns = array_keys($this->entity->getColumns());
         $groupColumn = 'category_id';
 
-        $db = $this->app->services->rdbms(null, null, $this->masterServices);
+        $db = $this->app->container->db($this->masterServices);
 
         $query = new Query(['params' => []]);
         $query->text = implode(' ', [
@@ -571,12 +570,12 @@ class Item extends Manager implements GoLinkBuilderInterface
             $db->makeWhereSQL($where, $query->params),
             $db->makeOrderSQL([$groupColumn => SORT_ASC, 'created_at' => SORT_DESC, 'partner_updated_at' => SORT_DESC], $query->params),
             ') ' . $db->quote('t2'),
-            $db->makeWhereSQL(new Expr($db->quote('n') . ' < ?', $countPerGroup + 1), $query->params)
+            $db->makeWhereSQL(new Expression($db->quote('n') . ' < ?', $countPerGroup + 1), $query->params)
         ]);
 
         $output = [];
 
-        foreach ($db->req($query)->reqToArrays() as $item) {
+        foreach ($db->reqToArrays($query) as $item) {
             $id = (int)$item[$groupColumn];
 
             if (!isset($output[$id])) {

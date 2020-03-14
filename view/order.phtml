@@ -1,7 +1,5 @@
 <?php
 use SNOWGIRL_CORE\View;
-use SNOWGIRL_CORE\Script\Css;
-use SNOWGIRL_CORE\Script\Js;
 use SNOWGIRL_SHOP\Entity\Item;
 use SNOWGIRL_SHOP\Entity\Size;
 use SNOWGIRL_CORE\Images;
@@ -13,8 +11,8 @@ use SNOWGIRL_CORE\Images;
 $this->getLayout()
 //    ->addBreadcrumb(T('catalog.catalog'), $this->makeLink('catalog'))
     ->addBreadcrumb($this->h1)
-    ->addHeadCss(new Css('@shop/order.css'))
-    ->addJs(new Js('@shop/order.js'));
+    ->addHeadCss('@shop/order.css')
+    ->addJs('@shop/order.js');
 ?>
 
 <h1 class="title"><?php echo htmlspecialchars($this->h1) ?></h1>

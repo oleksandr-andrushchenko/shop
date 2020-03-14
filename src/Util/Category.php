@@ -4,19 +4,19 @@ namespace SNOWGIRL_SHOP\Util;
 
 use SNOWGIRL_CORE\Entity\Redirect;
 use SNOWGIRL_CORE\Exception;
-use SNOWGIRL_CORE\Service\Storage\Query\Expr;
-use SNOWGIRL_CORE\Service\Rdbms;
-use SNOWGIRL_CORE\Service\Storage\Query;
+use SNOWGIRL_CORE\Query\Expression;
+use SNOWGIRL_CORE\Service\Db;
+use SNOWGIRL_CORE\Query;
 use SNOWGIRL_CORE\Util;
-use SNOWGIRL_CORE\App;
+use SNOWGIRL_CORE\AbstractApp;
 use SNOWGIRL_SHOP\Catalog\URI;
 use SNOWGIRL_SHOP\Entity\Category as CategoryEntity;
 use SNOWGIRL_SHOP\Entity\Item;
 use SNOWGIRL_SHOP\Entity\Tag;
 use SNOWGIRL_SHOP\Entity\Item\Tag as TagItem;
 use SNOWGIRL_SHOP\Entity\Page\Catalog;
-use SNOWGIRL_CORE\Exception\HTTP\BadRequest;
-use SNOWGIRL_CORE\Exception\HTTP\NotFound;
+use SNOWGIRL_CORE\Http\Exception\BadRequestHttpException;
+use SNOWGIRL_CORE\Http\Exception\NotFoundHttpException;
 use SNOWGIRL_CORE\Entity;
 use SNOWGIRL_SHOP\Catalog\URI\Manager as CatalogUriManager;
 
@@ -32,7 +32,7 @@ class Category extends Util
      * @todo fix... duplicates... (ignore param..)
      *
      * @param string $delimiter
-     * @param null   $error
+     * @param null $error
      *
      * @return bool
      */
@@ -54,9 +54,9 @@ class Category extends Util
          */
 
         $pk = $this->app->managers->categories->getEntity()->getPk();
-        $qPk = $this->app->services->rdbms->quote($pk);
-        $qName = $this->app->services->rdbms->quote('name');
-        $qUri = $this->app->services->rdbms->quote('uri');
+        $qPk = $this->app->container->db->quote($pk);
+        $qName = $this->app->container->db->quote('name');
+        $qUri = $this->app->container->db->quote('uri');
 
         $ignore = [-1];
 
@@ -65,8 +65,8 @@ class Category extends Util
                 $pk,
                 'name'
             ])->setWhere([
-                new Expr('ROUND((LENGTH(' . $qName . ') - LENGTH(REPLACE(' . $qName . ', "' . $delimiter . '", ""))) / LENGTH("' . $delimiter . '")) > 0'),
-                new Expr($qPk . ' NOT IN (' . implode(',', $ignore) . ')')
+                new Expression('ROUND((LENGTH(' . $qName . ') - LENGTH(REPLACE(' . $qName . ', "' . $delimiter . '", ""))) / LENGTH("' . $delimiter . '")) > 0'),
+                new Expression($qPk . ' NOT IN (' . implode(',', $ignore) . ')')
             ])->getObject()) {
             $rawParentName = explode($delimiter, $category->getName())[0];
             $parentName = CategoryEntity::normalizeText($rawParentName);
@@ -82,13 +82,13 @@ class Category extends Util
 
             try {
                 $this->app->managers->categories->updateMany([
-                    'name' => new Expr('REPLACE(' . $qName . ', ?, "")', $likeQuery),
-                    'uri' => new Expr('REPLACE(' . $qUri . ', ?, "")', $parent->getUri() . '-'),
+                    'name' => new Expression('REPLACE(' . $qName . ', ?, "")', $likeQuery),
+                    'uri' => new Expression('REPLACE(' . $qUri . ', ?, "")', $parent->getUri() . '-'),
                     'parent_category_id' => $parent->getId()
                 ], [
-                    new Expr($qName . ' LIKE ?', $likeQuery . '%'),
-                    new Expr($qPk . ' <> ?', $parent->getId())
-                ], true);
+                    new Expression($qName . ' LIKE ?', $likeQuery . '%'),
+                    new Expression($qPk . ' <> ?', $parent->getId())
+                ], ['ignore' => true]);
             } catch (\Exception $ex) {
                 $error = $ex->getMessage();
 
@@ -112,7 +112,7 @@ class Category extends Util
     {
         $categoryToTags = [];
 
-        $db = $this->app->services->rdbms;
+        $db = $this->app->container->db;
 
         /**
          * @return CategoryEntity[]
@@ -122,7 +122,7 @@ class Category extends Util
 
             /** @var CategoryEntity[] $categories */
             $categories = $this->app->managers->categories->clear()
-                ->setWhere(new Expr($db->quote('parent_category_id') . ' IS NOT NULL'))
+                ->setWhere(new Expression($db->quote('parent_category_id') . ' IS NOT NULL'))
                 ->getObjects(true);
 
             //cache categories parents
@@ -158,7 +158,7 @@ class Category extends Util
             $parentCategory = $this->app->managers->categories->getParentCategory($category);
 
             if (in_array($parentCategory->getId(), $deletedCategories)) {
-                $this->app->services->logger->make('Category parent was deleted, have a look at ::delete ..skipping...');
+                $this->app->container->logger->debug('Category parent was deleted, have a look at ::delete ..skipping...');
                 continue;
             }
 
@@ -177,7 +177,7 @@ class Category extends Util
 
                 $this->app->managers->catalog->updateMany(['category_id' => $parentCategory->getId(), 'tag_id' => $tagId], [
                     'category_id' => $categoryId
-                ], true);
+                ], ['ignore' => true]);
 
                 $this->app->managers->catalog->deleteMany([
                     'category_id' => $categoryId
@@ -186,7 +186,7 @@ class Category extends Util
 
             $this->app->managers->items->updateMany(['category_id' => $parentCategory->getId()], [
                 'category_id' => $categoryId
-            ], true);
+            ], ['ignore' => true]);
 
             $this->app->managers->redirects->insertOne(new Redirect([
                 'uri_from' => $category->getUri(),
@@ -195,7 +195,7 @@ class Category extends Util
 
             $this->app->managers->redirects->updateMany(['uri_to' => $parentCategory->getUri()], [
                 'uri_from' => $category->getUri()
-            ], true);
+            ], ['ignore' => true]);
 
             //@todo collect categories to delete... and do it after all actions...
             //@todo update parents for categories which have this category as parent.... CRITICAL
@@ -207,19 +207,19 @@ class Category extends Util
                         $deletedCategories[] = $category->getId();
                         break;
                     } else {
-                        $this->app->services->logger->make('Can\'t delete category[' . $category->getId() . ']... skipping...');
+                        $this->app->container->logger->debug('Can\'t delete category[' . $category->getId() . ']... skipping...');
                     }
 
                     $categories = $makeCategories();
-                } catch (Exception $ex) {
-                    $this->app->services->logger->makeException($ex);
+                } catch (Exception $e) {
+                    $this->app->container->logger->error($e);
 
-                    if ($ex->check(CategoryEntity::getTable())) {
+                    if ($e->check(CategoryEntity::getTable())) {
                         //this category has children - fix them first @todo...
                         foreach ($this->app->managers->categories->getDirectChildrenId($category->getId()) as $directChildCategoryId) {
 
                             if (in_array($directChildCategoryId, $deletedCategories)) {
-                                $this->app->services->logger->make('Direct Child Category deleted already... skipping...');
+                                $this->app->container->logger->debug('Direct Child Category deleted already... skipping...');
                                 continue;
                             }
 
@@ -228,33 +228,31 @@ class Category extends Util
                                 $directChildCategory->setParentCategoryId($parentCategory->getId());
                                 $this->app->managers->categories->updateOne($directChildCategory);
                             } else {
-                                $this->app->services->logger->make('Child Category[' . $directChildCategoryId . '] not exists... fix category structure...');
+                                $this->app->container->logger->debug('Child Category[' . $directChildCategoryId . '] not exists... fix category structure...');
                                 //@todo delete category child from categories tree...
                             }
                         }
-                    } elseif ($ex->check(Item::getTable())) {
+                    } elseif ($e->check(Item::getTable())) {
                         //there are items with such category - fix them first @todo...
-                        $this->app->services->logger->make(implode(' ', [
+                        $this->app->container->logger->debug(implode(' ', [
                             'We do have non-existing categories in the item table...',
                             'but it should be fixed already (ItemManager::updateMany)'
                         ]));
-                    } elseif ($ex->check(Catalog::getTable())) {
+                    } elseif ($e->check(Catalog::getTable())) {
                         //there are catalog pages with such category - fix them first @todo...
-                        $this->app->services->logger->make(implode(' ', [
+                        $this->app->container->logger->debug(implode(' ', [
                             'We do have non-existing categories in the page_catalog table...',
                             'but it should be fixed already (PageCatalogManager::updateMany)'
                         ]));
                     } else {
-                        $this->app->services->logger->make('Can\'t delete category[' . $category->getId() . ']... skipping...');
+                        $this->app->container->logger->debug('Can\'t delete category[' . $category->getId() . ']... skipping...');
                         break;
                     }
                 }
             }
         }
 
-        $this->app->utils->sphinx->doRestart();
-        $this->app->utils->sphinx->doRotate();
-        $this->app->services->mcms->rotate();
+        $this->app->container->cache->flush();
 
         return true;
     }
@@ -273,23 +271,23 @@ class Category extends Util
     public function doTransferCategoryToCategoryWithTag()
     {
         if (!$sourceCategoryId = (int)trim($this->app->request->get('param_1'))) {
-            throw (new BadRequest)->setInvalidParam('source_category_id');
+            throw (new BadRequestHttpException)->setInvalidParam('source_category_id');
         }
 
         if (!$sourceCategory = $this->app->managers->categories->find($sourceCategoryId)) {
-            throw (new NotFound)->setNonExisting('source_category');
+            throw (new NotFoundHttpException)->setNonExisting('source_category');
         }
 
         if (!$targetCategoryId = (int)trim($this->app->request->get('param_2'))) {
-            throw (new BadRequest)->setInvalidParam('target_category_id');
+            throw (new BadRequestHttpException)->setInvalidParam('target_category_id');
         }
 
         if (!$targetCategory = $this->app->managers->categories->find($targetCategoryId)) {
-            throw (new NotFound)->setNonExisting('target_category');
+            throw (new NotFoundHttpException)->setNonExisting('target_category');
         }
 
         if (!$targetTag = trim($this->app->request->get('param_3'))) {
-            throw (new BadRequest)->setInvalidParam('target_tag');
+            throw (new BadRequestHttpException)->setInvalidParam('target_tag');
         }
 
         $targetTags = explode(',', $targetTag);
@@ -305,7 +303,7 @@ class Category extends Util
         foreach ($targetTags as $i => $targetTag) {
             if (is_numeric($targetTag)) {
                 if (!$targetTags[$i] = $this->app->managers->tags->find($targetTag)) {
-                    throw (new NotFound)->setNonExisting('target_tag');
+                    throw (new NotFoundHttpException)->setNonExisting('target_tag');
                 }
             } elseif (is_string($targetTag)) {
                 if (!$targetTagByName = $this->app->managers->tags->clear()->setWhere(['name' => $targetTag])->getObject()) {
@@ -319,7 +317,7 @@ class Category extends Util
 
         /** @var Tag[] $targetTags */
 
-        $this->app->services->rdbms->makeTransaction(function (Rdbms $db) use ($sourceCategory, $targetCategory, $targetTags) {
+        $this->app->container->db->makeTransaction(function (Db $db) use ($sourceCategory, $targetCategory, $targetTags) {
             foreach ($targetTags as $targetTag) {
                 $query = new Query(['params' => []]);
                 $query->text = implode(' ', [
@@ -337,7 +335,7 @@ class Category extends Util
             $where = ['category_id' => $sourceCategory->getId()];
 
             if (1 == count($targetTags)) {
-                $this->app->managers->catalog->updateMany(['category_id' => $targetCategory->getId(), 'tag_id' => $targetTags[0]->getId()], $where, true);
+                $this->app->managers->catalog->updateMany(['category_id' => $targetCategory->getId(), 'tag_id' => $targetTags[0]->getId()], $where, ['ignore' => true]);
             } else {
                 $columns = array_keys(Catalog::getColumns());
 
@@ -374,7 +372,7 @@ class Category extends Util
 
             $this->app->managers->items->updateMany(['category_id' => $targetCategory->getId()], [
                 'category_id' => $sourceCategory->getId()
-            ], true);
+            ], ['ignore' => true]);
 
             (new CatalogUriManager($this->app))
                 ->addRedirect($sourceCategory->getCatalogUri(), new URI([
@@ -389,10 +387,10 @@ class Category extends Util
         });
 
         if (1 == $this->app->request->get('param_4', 1)) {
-//            $this->app->services->ftdbms->restart($this->app);
+//            $this->app->storage->elastic->restart($this->app);
             //@todo...
-//            $this->app->services->ftdbms->rotate($this->app);
-            $this->app->services->mcms->rotate();
+//            $this->app->storage->elastic->rotate($this->app);
+            $this->app->container->cache->flush();
         }
 
         return true;
@@ -411,27 +409,27 @@ class Category extends Util
     public function doTransferCategoryToCategory()
     {
         if (!$sourceCategoryId = (int)trim($this->app->request->get('param_1'))) {
-            throw (new BadRequest)->setInvalidParam('source_category_id');
+            throw (new BadRequestHttpException)->setInvalidParam('source_category_id');
         }
 
         if (!$sourceCategory = $this->app->managers->categories->find($sourceCategoryId)) {
-            throw (new NotFound)->setNonExisting('source_category');
+            throw (new NotFoundHttpException)->setNonExisting('source_category');
         }
 
         if (!$targetCategoryId = (int)trim($this->app->request->get('param_2'))) {
-            throw (new BadRequest)->setInvalidParam('target_category_id');
+            throw (new BadRequestHttpException)->setInvalidParam('target_category_id');
         }
 
         if (!$targetCategory = $this->app->managers->categories->find($targetCategoryId)) {
-            throw (new NotFound)->setNonExisting('target_category');
+            throw (new NotFoundHttpException)->setNonExisting('target_category');
         }
 
         $rotate = 1 == $this->app->request->get('param_4', 0);
 
-        $this->app->services->rdbms->makeTransaction(function () use ($sourceCategory, $targetCategory) {
+        $this->app->container->db->makeTransaction(function () use ($sourceCategory, $targetCategory) {
             $where = ['category_id' => $sourceCategory->getId()];
 
-            $this->app->managers->items->updateMany(['category_id' => $targetCategory->getId()], $where, true);
+            $this->app->managers->items->updateMany(['category_id' => $targetCategory->getId()], $where, ['ignore' => true]);
 
             (new CatalogUriManager($this->app))
                 ->addRedirect($sourceCategory->getCatalogUri(), new URI([
@@ -445,8 +443,8 @@ class Category extends Util
 
         if ($rotate) {
             //@todo...
-//            $this->app->services->ftdbms->rotate($this->app);
-            $this->app->services->mcms->rotate();
+//            $this->app->storage->elastic->rotate($this->app);
+            $this->app->container->cache->flush();
         }
 
         return true;

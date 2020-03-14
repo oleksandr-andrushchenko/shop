@@ -106,7 +106,8 @@ class Catalog extends Manager
         }
 
         if (0 == count($tmp)) {
-            $this->app->services->logger->make('catalog: empty "params"');
+            $this->app->container->logger->debug('catalog: empty "params"');
+
             return [];
         }
 
@@ -138,15 +139,14 @@ class Catalog extends Manager
     {
         $key = 'page-by-params-' . md5(serialize($params));
 
-        if (false !== ($output = $this->app->services->mcms->get($key))) {
+        if ($this->app->container->cache->has($key, $output)) {
             return self::makeObjectFromCache($output);
         }
 
-        $output = $this->copy(true)
-//            ->setStorage(Manager::SERVICE_FTDBMS_RDBMS)
-            ->getObjectByParams($params);
+        $output = $this->copy(true)->getObjectByParams($params);
 
-        $this->app->services->mcms->set($key, self::makeObjectFromCache($output));
+        $this->app->container->cache->set($key, self::makeCacheFromObject($output));
+
         return $output;
     }
 
@@ -161,7 +161,8 @@ class Catalog extends Manager
         }, explode('/', $uri)));
 
         if (0 == strlen($uri)) {
-            $this->app->services->logger->make('catalog: empty "uri"');
+            $this->app->container->logger->debug('catalog: empty "uri"');
+
             return [];
         }
 
@@ -190,14 +191,15 @@ class Catalog extends Manager
         $uri = $this->entity->normalizeUri($uri);
         $key = 'page-by-uri-' . str_replace('/', '_', $uri);
 
-        if (false !== ($output = $this->app->services->mcms->get($key))) {
+        if ($this->app->container->cache->has($key, $output)) {
             return self::makeObjectFromCache($output);
         }
 
         $output = $this->copy(true)
             ->getObjectByUri($uri);
 
-        $this->app->services->mcms->set($key, self::makeObjectFromCache($output));
+        $this->app->container->cache->set($key, self::makeCacheFromObject($output));
+
         return $output;
     }
 
@@ -205,6 +207,7 @@ class Catalog extends Manager
     {
         /** @var PageCatalogEntity $entity */
         $params['uri'] = $entity->getUri();
+
         return $this->app->router->makeLink('catalog', $params, $domain);
 //        return (string)self::getCatalogUri($entity);
     }
@@ -228,7 +231,7 @@ class Catalog extends Manager
     }
 
     /**
-     * !!! keep index's position similar to Rdbms index
+     * !!! keep index's position similar to Db index
      *
      * @return ItemAttr[]|string[]
      */
@@ -243,7 +246,7 @@ class Catalog extends Manager
     }
 
     /**
-     * !!! keep index's position similar to Rdbms index
+     * !!! keep index's position similar to Db index
      *
      * @return ItemAttr[]|string[]
      */
@@ -263,7 +266,7 @@ class Catalog extends Manager
      *
      * @return ItemAttr[]
      */
-    public static function getComponentsOrderByRdbmsKey()
+    public static function getComponentsOrderByDbKey()
     {
         $tmp = self::getSvaComponents() + self::getMvaComponents();
         ksort($tmp);
@@ -295,7 +298,7 @@ class Catalog extends Manager
         return array_map(function ($component) {
             /** @var ItemAttr $component */
             return $component::getPk();
-        }, static::getComponentsOrderByRdbmsKey());
+        }, static::getComponentsOrderByDbKey());
     }
 
     public static function getComponentsTables()
@@ -303,7 +306,7 @@ class Catalog extends Manager
         return array_map(function ($component) {
             /** @var ItemAttr $component */
             return $component::getTable();
-        }, static::getComponentsOrderByRdbmsKey());
+        }, static::getComponentsOrderByDbKey());
     }
 
     /**
@@ -311,7 +314,7 @@ class Catalog extends Manager
      */
     public static function getComponentPkToClass()
     {
-        return array_combine(self::getComponentsPKs(), self::getComponentsOrderByRdbmsKey());
+        return array_combine(self::getComponentsPKs(), self::getComponentsOrderByDbKey());
     }
 
     public static function getSvaPkToTable()

@@ -1,0 +1,64 @@
+<?php
+
+namespace SNOWGIRL_SHOP\Http;
+
+use SNOWGIRL_CORE\AbstractApp;
+use SNOWGIRL_CORE\Http\Route;
+use SNOWGIRL_CORE\Http\Router;
+use SNOWGIRL_CORE\Helper\Arrays;
+use SNOWGIRL_SHOP\Catalog\URI;
+
+class HttpApp extends \SNOWGIRL_CORE\Http\HttpApp
+{
+    protected function register()
+    {
+        \SNOWGIRL_SHOP\Catalog\URI::setApp($this);
+        \SNOWGIRL_SHOP\Item\URI::setApp($this);
+    }
+
+    protected function addMaps($root): AbstractApp
+    {
+        parent::addMaps($root);
+
+        $this->dirs['@shop'] = realpath(__DIR__ . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . '..');
+        $this->namespaces['@shop'] = 'SNOWGIRL_SHOP';
+
+        $this->namespaces = Arrays::sortByKeysArray($this->namespaces, [
+            '@app',
+            '@shop',
+            '@core'
+        ]);
+
+        return $this;
+    }
+
+    protected function addRoutes(Router $router): \SNOWGIRL_CORE\Http\HttpApp
+    {
+        $router->addRoute('item', new Route((URI::addUriPrefix() ? (URI::CATALOG . '/') : '') . ':uri', [
+            'controller' => 'outer',
+            'action' => 'item'
+        ], [
+            'uri' => '.*-[0-9]+'
+        ]));
+
+        return $this;
+    }
+
+    protected function addFakeRoutes(Router $router): \SNOWGIRL_CORE\Http\HttpApp
+    {
+        $route = ':uri';
+        $defaults = [
+            'controller' => 'outer',
+            'action' => URI::CATALOG
+        ];
+
+        if (URI::addUriPrefix()) {
+            $route = URI::CATALOG . '/' . $route;
+            $defaults['uri'] = URI::CATALOG;
+        }
+
+        $router->addRoute('catalog', new Route($route, $defaults));
+
+        return $this;
+    }
+}

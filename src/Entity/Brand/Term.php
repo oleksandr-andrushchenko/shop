@@ -18,12 +18,12 @@ class Term extends \SNOWGIRL_SHOP\Entity\Term
         'updated_at' => ['type' => self::COLUMN_TIME, 'default' => null]
     ];
 
-    public function setId($v)
+    public function setId($v): Entity
     {
         return $this->setRequiredAttr('id', (int)$v);
     }
 
-    public function getId($makeCompositeId = true)
+    public function getId(bool $makeCompositeId = true)
     {
         return (int)$this->getRawAttr('id');
     }

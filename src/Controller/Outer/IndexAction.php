@@ -6,7 +6,7 @@ use SNOWGIRL_CORE\Controller\Outer\AddVerificationsTrait;
 use SNOWGIRL_CORE\Controller\Outer\PrepareServicesTrait;
 use SNOWGIRL_CORE\Controller\Outer\ProcessTypicalPageTrait;
 use SNOWGIRL_CORE\View\Layout\Outer as OuterLayout;
-use SNOWGIRL_SHOP\App\Web as App;
+use SNOWGIRL_SHOP\Http\HttpApp as App;
 use SNOWGIRL_SHOP\Catalog\SEO;
 use SNOWGIRL_SHOP\Catalog\URI;
 use SNOWGIRL_SHOP\Entity\Brand;
@@ -51,7 +51,7 @@ class IndexAction
 //            'image' => $image
         ]);
 
-//        $nonEmptyImage = new Expr('`image` IS NOT NULL');
+//        $nonEmptyImage = new Expression('`image` IS NOT NULL');
         $ratingDesc = ['rating' => SORT_DESC];
 
         $content->addParams([
@@ -85,7 +85,7 @@ class IndexAction
             'itemsPerBlock' => $itemsPerBlock = 12,
             'currency' => $this->getCurrencyObject($app),
             'items' => $app->managers->items->clear()
-//            ->setStorage(Manager::STORAGE_FTDBMS)
+//            ->setDb(Manager::STORAGE_FTDBMS)
                 ->setWhere(['is_in_stock' => 1])
                 ->setOrders($ratingDesc)
                 ->setLimit($itemsPerBlock * $repeatTimes)

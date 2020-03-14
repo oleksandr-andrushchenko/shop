@@ -1,6 +1,5 @@
 <?php
 use SNOWGIRL_CORE\View;
-use SNOWGIRL_CORE\Script\Css;
 use SNOWGIRL_SHOP\Catalog\URI as CatalogURI;
 use SNOWGIRL_SHOP\Entity\Stock;
 
@@ -8,7 +7,7 @@ use SNOWGIRL_SHOP\Entity\Stock;
 /** @var Stock $stock */
 $this->getLayout()
     ->addBreadcrumb($this->h1)
-    ->addHeadCss(new Css('@shop/stock.css'));
+    ->addHeadCss('@shop/stock.css');
 ?>
 <h1 class="title"><?php echo htmlspecialchars($this->h1) ?></h1>
 

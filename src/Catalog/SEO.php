@@ -2,8 +2,7 @@
 
 namespace SNOWGIRL_SHOP\Catalog;
 
-use SNOWGIRL_CORE\Service\Logger;
-use SNOWGIRL_CORE\App;
+use SNOWGIRL_CORE\AbstractApp;
 
 use SNOWGIRL_CORE\View\Layout;
 use SNOWGIRL_CORE\View\Widget\Pager;
@@ -76,32 +75,27 @@ use SNOWGIRL_SHOP\Entity\Category\Alias as CategoryAlias;
  * page_long,
  *
  * Class SEO
+ *
  * @package SNOWGIRL_SHOP\Catalog
  */
 class SEO
 {
-    /** @var App */
-    protected $app;
-
     //@TODO h2 from keywords....
     //@todo split content with h2 headers....
 
-    /** @var URI */
-    protected $uri;
+    /**
+     * @var URI
+     */
+    private $uri;
+    private $params;
+    private $retrieveAll = true;
 
     public function __construct(URI $uri)
     {
         $this->uri = $uri;
-        $this->app = App::$instance;
     }
 
-    protected $params;
-
-    /**
-     * @return array
-     * @throws \Exception
-     */
-    public function getParams()
+    public function getParams(): array
     {
         if (null === $this->params) {
             $this->params = [];
@@ -126,23 +120,14 @@ class SEO
         return $this->params;
     }
 
-    protected $retrieveAll = true;
-
-    public function retrieveAll($retrieveAll = true)
+    public function retrieveAll(bool $retrieveAll = true): SEO
     {
         $this->retrieveAll = !!$retrieveAll;
+
         return $this;
     }
 
-    /**
-     * @param       $attr
-     * @param null  $default
-     * @param array $params
-     *
-     * @return int|mixed|null|\SNOWGIRL_CORE\DateTime|string
-     * @throws \Exception
-     */
-    protected function makeAttrValue($attr, $default = null, array $params = [])
+    private function makeAttrValue(string $attr, $default = null, array $params = [])
     {
         if ($page = $this->uri->getSRC()->getCatalogPage()) {
             if ($page->hasAttr($attr) && $tmp = $page->get($attr)) {
@@ -159,15 +144,15 @@ class SEO
         return $this->uri->getSRC()->getPage()->make($attr, $default, $params);
     }
 
-    protected function addCoreParams()
+    private function addCoreParams(): SEO
     {
-        $this->params['site'] = $this->app->getSite('Shop Site');
-        $this->params['phone'] = $this->app->config->site->phone;
+        $this->params['site'] = $this->uri->getApp()->getSite('Shop Site');
+        $this->params['phone'] = $this->uri->getApp()->config('site.phone');
 
         return $this;
     }
 
-    protected function addQueryParams()
+    private function addQueryParams(): SEO
     {
 //        if ($query = $this->uri->get(URI::QUERY)) {
 //            $this->params['query'] = $name = $query;
@@ -184,14 +169,10 @@ class SEO
 
     public function getDefaultCategory()
     {
-        return $this->app->config->catalog->default_category('Каталог');
+        return $this->uri->getApp()->config('catalog.default_category', 'Каталог');
     }
 
-    /**
-     * @return $this
-     * @throws \Exception
-     */
-    protected function addCategoryParams()
+    private function addCategoryParams(): SEO
     {
         $pk = Category::getPk();
 
@@ -201,8 +182,8 @@ class SEO
             }
 
             if (!isset($name)) {
-                if (!$category = $this->app->managers->categories->find($id)) {
-                    $this->app->services->logger->make('invalid category', Logger::TYPE_ERROR);
+                if (!$category = $this->uri->getApp()->managers->categories->find($id)) {
+                    $this->uri->getApp()->container->logger->error('invalid category');
                     return $this;
                 }
 
@@ -223,7 +204,7 @@ class SEO
         return $this;
     }
 
-    protected function addBrandParams()
+    private function addBrandParams(): SEO
     {
         $pk = Brand::getPk();
 
@@ -231,7 +212,7 @@ class SEO
             return $this;
         }
 
-        $id = is_array($id) ? $this->app->managers->brands->findMany($id) : [$id => $this->app->managers->brands->find($id)];
+        $id = is_array($id) ? $this->uri->getApp()->managers->brands->findMany($id) : [$id => $this->uri->getApp()->managers->brands->find($id)];
 
         $id = array_map(function ($brand) {
             /** @var Brand $brand */
@@ -241,7 +222,7 @@ class SEO
                 return true;
             }
 
-            $this->app->services->logger->make('invalid brand', Logger::TYPE_WARN);
+            $this->uri->getApp()->container->logger->warning('invalid brand');
             return false;
         }));
 
@@ -270,13 +251,13 @@ class SEO
         return $this;
     }
 
-    protected function addColorParams()
+    private function addColorParams(): SEO
     {
         if (!$id = $this->uri->get(Color::getPk())) {
             return $this;
         }
 
-        $id = is_array($id) ? $this->app->managers->colors->findMany($id) : [$id => $this->app->managers->colors->find($id)];
+        $id = is_array($id) ? $this->uri->getApp()->managers->colors->findMany($id) : [$id => $this->uri->getApp()->managers->colors->find($id)];
 
         $id = array_map(function ($color) {
             /** @var Color $color */
@@ -286,7 +267,7 @@ class SEO
                 return true;
             }
 
-            $this->app->services->logger->make('invalid color', Logger::TYPE_ERROR);
+            $this->uri->getApp()->container->logger->error('invalid color');
             return false;
         }));
 
@@ -309,13 +290,13 @@ class SEO
         return $this;
     }
 
-    protected function addSeasonParams()
+    private function addSeasonParams(): SEO
     {
         if (!$id = $this->uri->get(Season::getPk())) {
             return $this;
         }
 
-        $id = is_array($id) ? $this->app->managers->seasons->findMany($id) : [$id => $this->app->managers->seasons->find($id)];
+        $id = is_array($id) ? $this->uri->getApp()->managers->seasons->findMany($id) : [$id => $this->uri->getApp()->managers->seasons->find($id)];
 
         $id = array_map(function ($season) {
             /** @var Season $season */
@@ -325,7 +306,7 @@ class SEO
                 return true;
             }
 
-            $this->app->services->logger->make('invalid season', Logger::TYPE_ERROR);
+            $this->uri->getApp()->container->logger->error('invalid season');
             return false;
         }));
 
@@ -351,13 +332,13 @@ class SEO
         return $this;
     }
 
-    protected function addMaterialParams()
+    private function addMaterialParams(): SEO
     {
         if (!$id = $this->uri->get(Material::getPk())) {
             return $this;
         }
 
-        $id = is_array($id) ? $this->app->managers->materials->findMany($id) : [$id => $this->app->managers->materials->find($id)];
+        $id = is_array($id) ? $this->uri->getApp()->managers->materials->findMany($id) : [$id => $this->uri->getApp()->managers->materials->find($id)];
 
         $id = array_map(function ($material) {
             /** @var Material $material */
@@ -367,7 +348,7 @@ class SEO
                 return true;
             }
 
-            $this->app->services->logger->make('invalid material', Logger::TYPE_ERROR);
+            $this->uri->getApp()->container->logger->error('invalid material');
             return false;
         }));
 
@@ -390,13 +371,13 @@ class SEO
         return $this;
     }
 
-    protected function addSizeParams()
+    private function addSizeParams(): SEO
     {
         if (!$id = $this->uri->get(Size::getPk())) {
             return $this;
         }
 
-        $id = is_array($id) ? $this->app->managers->sizes->findMany($id) : [$id => $this->app->managers->sizes->find($id)];
+        $id = is_array($id) ? $this->uri->getApp()->managers->sizes->findMany($id) : [$id => $this->uri->getApp()->managers->sizes->find($id)];
 
         $id = array_map(function ($size) {
             /** @var Size $size */
@@ -406,7 +387,7 @@ class SEO
                 return true;
             }
 
-            $this->app->services->logger->make('invalid size', Logger::TYPE_ERROR);
+            $this->uri->getApp()->container->logger->error('invalid size');
             return false;
         }));
 
@@ -429,13 +410,13 @@ class SEO
         return $this;
     }
 
-    protected function addTagParams()
+    private function addTagParams(): SEO
     {
         if (!$id = $this->uri->get(Tag::getPk())) {
             return $this;
         }
 
-        $id = is_array($id) ? $this->app->managers->tags->findMany($id) : [$id => $this->app->managers->tags->find($id)];
+        $id = is_array($id) ? $this->uri->getApp()->managers->tags->findMany($id) : [$id => $this->uri->getApp()->managers->tags->find($id)];
 
         $id = array_map(function ($tag) {
             /** @var Tag $tag */
@@ -445,7 +426,7 @@ class SEO
                 return true;
             }
 
-            $this->app->services->logger->make('invalid tag', Logger::TYPE_ERROR);
+            $this->uri->getApp()->container->logger->error('invalid tag');
             return false;
         }));
 
@@ -468,13 +449,13 @@ class SEO
         return $this;
     }
 
-    protected function addCountryParams()
+    private function addCountryParams(): SEO
     {
         if (!$id = $this->uri->get(Country::getPk())) {
             return $this;
         }
 
-        $id = is_array($id) ? $this->app->managers->countries->findMany($id) : [$id => $this->app->managers->countries->find($id)];
+        $id = is_array($id) ? $this->uri->getApp()->managers->countries->findMany($id) : [$id => $this->uri->getApp()->managers->countries->find($id)];
 
         $id = array_map(function ($country) {
             /** @var Country $country */
@@ -484,7 +465,7 @@ class SEO
                 return true;
             }
 
-            $this->app->services->logger->make('invalid country', Logger::TYPE_ERROR);
+            $this->uri->getApp()->container->logger->error('invalid country');
             return false;
         }));
 
@@ -507,13 +488,13 @@ class SEO
         return $this;
     }
 
-    protected function addVendorParams()
+    private function addVendorParams(): SEO
     {
         if (!$id = $this->uri->get(Vendor::getPk())) {
             return $this;
         }
 
-        $id = is_array($id) ? $this->app->managers->vendors->findMany($id) : [$id => $this->app->managers->vendors->find($id)];
+        $id = is_array($id) ? $this->uri->getApp()->managers->vendors->findMany($id) : [$id => $this->uri->getApp()->managers->vendors->find($id)];
 
         $id = array_map(function ($vendor) {
             /** @var Vendor $vendor */
@@ -523,7 +504,7 @@ class SEO
                 return true;
             }
 
-            $this->app->services->logger->make('invalid vendor', Logger::TYPE_ERROR);
+            $this->uri->getApp()->container->logger->error('invalid vendor');
             return false;
         }));
 
@@ -546,7 +527,7 @@ class SEO
         return $this;
     }
 
-    protected function addTypeParams()
+    private function addTypeParams(): SEO
     {
         if ($this->uri->get(URI::SPORT)) {
             $typesToParams = self::getTypesToParams();
@@ -575,7 +556,7 @@ class SEO
         return $this;
     }
 
-    protected function addPriceParams()
+    private function addPriceParams(): SEO
     {
         $name = [];
 
@@ -602,14 +583,14 @@ class SEO
         }
 
         if ($name) {
-            $name[] = $this->app->trans->makeText('catalog.currency_' . $this->app->config->catalog->currency('RUB'));
+            $name[] = $this->uri->getApp()->trans->makeText('catalog.currency_' . $this->uri->getApp()->config('catalog.currency', 'RUB'));
             $this->params['prices'] = implode(' ', $name);
         }
 
         return $this;
     }
 
-    protected function addViewParams()
+    private function addViewParams(): SEO
     {
         if ($value = $this->uri->get(URI::ORDER)) {
             $viewsToParams = self::getViewsToParams();
@@ -624,7 +605,7 @@ class SEO
         return $this;
     }
 
-    protected function addCountParams()
+    private function addCountParams(): SEO
     {
         $num = $this->uri->getSRC()->getPageNum();
 
@@ -637,11 +618,13 @@ class SEO
                 $this->params['total'] = $this->uri->getSRC()->getTotalCount();
             }
 
-            $last = $this->uri->getSRC()->getLastPage();
+            if (1 < $num) {
+                $last = $this->uri->getSRC()->getLastPage();
 
-            if (1 < $last) {
-                $this->params['page'] = 'Страница ' . $num;
-                $this->params['page_long'] = $this->params['page'] . ' из ' . $last;
+                if (1 < $last) {
+                    $this->params['page'] = 'Страница ' . $num;
+                    $this->params['page_long'] = $this->params['page'] . ' из ' . $last;
+                }
             }
         } else {
             if (!isset($this->params['total'])) {
@@ -656,15 +639,7 @@ class SEO
         return $this;
     }
 
-    /**
-     * @param       $key
-     * @param array $params
-     * @param bool  $nice
-     *
-     * @return int|mixed|null|\SNOWGIRL_CORE\DateTime|string|string[]
-     * @throws \Exception
-     */
-    public function getParam($key, array $params = [], $nice = true)
+    public function getParam(string $key, array $params = [], bool $nice = true)
     {
         $params = array_merge($this->getParams(), $params);
         $output = $this->makeAttrValue($key, $params[$key] ?? null, $params);
@@ -676,24 +651,15 @@ class SEO
         return $output;
     }
 
-    /**
-     * @see https://developers.facebook.com/docs/reference/opengraph/object-type/product.group/
-     *
-     * @param Layout $view
-     * @param array  $params
-     *
-     * @return $this
-     * @throws \Exception
-     */
-    public function managePage(Layout $view, array $params = [])
+    public function managePage(Layout $view, array $params = []): SEO
     {
         if ($pageCatalog = $this->uri->getSRC()->getCatalogPage()) {
             $reqUri = $this->uri->output(URI::OUTPUT_FULL, true);
-            $rawReqUri = $this->app->request->getUri();
+            $rawReqUri = $this->uri->getApp()->request->getUri();
 
             //normalized and de-normalized are different
             if ($rawReqUri != $reqUri) {
-                $this->app->request->redirect($reqUri, 301);
+                $this->uri->getApp()->request->redirect($reqUri, 301);
             }
 
             $copy = $this->uri->copy();
@@ -704,7 +670,7 @@ class SEO
             }
 
             //if default per page value
-            if (SRC::getDefaultShowValue($this->app) == $this->uri->get(URI::PER_PAGE)) {
+            if (SRC::getDefaultShowValue($this->uri->getApp()) == $this->uri->get(URI::PER_PAGE)) {
                 $copy->set(URI::PER_PAGE, null);
             }
 
@@ -726,21 +692,21 @@ class SEO
         $view->setTitle($title = Helper::getNiceSemanticText($this->makeAttrValue('meta_title', $params['meta_title'] ?? null, $params)))
             ->setH1(Helper::getNiceSemanticText($this->makeAttrValue('h1', $params['h1'] ?? $title, $params)))
             ->setHeadPrefix('og: http://ogp.me/ns# fb: http://ogp.me/ns/fb# product: http://ogp.me/ns/product#')
-            ->addMetaProperty('fb:app_id', $this->app->config->keys->facebook_app_id(null))
-            ->addMetaProperty('og:site_name', $this->app->getSite())
-//            ->addMetaProperty('og:locale:locale', strtolower($this->app->trans->getLocale()))
+            ->addMetaProperty('fb:app_id', $this->uri->getApp()->config('keys.facebook_app_id'))
+            ->addMetaProperty('og:site_name', $this->uri->getApp()->getSite())
+//            ->addMetaProperty('og:locale:locale', strtolower($this->uri->getApp()->trans->getLocale()))
             ->addMetaProperty('og:type', 'product.group')
             ->addMetaProperty('og:url', isset($canUri) ? $canUri : $this->uri->output(URI::OUTPUT_DEFINED, true))
             ->addMetaProperty('og:title', Helper::getNiceSemanticText($this->makeAttrValue('meta_og_title', $params['meta_og_title'] ?? $title, $params)));
 
         //@todo change when categories (or categories-tags pairs or other combinations) has images...
-        if (($item = $this->uri->getSRC()->getFirstItem(true)) && ($image = $this->app->images->get($item->getImage()))) {
-            $view->addMetaProperty('og:image', $imageLink = $this->app->images->getLink($image))
+        if (($item = $this->uri->getSRC()->getFirstItem(true)) && ($image = $this->uri->getApp()->images->get($item->getImage()))) {
+            $view->addMetaProperty('og:image', $imageLink = $this->uri->getApp()->images->getLink($image))
                 ->addMetaProperty('og:image:secure_url', $imageLink)
-                ->addMetaProperty('og:image:type', $this->app->images->getMime($image))
-                ->addMetaProperty('og:image:width', $this->app->images->getWidth($image))
-                ->addMetaProperty('og:image:height', $this->app->images->getHeight($image))
-                ->addMetaProperty('og:image:alt', 'Фото ' . $this->app->managers->items->getCategory($item)->getName())
+                ->addMetaProperty('og:image:type', $this->uri->getApp()->images->getMime($image))
+                ->addMetaProperty('og:image:width', $this->uri->getApp()->images->getWidth($image))
+                ->addMetaProperty('og:image:height', $this->uri->getApp()->images->getHeight($image))
+                ->addMetaProperty('og:image:alt', 'Фото ' . $this->uri->getApp()->managers->items->getCategory($item)->getName())
                 ->addMetaProperty('og:image:user_generated', 'false')
                 ->addHeadLink('image', $imageLink);
         }
@@ -755,11 +721,11 @@ class SEO
             });
 
             if (0 < count($articles)) {
-                $view->about = (string)$this->app->views->get('@shop/catalog/about.phtml', [
+                $view->about = (string)$this->uri->getApp()->views->get('@shop/catalog/about.phtml', [
                     'articles' => $articles,
-                    'site' => $this->app->getSite(),
+                    'site' => $this->uri->getApp()->getSite(),
                     'uri' => isset($canUri) ? $canUri : $this->uri->output(URI::OUTPUT_DEFINED, true),
-                    'sharer' => $this->app->views->sharer($view)->stringify()
+                    'sharer' => $this->uri->getApp()->views->sharer($view)->stringify()
                 ]);
             }
         }
@@ -767,14 +733,7 @@ class SEO
         return $this;
     }
 
-    /**
-     * @param Pager  $pager
-     * @param Layout $view
-     *
-     * @return $this
-     * @throws \Exception
-     */
-    public function managePager(Pager $pager, Layout $view)
+    public function managePager(Pager $pager, Layout $view): SEO
     {
         $page = $pager->getCurrentPageNumber();
         $copy = $this->uri->copy();
@@ -810,12 +769,12 @@ class SEO
         $categoryId = $this->uri->get(Category::getPk());
 
         if ($categoryId) {
-            $view->addBreadcrumb($this->app->trans->makeText('catalog.catalog'), (string)new URI);
+            $view->addBreadcrumb($this->uri->getApp()->trans->makeText('catalog.catalog'), (string)new URI);
 
-            $category = $this->app->managers->categories->find($categoryId);
+            $category = $this->uri->getApp()->managers->categories->find($categoryId);
 
-            foreach ($this->app->managers->categories->getChainedParents($category) as $id => $parentCategory) {
-                $view->addBreadcrumb($parentCategory->getBreadcrumb() ?: $parentCategory->getName(), $this->app->managers->categories->getLink($parentCategory));
+            foreach ($this->uri->getApp()->managers->categories->getChainedParents($category) as $id => $parentCategory) {
+                $view->addBreadcrumb($parentCategory->getBreadcrumb() ?: $parentCategory->getName(), $this->uri->getApp()->managers->categories->getLink($parentCategory));
             }
 
             /** @var CategoryAlias $alias */
@@ -830,14 +789,14 @@ class SEO
             if (0 == $h1ParamsSize) {
                 $categoryBreadcrumb = $name;
             } else {
-                $view->addBreadcrumb($name, $this->app->managers->categories->getLink($category));
+                $view->addBreadcrumb($name, $this->uri->getApp()->managers->categories->getLink($category));
                 $categoryBreadcrumb = '';
             }
         } else {
             if (0 == $h1ParamsSize) {
-                $categoryBreadcrumb = $this->app->trans->makeText('catalog.catalog');
+                $categoryBreadcrumb = $this->uri->getApp()->trans->makeText('catalog.catalog');
             } else {
-                $view->addBreadcrumb($this->app->trans->makeText('catalog.catalog'), (string)new URI);
+                $view->addBreadcrumb($this->uri->getApp()->trans->makeText('catalog.catalog'), (string)new URI);
                 $categoryBreadcrumb = '';
             }
         }
@@ -846,7 +805,7 @@ class SEO
         $view->addBreadcrumb($this->getParam('h1', ['category' => $categoryBreadcrumb]));
     }
 
-    public static function getTypesToParams()
+    public static function getTypesToParams(): array
     {
         return array_merge(array_combine(URI::TYPE_PARAMS, URI::TYPE_PARAMS), [
             URI::SPORT => 'sport',
@@ -855,7 +814,7 @@ class SEO
         ]);
     }
 
-    public static function getTypesToTexts($catalog = false)
+    public static function getTypesToTexts($catalog = false): array
     {
         if ($catalog) {
             return array_merge(array_combine(URI::TYPE_PARAMS, array_fill(0, count(URI::TYPE_PARAMS), null)), [
@@ -872,7 +831,7 @@ class SEO
         ]);
     }
 
-    public static function getViewsToParams()
+    public static function getViewsToParams(): array
     {
         return array_merge(array_combine(URI::VIEW_PARAMS, URI::VIEW_PARAMS), [
             URI::ORDER => 'order',
@@ -881,7 +840,7 @@ class SEO
         ]);
     }
 
-    public static function getOrderValuesToTexts($catalog = false)
+    public static function getOrderValuesToTexts($catalog = false): array
     {
         $values = SRC::getOrderValues();
 

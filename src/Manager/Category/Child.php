@@ -2,7 +2,7 @@
 
 namespace SNOWGIRL_SHOP\Manager\Category;
 
-use SNOWGIRL_CORE\App;
+use SNOWGIRL_CORE\AbstractApp;
 use SNOWGIRL_CORE\Manager;
 use SNOWGIRL_SHOP\Entity\Category as CategoryEntity;
 
@@ -23,7 +23,7 @@ class Child extends Manager
             return true;
         }
 
-        $db = $this->app->services->rdbms;
+        $db = $this->app->container->db;
         $table = $this->entity->getTable();
 
         $db->dropTable($table);

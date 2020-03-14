@@ -3,11 +3,10 @@
 namespace SNOWGIRL_SHOP\Controller\Outer;
 
 use SNOWGIRL_CORE\Controller\Outer\PrepareServicesTrait;
-use SNOWGIRL_CORE\Exception\HTTP\BadRequest;
-use SNOWGIRL_CORE\Exception\HTTP\NotFound;
-use SNOWGIRL_CORE\Service\Logger;
+use SNOWGIRL_CORE\Http\Exception\BadRequestHttpException;
+use SNOWGIRL_CORE\Http\Exception\NotFoundHttpException;
 use SNOWGIRL_CORE\View\Layout;
-use SNOWGIRL_SHOP\App\Web as App;
+use SNOWGIRL_SHOP\Http\HttpApp as App;
 use SNOWGIRL_SHOP\Entity\PartnerLinkHolderInterface;
 use SNOWGIRL_SHOP\Manager\GoLinkBuilderInterface;
 
@@ -20,11 +19,11 @@ class GoAction
         $this->prepareServices($app);
 
         if (!$type = $type ?: $app->request->get('type')) {
-            throw (new BadRequest)->setInvalidParam('type');
+            throw (new BadRequestHttpException)->setInvalidParam('type');
         }
 
         if (!$id = $id ?: $app->request->get('id')) {
-            throw (new BadRequest)->setInvalidParam('id');
+            throw (new BadRequestHttpException)->setInvalidParam('id');
         }
 
         if ('item' == $type) {
@@ -42,14 +41,14 @@ class GoAction
                         $app->request->redirect($app->managers->items->getLink($itemTo), 301);
                     }
 
-                    throw (new NotFound)->setNonExisting('item');
+                    throw (new NotFoundHttpException)->setNonExisting('item');
                 } else {
-                    throw (new NotFound)->setNonExisting('item');
+                    throw (new NotFoundHttpException)->setNonExisting('item');
                 }
             }
         } elseif ('shop' == $type) {
             if (!$holder = $app->managers->vendors->find($id)) {
-                throw (new NotFound)->setNonExisting('vendor');
+                throw (new NotFoundHttpException)->setNonExisting('vendor');
             }
 
             if (!$holder->isActive()) {
@@ -63,7 +62,7 @@ class GoAction
             }
         } elseif ('stock' == $type) {
             if (!$holder = $app->managers->stock->find($id)) {
-                throw (new NotFound)->setNonExisting('stock');
+                throw (new NotFoundHttpException)->setNonExisting('stock');
             }
 
             if (!$holder->isActive()) {
@@ -76,28 +75,28 @@ class GoAction
                 $app->request->redirect($app->router->makeLink('default', ['action' => 'stock']), 301);
             }
         } else {
-            throw (new NotFound)->setNonExisting('type');
+            throw (new NotFoundHttpException)->setNonExisting('type');
         }
 
         if ($app->configMaster) {
             /** @var GoLinkBuilderInterface $manager */
             $manager = $app->managers->getByEntity($holder);
-            $link = $app->configMaster->domains->master . $manager->getGoLink($holder, 'slave');
+            $link = $app->configMaster('domains.master') . $manager->getGoLink($holder, 'slave');
             $app->request->redirect($link, 302);
         }
 
         if (!$app->request->has('source')) {
             try {
                 $app->analytics->logGoHit($holder);
-            } catch (\Exception $ex) {
-                $app->services->logger->makeException($ex);
+            } catch (Throwable $e) {
+                $app->container->logger->error($e);
             }
         }
 
         /** @var PartnerLinkHolderInterface $holder */
 
         if (!$link = $holder->getPartnerLink()) {
-            $app->services->logger->make('invalid partner link(type=' . $type . ', id=' . $id . ')',
+            $app->container->logger->debug('invalid partner link(type=' . $type . ', id=' . $id . ')',
                 Logger::TYPE_ERROR);
             $app->views->getLayout()->addMessage('Предложение не доступно, извините за неудобства.',
                 Layout::MESSAGE_WARNING);

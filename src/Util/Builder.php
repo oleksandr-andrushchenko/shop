@@ -5,17 +5,19 @@ namespace SNOWGIRL_SHOP\Util;
 /**
  * Class Builder
  *
- * @property Attr     attrs
- * @property Brand    brands
- * @property Catalog  catalog
+ * @property Attr attrs
+ * @property Brand brands
+ * @property Catalog catalog
+ * @method Catalog catalog(bool $debug = null)
  * @property Category categories
- * @property Color    colors
- * @property Import   import
- * @property Item     items
- * @property Site     sites
- * @property Tag      tags
- * @property Image    images
- * @property Source   sources
+ * @property Color colors
+ * @property Import import
+ * @property Item items
+ * @method Item items(bool $debug = null)
+ * @property Site sites
+ * @property Tag tags
+ * @property Image images
+ * @property Source sources
  * @package SNOWGIRL_SHOP\Util
  */
 class Builder extends \SNOWGIRL_CORE\Util\Builder
@@ -45,6 +47,17 @@ class Builder extends \SNOWGIRL_CORE\Util\Builder
                 return $this->get(Source::class);
             default:
                 return parent::_get($k);
+        }
+    }
+
+    protected function _call($fn, array $args)
+    {
+        switch ($fn) {
+            case 'items':
+            case 'catalog':
+                return $this->get($fn, $args[0] ?? null);
+            default:
+                return parent::_call($fn, $args);
         }
     }
 }

@@ -21,12 +21,12 @@ class Stock extends Entity implements PartnerLinkHolderInterface
         'updated_at' => ['type' => self::COLUMN_TIME, 'default' => null]
     ];
 
-    public function setId($v)
+    public function setId($v): Entity
     {
         return $this->setStockId($v);
     }
 
-    public function getId($makeCompositeId = true)
+    public function getId(bool $makeCompositeId = true)
     {
         return $this->getStockId();
     }

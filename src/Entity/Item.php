@@ -15,7 +15,6 @@ class Item extends Entity
 {
     protected static $table = 'item';
     protected static $pk = 'item_id';
-    protected static $isFtdbmsIndex = true;
     protected static $columns = [
         'item_id' => ['type' => self::COLUMN_INT, self::AUTO_INCREMENT],
         'name' => ['type' => self::COLUMN_TEXT, self::SEARCH_IN, self::SEARCH_DISPLAY, self::REQUIRED, self::FTDBMS_FIELD],
@@ -55,12 +54,12 @@ class Item extends Entity
         'ix_catalog_category_brand' => ['is_sport', 'is_size_plus', 'category_id', 'brand_id'],
     ];
 
-    public function setId($v)
+    public function setId($v): Entity
     {
         return $this->setItemId($v);
     }
 
-    public function getId($makeCompositeId = true)
+    public function getId(bool $makeCompositeId = true)
     {
         return $this->getItemId();
     }

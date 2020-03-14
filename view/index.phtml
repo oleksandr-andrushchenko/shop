@@ -1,7 +1,6 @@
 <?php
 
 use SNOWGIRL_CORE\View;
-use SNOWGIRL_CORE\Script\Css;
 use SNOWGIRL_CORE\Entity\Banner;
 use SNOWGIRL_SHOP\Entity\Category;
 
@@ -14,7 +13,7 @@ $brandsBlocks = array_chunk($this->brands, $this->brandsPerBlock);
 $itemsBlocks = array_chunk($this->items, $this->itemsPerBlock);
 
 $this->getLayout()
-    ->addHeadCss(new Css('@shop/index.css'));
+    ->addHeadCss('@shop/index.css');
 ?>
 
 <div class="index vs">
@@ -40,7 +39,7 @@ $this->getLayout()
     <h1><?php echo $this->h1 ?></h1>
 
     <?php if ($this->mobileCatalogNav) { ?>
-        <?php $this->getLayout()->addLazyCss(new Css('@app/index.catalog-nav.css')); ?>
+        <?php $this->getLayout()->addLazyCss('@app/index.catalog-nav.css'); ?>
         <nav class="mobile-catalog-nav nav-sm" aria-label="Navigation" itemscope
              itemtype="http://schema.org/SiteNavigationElement">
             <?php foreach ($this->mobileCatalogNav as $text => $href) { ?>

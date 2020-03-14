@@ -2,9 +2,9 @@
 
 namespace SNOWGIRL_SHOP\Controller\Admin;
 
-use SNOWGIRL_CORE\Exception\HTTP\BadRequest;
+use SNOWGIRL_CORE\Http\Exception\BadRequestHttpException;
 use SNOWGIRL_CORE\Exception\HTTP\MethodNotAllowed;
-use SNOWGIRL_SHOP\App\Web as App;
+use SNOWGIRL_SHOP\Http\HttpApp as App;
 use SNOWGIRL_CORE\Controller\Admin\PrepareServicesTrait;
 use SNOWGIRL_SHOP\RBAC;
 
@@ -23,11 +23,11 @@ class TransferItemsByAttrsAction
         }
 
         if (!$source = $app->request->get('source')) {
-            throw (new BadRequest)->setInvalidParam('source');
+            throw (new BadRequestHttpException)->setInvalidParam('source');
         }
 
         if (!$target = $app->request->get('target')) {
-            throw (new BadRequest)->setInvalidParam('target');
+            throw (new BadRequestHttpException)->setInvalidParam('target');
         }
 
         $aff = $app->utils->items->doTransferByAttrs($source, $target);

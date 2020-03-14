@@ -2,19 +2,18 @@
 
 namespace SNOWGIRL_SHOP\Manager\Item\DataProvider;
 
-use SNOWGIRL_CORE\Manager;
-use SNOWGIRL_CORE\Service\Storage\Query;
-use SNOWGIRL_CORE\Service\Storage\Query\Expr;
+use SNOWGIRL_CORE\Query;
+use SNOWGIRL_CORE\Query\Expression;
 use SNOWGIRL_SHOP\Catalog\URI;
 use SNOWGIRL_SHOP\Manager\Item\DataProvider;
 
-class Rdbms extends DataProvider
+class Db extends DataProvider
 {
-    use Manager\DataProvider\Traits\Rdbms;
+    use \SNOWGIRL_CORE\Manager\DataProvider\Traits\Db;
 
     public function getPricesByUri(URI $uri): array
     {
-        $db = $this->manager->getApp()->services->rdbms(null, null, $this->manager->getMasterServices());
+        $db = $this->manager->getApp()->container->db($this->manager->getMasterServices());
 
         $columns = [];
         $groups = [];
@@ -33,12 +32,12 @@ class Rdbms extends DataProvider
                 $tmp = $pq . ' > ' . $r[0] . ' AND ' . $pq . ' <= ' . $r[1];
             }
 
-            $columns[] = new Expr('IF (' . $tmp . ', 1, 0) AS ' . $db->quote($groups[] = 'r_' . $r[0] . '_' . $r[1]));
+            $columns[] = new Expression('IF (' . $tmp . ', 1, 0) AS ' . $db->quote($groups[] = 'r_' . $r[0] . '_' . $r[1]));
         }
 
-        $columns[] = new Expr('COUNT(*) AS ' . $db->quote('cnt'));
+        $columns[] = new Expression('COUNT(*) AS ' . $db->quote('cnt'));
 
-        $where = $uri->getSRC()->getDataProvider('rdbms')->getWhere();
+        $where = $uri->getSRC()->getDataProvider('db')->getWhere();
 
         unset($where[URI::PRICE_FROM]);
         unset($where[URI::PRICE_TO]);
@@ -53,8 +52,7 @@ class Rdbms extends DataProvider
     public function getTypesByUri(URI $uri, &$map = [], &$current = []): array
     {
         $copy = $this->manager->copy(true)
-//            ->setStorage(Manager::STORAGE_RDBMS)
-        ;
+            ->setDb($this->manager->getApp()->container->db($this->manager->getMasterServices()));
 
         $map = [];
         $current = [];
@@ -73,10 +71,10 @@ class Rdbms extends DataProvider
             $current[URI::SIZE_PLUS] = $uri->get(URI::SIZE_PLUS);
         }
 
-        $db = $this->manager->getApp()->services->rdbms(null, null, $this->manager->getMasterServices());
+        $db = $this->manager->getApp()->container->db($this->manager->getMasterServices());
 
         if (in_array(URI::SALES, URI::TYPE_PARAMS)) {
-            $copy->addColumn(new Expr('IF(' . $db->quote('old_price') . ' > 0, 1, 0) AS ' . $db->quote('is_sales')))
+            $copy->addColumn(new Expression('IF(' . $db->quote('old_price') . ' > 0, 1, 0) AS ' . $db->quote('is_sales')))
                 ->addGroup('is_sales');
             $map[URI::SALES] = 'is_sales';
             $current[URI::SALES] = $uri->get(URI::SALES);
@@ -84,8 +82,8 @@ class Rdbms extends DataProvider
 
         $exclude = array_merge($map, array_keys($map));
 
-        $copy->addColumn(new Expr('COUNT(*) AS ' . $db->quote('cnt')))
-            ->addWhere(array_filter($uri->getSRC()->getDataProvider('rdbms')->getWhere(), function ($k) use ($exclude) {
+        $copy->addColumn(new Expression('COUNT(*) AS ' . $db->quote('cnt')))
+            ->addWhere(array_filter($uri->getSRC()->getDataProvider('db')->getWhere(), function ($k) use ($exclude) {
                 return !in_array($k, $exclude);
             }, ARRAY_FILTER_USE_KEY));
 

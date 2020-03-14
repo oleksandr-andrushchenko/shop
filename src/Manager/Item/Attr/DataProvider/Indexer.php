@@ -10,9 +10,9 @@ use SNOWGIRL_SHOP\Entity\Material;
 use SNOWGIRL_SHOP\Manager\Item\Attr\DataProvider;
 use SNOWGIRL_CORE\Helper\Arrays;
 
-class Elastic extends DataProvider
+class Indexer extends DataProvider
 {
-    use \SNOWGIRL_CORE\Manager\DataProvider\Traits\Elastic;
+    use \SNOWGIRL_CORE\Manager\DataProvider\Traits\Indexer;
 
     /**
      * @@todo implement prefix support
@@ -26,13 +26,13 @@ class Elastic extends DataProvider
      */
     public function getFiltersCountsByUri(URI $uri, $query = null, $prefix = false)
     {
-        $db = $this->manager->getApp()->storage->elastic(null, $this->manager->getMasterServices());
+        $db = $this->manager->getApp()->container->indexer($this->manager->getMasterServices());
 
         $pk = $this->manager->getEntity()->getPk();
 //        $table = $this->manager->getEntity()->getTable();
         $itemTable = $this->manager->getApp()->managers->items->getEntity()->getTable();
 
-        $where = $uri->getSRC()->getDataProvider('elastic')->getWhere();
+        $where = $uri->getSRC()->getDataProvider('indexer')->getWhere();
 
         if ($this->manager->getQuery()->where) {
             $where = array_merge($where, Arrays::cast($this->manager->getQuery()->where));
@@ -109,7 +109,7 @@ class Elastic extends DataProvider
         $path[] = 'buckets';
 
 
-        $output = $this->manager->getApp()->storage->elastic(null, $this->manager->getMasterServices())
+        $output = $this->manager->getApp()->container->indexer($this->manager->getMasterServices())
             ->searchRaw($itemTable, $params, $path);
 
 

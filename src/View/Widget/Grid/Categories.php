@@ -4,6 +4,7 @@ namespace SNOWGIRL_SHOP\View\Widget\Grid;
 
 use SNOWGIRL_CORE\Exception;
 use SNOWGIRL_CORE\Helper;
+use SNOWGIRL_CORE\View\Node;
 use SNOWGIRL_CORE\View\Widget;
 use SNOWGIRL_SHOP\Catalog\URI;
 use SNOWGIRL_SHOP\Entity\Category;
@@ -14,8 +15,9 @@ class Categories extends Widget
     protected $padding;
     /** @var URI */
     protected $uri;
+    protected $tmpMap;
 
-    protected function makeParams(array $params = [])
+    protected function makeParams(array $params = []): array
     {
         if (isset($params['uri']) && !$params['uri'] instanceof URI) {
             throw new Exception('invalid "uri" param');
@@ -24,13 +26,14 @@ class Categories extends Widget
         return $params;
     }
 
-    protected function getNode()
+    protected function getNode(): ?Node
     {
         return $this->makeNode('div', [
-            'class' => implode(' ', ['row', $this->getDomClass(), $this->padding ? ('p' . $this->padding) : ''])]);
+            'class' => implode(' ', ['row', $this->getDomClass(), $this->padding ? ('p' . $this->padding) : ''])
+        ]);
     }
 
-    protected function addScripts()
+    protected function addScripts(): Widget
     {
         return $this->addCssScript('@shop/widget/grid.categories.css');
     }
@@ -52,8 +55,6 @@ class Categories extends Widget
         /** @var Category $category */
         return Helper::makeNiceNumber($this->app->managers->categories->getItemsCount($category));
     }
-
-    protected $tmpMap;
 
     protected function stringifyPrepare()
     {

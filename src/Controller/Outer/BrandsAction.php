@@ -4,8 +4,8 @@ namespace SNOWGIRL_SHOP\Controller\Outer;
 
 use SNOWGIRL_CORE\Controller\Outer\PrepareServicesTrait;
 use SNOWGIRL_CORE\Controller\Outer\ProcessTypicalPageTrait;
-use SNOWGIRL_CORE\Service\Storage\Query\Expr;
-use SNOWGIRL_SHOP\App\Web as App;
+use SNOWGIRL_CORE\Query\Expression;
+use SNOWGIRL_SHOP\Http\HttpApp as App;
 use SNOWGIRL_SHOP\Catalog\URI;
 
 class BrandsAction
@@ -29,7 +29,7 @@ class BrandsAction
             'popularItemsGrid' => $app->views->brands([
                 'uri' => new URI,
                 'items' => $app->managers->brands->clear()
-                    ->setWhere(new Expr('`image` IS NOT NULL'))
+                    ->setWhere(new Expression('`image` IS NOT NULL'))
                     ->setOrders(['rating' => SORT_DESC])
                     ->setLimit(36)
                     ->getObjects()

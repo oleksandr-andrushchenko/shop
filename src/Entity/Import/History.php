@@ -4,7 +4,7 @@ namespace SNOWGIRL_SHOP\Entity\Import;
 
 use SNOWGIRL_CORE\Exception;
 use SNOWGIRL_CORE\Entity;
-use SNOWGIRL_CORE\DateTime;
+use DateTime;
 
 class History extends Entity
 {
@@ -28,17 +28,17 @@ class History extends Entity
         'updated_at' => ['type' => self::COLUMN_TIME, 'default' => null]
     ];
 
-    public function setId($v)
+    public function setId($v): Entity
     {
         return $this->setImportHistoryId($v);
     }
 
-    public function getId($makeCompositeId = true)
+    public function getId(bool $makeCompositeId = true)
     {
         return $this->getImportHistoryId();
     }
 
-    public function setImportHistoryId($v): self
+    public function setImportHistoryId($v): History
     {
         return $this->setRequiredAttr('import_history_id', (int)$v);
     }
@@ -48,7 +48,7 @@ class History extends Entity
         return (int)$this->getRawAttr('import_history_id');
     }
 
-    public function setImportSourceId($v): self
+    public function setImportSourceId($v): History
     {
         return $this->setRequiredAttr('import_source_id', (int)$v);
     }
@@ -58,7 +58,7 @@ class History extends Entity
         return (int)$this->getRawAttr('import_source_id');
     }
 
-    public function setHash($v): self
+    public function setHash($v): History
     {
         return $this->setRequiredAttr('hash', trim($v));
     }
@@ -68,7 +68,7 @@ class History extends Entity
         return $this->getRawAttr('hash');
     }
 
-    public function setCountTotal(int $v = null): self
+    public function setCountTotal(int $v = null): History
     {
         return $this->setRawAttr('count_total', $v);
     }
@@ -78,7 +78,7 @@ class History extends Entity
         return is_null($v = $this->getRawAttr('count_total')) ? null : (int)$v;
     }
 
-    public function setCountFilteredFilter(int $v = null): self
+    public function setCountFilteredFilter(int $v = null): History
     {
         return $this->setRawAttr('count_filtered_filter', $v);
     }
@@ -88,7 +88,7 @@ class History extends Entity
         return is_null($v = $this->getRawAttr('count_filtered_filter')) ? null : (int)$v;
     }
 
-    public function setCountFilteredModifier(int $v = null): self
+    public function setCountFilteredModifier(int $v = null): History
     {
         return $this->setRawAttr('count_filtered_modifier', $v);
     }
@@ -98,7 +98,7 @@ class History extends Entity
         return is_null($v = $this->getRawAttr('count_filtered_modifier')) ? null : (int)$v;
     }
 
-    public function setCountSkippedUnique(int $v = null): self
+    public function setCountSkippedUnique(int $v = null): History
     {
         return $this->setRawAttr('count_skipped_unique', $v);
     }
@@ -108,7 +108,7 @@ class History extends Entity
         return is_null($v = $this->getRawAttr('count_skipped_unique')) ? null : (int)$v;
     }
 
-    public function setCountSkippedUpdated(int $v = null): self
+    public function setCountSkippedUpdated(int $v = null): History
     {
         return $this->setRawAttr('count_skipped_updated', $v);
     }
@@ -118,7 +118,7 @@ class History extends Entity
         return is_null($v = $this->getRawAttr('count_skipped_updated')) ? null : (int)$v;
     }
 
-    public function setCountSkippedOther(int $v = null): self
+    public function setCountSkippedOther(int $v = null): History
     {
         return $this->setRawAttr('count_skipped_other', $v);
     }
@@ -128,7 +128,7 @@ class History extends Entity
         return is_null($v = $this->getRawAttr('count_skipped_other')) ? null : (int)$v;
     }
 
-    public function setCountPassed(int $v = null): self
+    public function setCountPassed(int $v = null): History
     {
         return $this->setRawAttr('count_passed', $v);
     }
@@ -138,7 +138,7 @@ class History extends Entity
         return is_null($v = $this->getRawAttr('count_passed')) ? null : (int)$v;
     }
 
-    public function setCountAffected(int $v = null): self
+    public function setCountAffected(int $v = null): History
     {
         return $this->setRawAttr('count_affected', $v);
     }
@@ -148,7 +148,7 @@ class History extends Entity
         return is_null($v = $this->getRawAttr('count_affected')) ? null : (int)$v;
     }
 
-    public function setError($v): self
+    public function setError($v): History
     {
         return $this->setAttr('error', ($v = trim($v)) ? $v : null);
     }

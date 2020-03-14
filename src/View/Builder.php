@@ -2,9 +2,9 @@
 
 namespace SNOWGIRL_SHOP\View;
 
-use SNOWGIRL_CORE\Service\Storage\Query\Expr;
-use SNOWGIRL_SHOP\App\Web;
+use SNOWGIRL_CORE\Query\Expression;
 use SNOWGIRL_SHOP\Entity\Item;
+use SNOWGIRL_SHOP\Http\HttpApp;
 use SNOWGIRL_SHOP\View\Widget\Grid\Categories;
 use SNOWGIRL_SHOP\View\Widget\Grid\Brands;
 use SNOWGIRL_SHOP\View\Widget\Grid\Items;
@@ -14,7 +14,7 @@ use SNOWGIRL_SHOP\View\Widget\Form\Order as OrderForm;
 /**
  * Class Builder
  *
- * @property Web app
+ * @property HttpApp app
  *
  * @method Categories categories($params = [], $parent = null)
  * @method Brands brands($params = [], $parent = null)

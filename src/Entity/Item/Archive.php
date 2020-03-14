@@ -6,7 +6,6 @@ class Archive extends \SNOWGIRL_CORE\Entity
 {
     protected static $table = 'item_archive';
     protected static $pk = 'item_id';
-    protected static $isFtdbmsIndex = false;
 
     protected static $columns = [
         'item_id' => ['type' => self::COLUMN_INT, self::AUTO_INCREMENT],

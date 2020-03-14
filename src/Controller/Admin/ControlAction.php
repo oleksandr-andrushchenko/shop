@@ -2,7 +2,7 @@
 
 namespace SNOWGIRL_SHOP\Controller\Admin;
 
-use SNOWGIRL_CORE\App\Web as App;
+use SNOWGIRL_CORE\Http\HttpApp as App;
 use SNOWGIRL_SHOP\RBAC;
 
 class ControlAction extends \SNOWGIRL_CORE\Controller\Admin\ControlAction

@@ -4,26 +4,26 @@ namespace SNOWGIRL_SHOP\Catalog\SRC\DataProvider;
 
 use SNOWGIRL_CORE\Entity;
 use SNOWGIRL_CORE\Manager;
-use SNOWGIRL_CORE\Service\Storage\Query;
-use SNOWGIRL_CORE\Service\Storage\Query\Expr;
+use SNOWGIRL_CORE\Query;
+use SNOWGIRL_CORE\Query\Expression;
 use SNOWGIRL_SHOP\Catalog\SRC\DataProvider;
 use SNOWGIRL_SHOP\Catalog\URI;
 
 use SNOWGIRL_SHOP\Manager\Item\Attr as ItemAttrManager;
 
-class Mysql extends DataProvider
+class Db extends DataProvider
 {
     public function getItemsAttrs()
     {
         $table = $this->src->getURI()->getApp()->managers->items->getEntity()->getTable();
         $pk = $this->src->getURI()->getApp()->managers->items->getEntity()->getPk();
 
-        $db = $this->src->getURI()->getApp()->storage->mysql(null, $this->src->getMasterServices());
+        $db = $this->src->getURI()->getApp()->container->db($this->src->getMasterServices());
 
         $offset = $this->src->getOffset();
         $limit = $this->src->getLimit();
 
-        $columns = [new Expr($db->quote($pk, $table))];
+        $columns = [new Expression($db->quote($pk, $table))];
         $joins = [];
         $where = $this->getWhere(true);
         $order = $this->getOrder(true);
@@ -47,7 +47,7 @@ class Mysql extends DataProvider
             $key = $entity::getPk();
 
             if ($multi) {
-                return new Expr('GROUP_CONCAT(DISTINCT ' . $db->quote($key) . ') AS ' . $db->quote($key));
+                return new Expression('GROUP_CONCAT(DISTINCT ' . $db->quote($key) . ') AS ' . $db->quote($key));
             }
 
             return $key;
@@ -94,7 +94,7 @@ class Mysql extends DataProvider
             $key = false === ($tmp = array_search($addNewOrderAfter, array_keys($order))) ? -1 : $tmp;
 
             $order = array_slice($order, 0, ++$key, true) +
-                [new Expr(implode(' + ', $attrOrders) . ' DESC')] +
+                [new Expression(implode(' + ', $attrOrders) . ' DESC')] +
                 array_slice($order, $key, null, true);
         }
 
@@ -111,7 +111,7 @@ class Mysql extends DataProvider
             $db->makeLimitSQL($offset, $limit, $query->params),
         ]);
 
-        $output = $db->req($query)->reqToArrays();
+        $output = $db->reqToArrays($query);
 
         return $output;
     }
@@ -138,11 +138,11 @@ class Mysql extends DataProvider
             }
         }
 
-        $db = $this->src->getURI()->getApp()->storage->mysql(null, $this->src->getMasterServices());
+        $db = $this->src->getURI()->getApp()->container->db($this->src->getMasterServices());
 
         $mva = Manager::mapEntitiesAddPksAsKeys($this->src->getURI()->getApp()->managers->catalog->getMvaComponents());
 
-        foreach (Manager::mapEntitiesAddPksAsKeys($this->src->getURI()->getApp()->managers->catalog->getComponentsOrderByRdbmsKey()) as $pk => $entity) {
+        foreach (Manager::mapEntitiesAddPksAsKeys($this->src->getURI()->getApp()->managers->catalog->getComponentsOrderByDbKey()) as $pk => $entity) {
             if (isset($params[$pk])) {
                 $v = $params[$pk];
 
@@ -165,7 +165,7 @@ class Mysql extends DataProvider
                 if (isset($mva[$pk]) && !$raw) {
                     $bind = [];
 
-                    $output[$pk] = new Expr($db->quote('item_id') . ' IN (' . implode(' ', [
+                    $output[$pk] = new Expression($db->quote('item_id') . ' IN (' . implode(' ', [
                             $db->makeSelectSQL('item_id', false, $bind),
                             $db->makeFromSQL(ItemAttrManager::makeLinkTableNameByEntityClass($mva[$pk])),
                             $db->makeWhereSQL([$pk => $v], $bind)
@@ -182,15 +182,15 @@ class Mysql extends DataProvider
         }
 
         if (isset($params[URI::PRICE_FROM])) {
-            $output[URI::PRICE_FROM] = new Expr($db->quote('price') . ' > ?', (int)$params[URI::PRICE_FROM]);
+            $output[URI::PRICE_FROM] = new Expression($db->quote('price') . ' > ?', (int)$params[URI::PRICE_FROM]);
         }
 
         if (isset($params[URI::PRICE_TO])) {
-            $output[URI::PRICE_TO] = new Expr($db->quote('price') . ' <= ?', (int)$params[URI::PRICE_TO]);
+            $output[URI::PRICE_TO] = new Expression($db->quote('price') . ' <= ?', (int)$params[URI::PRICE_TO]);
         }
 
         if (isset($params[URI::SALES])) {
-            $output[URI::SALES] = new Expr($db->quote('old_price') . ' > 0');
+            $output[URI::SALES] = new Expression($db->quote('old_price') . ' > 0');
         }
 
         return $output;
@@ -231,7 +231,7 @@ class Mysql extends DataProvider
     public function getTotalCount()
     {
         return $this->src->getURI()->getApp()->managers->items->clear()
-            ->setStorage($this->src->getURI()->getApp()->storage->mysql(null, $this->src->getMasterServices()))
+            ->setDb($this->src->getURI()->getApp()->container->db($this->src->getMasterServices()))
             ->setWhere($this->getWhere())
             ->getCount();
     }

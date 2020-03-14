@@ -5,7 +5,7 @@ namespace SNOWGIRL_SHOP\Controller\Console;
 use SNOWGIRL_CORE\Controller\Console\PrepareServicesTrait;
 use SNOWGIRL_SHOP\Catalog\SEO;
 use SNOWGIRL_SHOP\Entity\Item\Attr;
-use SNOWGIRL_CORE\Exception\HTTP\BadRequest;
+use SNOWGIRL_CORE\Http\Exception\BadRequestHttpException;
 use SNOWGIRL_CORE\Helper\Arrays;
 use SNOWGIRL_SHOP\App\Console as App;
 use SNOWGIRL_SHOP\Catalog\URI;
@@ -29,7 +29,7 @@ class AddCatalogPageAction
         $this->prepareServices($app);
 
         if (!$rawWhere = $app->request->get('param_1')) {
-            throw (new BadRequest)->setInvalidParam('where');
+            throw (new BadRequestHttpException)->setInvalidParam('where');
         }
 
         $where = $this->buildWhere($app, $rawWhere);
@@ -43,7 +43,7 @@ class AddCatalogPageAction
         $aff = $app->managers->catalog->insertOne($page);
 
         if ($aff) {
-            $app->storage->elastic->indexOne(
+            $app->container->indexer->getManager()->indexOne(
                 $this->buildElasticIndexName($app),
                 $page->getId(),
                 $this->buildElasticDocument($app, $page)
@@ -67,7 +67,7 @@ class AddCatalogPageAction
                 $manager = $app->managers->getByTable(trim($peaces[0]));
                 $output[$manager->getEntity()->getTable()] = $manager->find((int)trim($peaces[1]));
             } else {
-                throw (new BadRequest)->setInvalidParam('expr');
+                throw (new BadRequestHttpException)->setInvalidParam('expr');
             }
         }
 
@@ -80,7 +80,7 @@ class AddCatalogPageAction
 
         /** @var Attr[] $where */
 
-        foreach ($app->managers->catalog->getComponentsOrderByRdbmsKey() as $component) {
+        foreach ($app->managers->catalog->getComponentsOrderByDbKey() as $component) {
             foreach ($where as $tableOrType => $entityOrTrue) {
                 if ($tableOrType == $component::getTable()) {
                     if ($entityOrTrue->hasAttr('name_multiply') && $tmp = $entityOrTrue->get('name_multiply')) {
@@ -132,7 +132,7 @@ class AddCatalogPageAction
 
         /** @var Attr[] $where */
 
-        foreach ($app->managers->catalog->getComponentsOrderByRdbmsKey() as $component) {
+        foreach ($app->managers->catalog->getComponentsOrderByDbKey() as $component) {
             foreach ($where as $tableOrType => $entityOrTrue) {
                 if ($tableOrType == $component::getTable()) {
                     $output[$entityOrTrue->getPk()] = $entityOrTrue->getId();
@@ -165,7 +165,7 @@ class AddCatalogPageAction
     protected function buildElasticIndexName(App $app): string
     {
         $table = $app->managers->items->getEntity()->getTable();
-        $indexes = $app->storage->elastic->getAliasIndexes($table);
+        $indexes = $app->container->indexer->getManager()->getAliasIndexes($table);
 
         if (!$indexes) {
             throw new \Exception('no indexes were found');

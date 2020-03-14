@@ -4,7 +4,7 @@ namespace SNOWGIRL_SHOP\Util;
 
 use SNOWGIRL_CORE\Exception;
 use SNOWGIRL_CORE\Util;
-use SNOWGIRL_CORE\App;
+use SNOWGIRL_CORE\AbstractApp;
 use SNOWGIRL_SHOP\Manager\Tag as TagManager;
 use SNOWGIRL_SHOP\Entity\Tag as TagEntity;
 use SNOWGIRL_SHOP\Entity\Category;
@@ -31,7 +31,7 @@ class Tag extends Util
             $this->output('DONE[there are no non leafs categories ids]');
         }
 
-        $db = $this->app->services->rdbms;
+        $db = $this->app->container->db;
 
         $aff = $db->req(implode(' ', [
             'DELETE ' . ' ' . $db->quote('item_tag'),

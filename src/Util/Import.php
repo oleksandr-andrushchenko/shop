@@ -3,10 +3,10 @@
 namespace SNOWGIRL_SHOP\Util;
 
 use SNOWGIRL_CORE\Helper\WalkChunk;
-use SNOWGIRL_CORE\Service\Storage\Query\Expr;
-use SNOWGIRL_CORE\Service\Storage\Query;
+use SNOWGIRL_CORE\Query\Expression;
+use SNOWGIRL_CORE\Query;
 use SNOWGIRL_CORE\Util;
-use SNOWGIRL_CORE\App;
+use SNOWGIRL_CORE\AbstractApp;
 use SNOWGIRL_SHOP\Entity\Item;
 use SNOWGIRL_SHOP\Entity\Import\Source as ImportSource;
 
@@ -58,7 +58,7 @@ class Import extends Util
      */
     public function doDeleteImportSourceItemsDuplicates(ImportSource $importSource)
     {
-        $db = $this->app->services->rdbms;
+        $db = $this->app->container->db;
 
         $query = new Query(['params' => []]);
         $query->text = implode(' ', [
@@ -68,10 +68,10 @@ class Import extends Util
             $db->makeFromSQL(Item::getTable()),
             $db->makeWhereSQL(['import_source_id' => $importSource->getId()], $query->params),
             $db->makeGroupSQL('image', $query->params),
-            $db->makeHavingSQL(new Expr($db->quote('cnt') . ' > ?', 1), $query->params)
+            $db->makeHavingSQL(new Expression($db->quote('cnt') . ' > ?', 1), $query->params)
         ]);
 
-        $tmp = $db->req($query)->reqToArrays();
+        $tmp = $db->reqToArrays($query);
 
         $copies = [];
 

@@ -2,10 +2,10 @@
 
 namespace SNOWGIRL_SHOP\Manager\Import;
 
-use SNOWGIRL_CORE\Service\Storage\Query;
-use SNOWGIRL_CORE\App;
+use SNOWGIRL_CORE\Query;
+use SNOWGIRL_CORE\AbstractApp;
 use SNOWGIRL_CORE\Entity;
-use SNOWGIRL_CORE\Service\Rdbms;
+use SNOWGIRL_CORE\Service\Db;
 use SNOWGIRL_SHOP\Entity\Item;
 use SNOWGIRL_CORE\Manager;
 use SNOWGIRL_SHOP\Entity\Import\Source as ImportSourceEntity;
@@ -21,7 +21,7 @@ use SNOWGIRL_CORE\Helper\Classes;
  * @method static ImportSourceEntity getItem($id)
  * @method ImportSourceEntity find($id)
  * @method static Source factory($app)
- * @property App                app
+ * @property App app
  * @method ImportSourceEntity[] getObjects($idAsKeyOrKey = null)
  * @method Source clear()
  * @method Source setWhat($what)
@@ -81,7 +81,7 @@ class Source extends Manager
 
     /**
      * @param ImportSourceEntity $source
-     * @param array              $input
+     * @param array $input
      *
      * @return array|bool|null
      */
@@ -175,19 +175,19 @@ class Source extends Manager
 
     public function deleteItems(ImportSourceEntity $source)
     {
-        return $this->app->services->rdbms->makeTransaction(function () use ($source) {
+        return $this->app->container->db->makeTransaction(function () use ($source) {
             $where = [
                 'vendor_id' => $source->getVendorId()
             ];
 
-            $items = $this->app->services->rdbms->selectMany(Item::getTable(), new Query([
+            $items = $this->app->container->db->selectMany(Item::getTable(), new Query([
                 'columns' => 'image',
                 'where' => $where
             ]));
 
-            $this->app->services->rdbms->deleteMany(Item::getTable(), new Query(['where' => $where]));
+            $this->app->container->db->deleteMany(Item::getTable(), new Query(['where' => $where]));
 
-            $this->app->services->rdbms->on(Rdbms::EVENT_COMPLETE, function () use ($items) {
+            $this->app->container->db->on(Db::EVENT_COMPLETE, function () use ($items) {
                 foreach ($items as $item) {
                     $this->app->images->get($item['image'])->delete();
                 }
@@ -219,12 +219,7 @@ class Source extends Manager
         return $this->getLinked($source, 'vendor_id');
     }
 
-    /**
-     * @param ImportSourceEntity $source
-     *
-     * @return Import
-     */
-    public function getImport(ImportSourceEntity $source)
+    public function getImport(ImportSourceEntity $source, bool $debug = null): Import
     {
         if ($class = $source->getClassName()) {
             $class = Classes::aliasToReal($this->app, $class, 'Import');
@@ -232,7 +227,7 @@ class Source extends Manager
             $class = Import::class;
         }
 
-        return new $class($this->app, $source);
+        return new $class($this->app, $source, $debug);
     }
 
     public function getImportClasses($withAliases = false, $whole = false)

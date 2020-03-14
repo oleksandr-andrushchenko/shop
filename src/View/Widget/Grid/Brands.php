@@ -14,7 +14,7 @@ class Brands extends Widget
     /** @var URI */
     protected $uri;
 
-    protected function makeParams(array $params = [])
+    protected function makeParams(array $params = []): array
     {
         if (isset($params['uri']) && !$params['uri'] instanceof URI) {
             throw new Exception('invalid "uri" param');
@@ -34,7 +34,7 @@ class Brands extends Widget
         return parent::stringifyPrepare();
     }
 
-    protected function addScripts()
+    protected function addScripts(): Widget
     {
         return $this->addCssScript('@shop/widget/grid.brands.css');
     }

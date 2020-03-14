@@ -1,13 +1,12 @@
 <?php
 use SNOWGIRL_CORE\View;
-use SNOWGIRL_CORE\Script\Css;
 use SNOWGIRL_SHOP\Entity\Vendor;
 
 /** @var View $this */
 /** @var Vendor $item */
 $this->getLayout()
     ->addBreadcrumb($this->h1)
-    ->addHeadCss(new Css('@shop/vendors.css'));
+    ->addHeadCss('@shop/vendors.css');
 ?>
 
 <div class="row">

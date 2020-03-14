@@ -2,8 +2,8 @@
 
 namespace SNOWGIRL_SHOP\Controller\Admin;
 
-use SNOWGIRL_CORE\Service\Storage\Query\Expr;
-use SNOWGIRL_SHOP\App\Web as App;
+use SNOWGIRL_CORE\Query\Expression;
+use SNOWGIRL_SHOP\Http\HttpApp as App;
 use SNOWGIRL_CORE\Controller\Admin\PrepareServicesTrait;
 use SNOWGIRL_SHOP\Entity\Category;
 use SNOWGIRL_SHOP\Manager\Category as CategoryManager;
@@ -47,7 +47,7 @@ class CategoryFixesAction
         /** @var CategoryManager $src */
         $src = $app->managers->categories->clear();
 
-        $db = $app->services->rdbms;
+        $db = $app->container->db;
 
         $srcWhat = ['*'];
         $srcWhere = [];

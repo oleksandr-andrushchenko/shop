@@ -2,7 +2,7 @@
 
 namespace SNOWGIRL_SHOP\Entity\Import;
 
-use SNOWGIRL_CORE\DateTime;
+use DateTime;
 use SNOWGIRL_CORE\Exception;
 use SNOWGIRL_CORE\Entity;
 
@@ -55,12 +55,12 @@ class Source extends Entity
         'updated_at' => ['type' => self::COLUMN_TIME, 'default' => null]
     ];
 
-    public function setId($v)
+    public function setId($v): Entity
     {
         return $this->setImportSourceId($v);
     }
 
-    public function getId($makeCompositeId = true)
+    public function getId(bool $makeCompositeId = true)
     {
         return $this->getImportSourceId();
     }
@@ -78,8 +78,8 @@ class Source extends Entity
     /**
      * @param $v
      *
-     * @return Entity|Source
-     * @throws Exception\EntityAttr\Required
+     * @return Entity
+     * @throws Entity\EntityException
      */
     public function setName($v)
     {
@@ -94,8 +94,8 @@ class Source extends Entity
     /**
      * @param $v
      *
-     * @return Entity|Source
-     * @throws Exception\EntityAttr\Required
+     * @return Entity
+     * @throws Entity\EntityException
      */
     public function setFile($v)
     {
@@ -157,8 +157,8 @@ class Source extends Entity
     /**
      * @param $v
      *
-     * @return Entity|Source
-     * @throws Exception\EntityAttr\Required
+     * @return Entity
+     * @throws Entity\EntityException
      */
     public function setVendorId($v)
     {
@@ -173,8 +173,8 @@ class Source extends Entity
     /**
      * @param $v
      *
-     * @return Entity|Source
-     * @throws Exception\EntityAttr\Required
+     * @return Entity
+     * @throws Entity\EntityException
      */
     public function setClassName($v)
     {

@@ -6,7 +6,7 @@ use SNOWGIRL_CORE\Controller\Outer\PrepareServicesTrait;
 use SNOWGIRL_CORE\Controller\Outer\ProcessTypicalPageTrait;
 use SNOWGIRL_CORE\Exception\HTTP\MethodNotAllowed;
 use SNOWGIRL_CORE\View\Layout;
-use SNOWGIRL_SHOP\App\Web as App;
+use SNOWGIRL_SHOP\Http\HttpApp as App;
 use SNOWGIRL_SHOP\Entity\Item;
 use SNOWGIRL_SHOP\Entity\Size;
 

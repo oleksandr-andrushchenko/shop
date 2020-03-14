@@ -2,22 +2,22 @@
 
 namespace SNOWGIRL_SHOP\Manager\Category;
 
-use SNOWGIRL_CORE\Service\Storage\Query;
+use SNOWGIRL_CORE\Query;
 use SNOWGIRL_CORE\Helper\Arrays;
 use SNOWGIRL_CORE\Manager;
-use SNOWGIRL_CORE\Service\Storage\Query\Expr;
+use SNOWGIRL_CORE\Query\Expression;
+use SNOWGIRL_SHOP\Console\ConsoleApp;
 use SNOWGIRL_SHOP\Entity\Category as CategoryEntity;
 use SNOWGIRL_SHOP\Entity\Category;
 use SNOWGIRL_SHOP\Entity\Category\Entity as CategoryEntityEntity;
 use SNOWGIRL_SHOP\Entity\Item as ItemEntity;
+use SNOWGIRL_SHOP\Http\HttpApp;
 use SNOWGIRL_SHOP\Item\FixWhere;
-use SNOWGIRL_SHOP\App\Web;
-use SNOWGIRL_SHOP\App\Console;
 
 /**
  * Class Entity
  *
- * @property Web|Console app
+ * @property HttpApp|ConsoleApp app
  * @method static Entity factory($app)
  * @method Entity clear()
  * @package SNOWGIRL_SHOP\Manager\Category
@@ -64,7 +64,7 @@ class Entity extends Manager
             return true;
         }
 
-        $db = $this->getStorage();
+        $db = $this->getDb();
         $table = $this->getEntity()->getTable();
         $pk = $this->getEntity()->getPk();
 
@@ -139,11 +139,11 @@ class Entity extends Manager
         return $this->clear()->setWhere(array_merge(['is_active' => 1], $where))->getObjects();
     }
 
-    protected function updateItemsCategory($function, $categoryId, array $where): int
+    protected function updateItemsCategory($function, $categoryId, array $where, array $params = []): int
     {
-        $aff = $this->app->managers->items->updateMany(['category_id' => $categoryId], $where);
+        $aff = $this->app->managers->items->updateMany(['category_id' => $categoryId], $where, $params);
 
-        $this->app->services->logger->make(implode("\r\n", [
+        $this->app->container->logger->debug(implode("\r\n", [
             'METHOD: ' . $function,
             'CATEGORY: ' . $categoryId,
             'WHERE: ' . json_encode($where),
@@ -164,7 +164,7 @@ class Entity extends Manager
             return '%' . trim($stopWord) . '%';
         }, explode(',', $stopWords));
 
-        $query = $this->app->storage->mysql->quote('name') . ' NOT LIKE ?';
+        $query = $this->app->container->db->quote('name') . ' NOT LIKE ?';
         $query = implode(' OR ', array_fill(0, count($params), $query));
 //        $query = '(' . $query . ')';
 
@@ -173,7 +173,7 @@ class Entity extends Manager
         return [new Expr(...$params)];
     }
 
-    public function updateByParentsAndEntities(FixWhere $fixWhere = null): int
+    public function updateByParentsAndEntities(FixWhere $fixWhere = null, array $params = []): int
     {
         $this->generate();
 
@@ -184,10 +184,15 @@ class Entity extends Manager
         foreach ($this->getActiveObjects() as $entity) {
             if ($this->app->managers->categories->isLeafById($entity->getCategoryId())) {
                 if ($parentCategoryId = $this->app->managers->categories->getParentsId($entity->getCategoryId())) {
-                    $aff += $this->updateItemsCategory(__FUNCTION__, $entity->getCategoryId(), array_merge($where, [
-                        'category_id' => $parentCategoryId,
-                        'entity' => $entity->getEntity()
-                    ], $this->getStopWordsWhere($entity->getStopWords())));
+                    $aff += $this->updateItemsCategory(
+                        __FUNCTION__,
+                        $entity->getCategoryId(),
+                        array_merge($where, [
+                            'category_id' => $parentCategoryId,
+                            'entity' => $entity->getEntity()
+                        ], $this->getStopWordsWhere($entity->getStopWords())),
+                        $params
+                    );
                 }
             }
         }
@@ -195,7 +200,7 @@ class Entity extends Manager
         return $aff;
     }
 
-    public function updateByParentsAndNamesLikeCategories(FixWhere $fixWhere = null): int
+    public function updateByParentsAndNamesLikeCategories(FixWhere $fixWhere = null, array $params = []): int
     {
         $this->generate();
 
@@ -205,18 +210,23 @@ class Entity extends Manager
 
         foreach ($this->app->managers->categories->getLeafObjects() as $category) {
             if ($parentCategoryId = $this->app->managers->categories->getParentsId($category)) {
-                $aff += $this->updateItemsCategory(__FUNCTION__, $category->getId(), array_merge($where, [
-                    'category_id' => $parentCategoryId,
-                    'entity' => '',
-                    new Expr($this->app->storage->mysql->quote('name') . ' LIKE ?', $category->getName() . '%')
-                ]));
+                $aff += $this->updateItemsCategory(
+                    __FUNCTION__,
+                    $category->getId(),
+                    array_merge($where, [
+                        'category_id' => $parentCategoryId,
+                        'entity' => '',
+                        new Expr($this->app->container->db->quote('name') . ' LIKE ?', $category->getName() . '%')
+                    ]),
+                    $params
+                );
             }
         }
 
         return $aff;
     }
 
-    public function updateByParentsAndNamesLikeEntities(FixWhere $fixWhere = null): int
+    public function updateByParentsAndNamesLikeEntities(FixWhere $fixWhere = null, array $params = []): int
     {
         $this->generate();
 
@@ -227,11 +237,16 @@ class Entity extends Manager
         foreach ($this->getActiveObjects() as $entity) {
             if ($this->app->managers->categories->isLeafById($entity->getCategoryId())) {
                 if ($parentCategoryId = $this->app->managers->categories->getParentsId($entity->getCategoryId())) {
-                    $aff += $this->updateItemsCategory(__FUNCTION__, $entity->getCategoryId(), array_merge($where, [
-                        'category_id' => $parentCategoryId,
-                        'entity' => '',
-                        new Expr($this->app->storage->mysql->quote('name') . ' LIKE ?', $entity->getEntity() . '%')
-                    ], $this->getStopWordsWhere($entity->getStopWords())));
+                    $aff += $this->updateItemsCategory(
+                        __FUNCTION__,
+                        $entity->getCategoryId(),
+                        array_merge($where, [
+                            'category_id' => $parentCategoryId,
+                            'entity' => '',
+                            new Expr($this->app->container->db->quote('name') . ' LIKE ?', $entity->getEntity() . '%')
+                        ], $this->getStopWordsWhere($entity->getStopWords())),
+                        $params
+                    );
                 }
             }
         }
@@ -239,7 +254,7 @@ class Entity extends Manager
         return $aff;
     }
 
-    public function updateByEntities(FixWhere $fixWhere = null): int
+    public function updateByEntities(FixWhere $fixWhere = null, array $params = []): int
     {
         $this->generate();
 
@@ -249,16 +264,21 @@ class Entity extends Manager
 
         foreach ($this->getActiveObjects() as $entity) {
             if ($this->app->managers->categories->isLeafById($entity->getCategoryId())) {
-                $aff += $this->updateItemsCategory(__FUNCTION__, $entity->getCategoryId(), array_merge($where, [
-                    'entity' => $entity->getEntity()
-                ], $this->getStopWordsWhere($entity->getStopWords())));
+                $aff += $this->updateItemsCategory(
+                    __FUNCTION__,
+                    $entity->getCategoryId(),
+                    array_merge($where, [
+                        'entity' => $entity->getEntity()
+                    ], $this->getStopWordsWhere($entity->getStopWords())),
+                    $params
+                );
             }
         }
 
         return $aff;
     }
 
-    public function updateByEntitiesLikeEntities(FixWhere $fixWhere = null): int
+    public function updateByEntitiesLikeEntities(FixWhere $fixWhere = null, array $params = []): int
     {
         $this->generate();
 
@@ -268,9 +288,14 @@ class Entity extends Manager
 
         foreach ($this->getActiveObjects() as $entity) {
             if ($this->app->managers->categories->isLeafById($entity->getCategoryId())) {
-                $aff += $this->updateItemsCategory(__FUNCTION__, $entity->getCategoryId(), array_merge($where, [
-                    new Expr($this->app->storage->mysql->quote('entity') . ' LIKE ?', $entity->getEntity() . '%')
-                ], $this->getStopWordsWhere($entity->getStopWords())));
+                $aff += $this->updateItemsCategory(
+                    __FUNCTION__,
+                    $entity->getCategoryId(),
+                    array_merge($where, [
+                        new Expr($this->app->container->db->quote('entity') . ' LIKE ?', $entity->getEntity() . '%')
+                    ], $this->getStopWordsWhere($entity->getStopWords())),
+                    $params
+                );
             }
         }
 

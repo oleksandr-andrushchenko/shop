@@ -5,7 +5,7 @@ namespace SNOWGIRL_SHOP\Controller\Outer;
 use SNOWGIRL_CORE\Controller\Outer\PrepareServicesTrait;
 use SNOWGIRL_CORE\Controller\Outer\ProcessTypicalPageTrait;
 use SNOWGIRL_CORE\View\Layout;
-use SNOWGIRL_SHOP\App\Web as App;
+use SNOWGIRL_SHOP\Http\HttpApp as App;
 
 class ContactsAction
 {
@@ -26,18 +26,16 @@ class ContactsAction
 
         $content = $view->getContent();
 
-        $config = $app->config->site;
-
         $content->addParams([
             'contacts' => [
-                'email' => $config->email,
-                'phone' => $config->phone,
-                'time' => $config->time,
-                'address' => $config->address
+                'email' => $app->config('site.email'),
+                'phone' => $app->config('site.phone'),
+                'time' => $app->config('site.time'),
+                'address' => $app->config('site.address')
             ],
             'map' => $app->views->googleMap(['center' => [
-                'latitude' => $config->latitude,
-                'longitude' => $config->longitude
+                'latitude' => $app->config('site.latitude'),
+                'longitude' => $app->config('site.longitude')
             ]], $view)->stringify()
         ]);
 

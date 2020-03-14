@@ -3,7 +3,7 @@
 namespace SNOWGIRL_SHOP\Controller\Console;
 
 use SNOWGIRL_CORE\Controller\Console\PrepareServicesTrait;
-use SNOWGIRL_CORE\Exception\HTTP\BadRequest;
+use SNOWGIRL_CORE\Http\Exception\BadRequestHttpException;
 use SNOWGIRL_SHOP\App\Console as App;
 
 class FixItemsDuplicatesAction
@@ -15,7 +15,7 @@ class FixItemsDuplicatesAction
         $this->prepareServices($app);
 
         if (!$importSourceId = $app->request->get('param_1')) {
-            throw (new BadRequest)->setInvalidParam('import_source_id');
+            throw (new BadRequestHttpException)->setInvalidParam('import_source_id');
         }
 
         $app->response->setBody(implode("\r\n", [

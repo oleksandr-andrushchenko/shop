@@ -30,8 +30,8 @@ class Tests extends \SNOWGIRL_CORE\Tests
     {
         $this->output(__FUNCTION__);
 
-        $masterDomain = $this->app->config->domain->master;
-        $prefix = $this->app->config->catalog->add_uri_prefix ? ('/' . URI::CATALOG) : '';
+        $masterDomain = $this->app->config('domain.master');
+        $prefix = $this->app->config('catalog.add_uri_prefix') ? ('/' . URI::CATALOG) : '';
 
         $data = [
             ['params' => ['path' => 'ryukzaki', 'qwe' => 1], 'domain' => 'master', 'mode' => URI::OUTPUT_DEFINED, 'expected' => $masterDomain . $prefix . '/ryukzaki'],
@@ -73,8 +73,8 @@ class Tests extends \SNOWGIRL_CORE\Tests
     {
         $this->output(__FUNCTION__);
 
-        $masterDomain = $this->app->config->domain->master;
-        $prefix = $this->app->config->catalog->add_uri_prefix ? ('/' . URI::CATALOG) : '';
+        $masterDomain = $this->app->config('domain.master');
+        $prefix = $this->app->config('catalog.add_uri_prefix') ? ('/' . URI::CATALOG) : '';
 
         $data = [
             [

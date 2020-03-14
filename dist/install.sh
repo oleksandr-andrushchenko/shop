@@ -35,19 +35,19 @@ echo ""
 mkdir -p src/App
 echo "<?php
 
-namespace APP\App;
+namespace APP\Http;
 
-class Web extends \SNOWGIRL_SHOP\App\Web
+class HttpApp extends \SNOWGIRL_SHOP\Http\HttpApp
 {
-}" >> ./src/App/Web.php
+}" >> ./src/Http/HttpApp.php
 
 echo "<?php
 
-namespace APP\App;
+namespace APP\Console;
 
-class Console extends \SNOWGIRL_SHOP\App\Console
+class ConsoleApp extends \SNOWGIRL_SHOP\Console\ConsoleApp
 {
-}" >> ./src/App/Console.php
+}" >> ./src/Console/ConsoleApp.php
 
 mkdir css
 echo "/*xs*/
@@ -70,11 +70,12 @@ mkdir var
 mkdir var/tmp
 mkdir var/log
 mkdir var/cache
+
 echo "" > ./var/log/access.log
 echo "" > ./var/log/error.log
-echo "" > ./var/log/web.log
-echo "" > ./var/log/web-outer.log
-echo "" > ./var/log/web-admin.log
+echo "" > ./var/log/app.log
+echo "" > ./var/log/outer.log
+echo "" > ./var/log/admin.log
 echo "" > ./var/log/console.log
 echo "" > ./var/log/hit.page.log
 echo "" > ./var/log/hit.buy.log
@@ -101,8 +102,6 @@ mkdir -p public/img/0/0
 mkdir bin
 cp ./vendor/snowgirl/core/dist/console.php ./bin/console
 
-cp ./vendor/snowgirl/shop/dist/config.ini ./config.ini
-
 echo "" > ./info.txt
 
 
@@ -110,17 +109,23 @@ echo ""
 echo "...config"
 echo ""
 
+mkdir config
+cp ./vendor/snowgirl/shop/dist/config.ini ./config/app.ini
+echo "" > ./config/admin.ini
+echo "" > ./config/console.ini
+echo "" > ./config/outer.ini
+
 read -p 'site: ' site
-perl -pi -w -e "s/{site}/${site}/g;" ./config.ini
+perl -pi -w -e "s/{site}/${site}/g;" ./config/app.ini
 
 read -p 'domain: ' domain
-perl -pi -w -e "s/{domain}/${domain}/g;" ./config.ini
+perl -pi -w -e "s/{domain}/${domain}/g;" ./config/app.ini
 
 read -p 'memcache_prefix: ' memcache_prefix
-perl -pi -w -e "s/{memcache_prefix}/${memcache_prefix}/g;" ./config.ini
+perl -pi -w -e "s/{memcache_prefix}/${memcache_prefix}/g;" ./config/app.ini
 
 read -p 'elastic_prefix: ' elastic_prefix
-perl -pi -w -e "s/{elastic_prefix}/${elastic_prefix}/g;" ./config.ini
+perl -pi -w -e "s/{elastic_prefix}/${elastic_prefix}/g;" ./config/app.ini
 
 echo ""
 echo "...database"
@@ -132,13 +137,13 @@ read -p 'db_root_pass: ' db_root_pass
 echo 'db_schema: '$domain
 echo ""
 db_schema=$domain
-perl -pi -w -e "s/{db_schema}/${db_schema}/g;" ./config.ini
+perl -pi -w -e "s/{db_schema}/${db_schema}/g;" ./config/app.ini
 
 read -p 'db_user: ' db_user
-perl -pi -w -e "s/{db_user}/${db_user}/g;" ./config.ini
+perl -pi -w -e "s/{db_user}/${db_user}/g;" ./config/app.ini
 
 read -p 'db_pass: ' db_pass
-perl -pi -w -e "s/{db_pass}/${db_pass}/g;" ./config.ini
+perl -pi -w -e "s/{db_pass}/${db_pass}/g;" ./config/app.ini
 
 query="CREATE DATABASE \`${db_schema}\`;"
 echo "..."$query

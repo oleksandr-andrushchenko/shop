@@ -25,7 +25,7 @@ class DeleteAttrsWithoutItemsAction
     {
         $aff = 0;
 
-        $db = $app->storage->mysql;
+        $db = $app->container->db;
 
         $itemPk = $app->managers->items->getEntity()->getPk();
         $itemTable = $app->managers->items->getEntity()->getTable();
@@ -52,7 +52,7 @@ class DeleteAttrsWithoutItemsAction
     {
         $aff = 0;
 
-        $db = $app->storage->mysql;
+        $db = $app->container->db;
 
         foreach ($app->managers->catalog->getMvaPkToTable() as $pk => $table) {
             $aff += $db->req(implode(' ', [

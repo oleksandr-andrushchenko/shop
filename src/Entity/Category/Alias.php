@@ -2,6 +2,8 @@
 
 namespace SNOWGIRL_SHOP\Entity\Category;
 
+use SNOWGIRL_CORE\Entity;
+
 class Alias extends \SNOWGIRL_SHOP\Entity\Item\Attr\Alias
 {
     protected static $table = 'category_alias';
@@ -18,12 +20,12 @@ class Alias extends \SNOWGIRL_SHOP\Entity\Item\Attr\Alias
         'updated_at' => ['type' => self::COLUMN_TIME, 'default' => null]
     ];
 
-    public function setId($v)
+    public function setId($v): Entity
     {
         return $this->setCategoryAliasId($v);
     }
 
-    public function getId($makeCompositeId = true)
+    public function getId(bool $makeCompositeId = true)
     {
         return $this->getCategoryAliasId();
     }

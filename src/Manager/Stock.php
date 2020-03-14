@@ -24,7 +24,7 @@ class Stock extends Manager implements GoLinkBuilderInterface
 
         $output = parent::onInserted($entity);
 
-        $output = $output && $this->app->services->mcms->delete(self::CACHE_STOCK_PAGE);
+        $output = $output && $this->app->container->cache->delete(self::CACHE_STOCK_PAGE);
 
         return $output;
     }

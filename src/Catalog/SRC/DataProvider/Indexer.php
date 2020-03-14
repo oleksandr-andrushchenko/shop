@@ -6,7 +6,7 @@ use SNOWGIRL_SHOP\Catalog\SRC\DataProvider;
 use SNOWGIRL_SHOP\Catalog\URI;
 use SNOWGIRL_SHOP\Entity\Item;
 
-class Elastic extends DataProvider
+class Indexer extends DataProvider
 {
     protected function getAjaxSuggestionsAttrPkToTable(): array
     {
@@ -45,7 +45,7 @@ class Elastic extends DataProvider
         $columns = $this->getColumnsMapping();
         $columns[Item::getPk()] = '_id';
 
-        return $this->src->getURI()->getApp()->storage->elastic(null, $this->src->getMasterServices())->search(
+        return $this->src->getURI()->getApp()->container->indexer($this->src->getMasterServices())->search(
             $this->src->getURI()->getApp()->managers->items->getEntity()->getTable(),
             array_values($this->getWhere()),
             $this->src->getOffset(),
@@ -185,7 +185,7 @@ class Elastic extends DataProvider
 
     public function getTotalCount()
     {
-        return $this->src->getURI()->getApp()->storage->elastic(null, $this->src->getMasterServices())->count(
+        return $this->src->getURI()->getApp()->container->indexer($this->src->getMasterServices())->count(
             $this->src->getURI()->getApp()->managers->items->getEntity()->getTable(),
             array_values($this->getWhere())
         );

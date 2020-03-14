@@ -3,9 +3,9 @@
 namespace SNOWGIRL_SHOP\Controller\Outer;
 
 use SNOWGIRL_CORE\Controller\Outer\PrepareServicesTrait;
-use SNOWGIRL_CORE\Exception\HTTP\NotFound;
+use SNOWGIRL_CORE\Http\Exception\NotFoundHttpException;
 use SNOWGIRL_CORE\Helper;
-use SNOWGIRL_SHOP\App\Web as App;
+use SNOWGIRL_SHOP\Http\HttpApp as App;
 use SNOWGIRL_SHOP\Catalog\SRC;
 use SNOWGIRL_SHOP\Catalog\URI;
 use SNOWGIRL_SHOP\Item\URI\Manager as ItemUriManager;
@@ -24,7 +24,7 @@ class ItemAction
 
         $key = 'item';
 
-        $app->services->mcms->prefetch([
+        $app->container->cache->getMulti([
             $app->managers->categories->getAllIDsCacheKey(),
             $app->managers->pages->getItemCacheKey($key),
             $app->managers->pages->getMenuCacheKey(),
@@ -61,7 +61,7 @@ class ItemAction
 //                !$app->managers->items->getCategory($item)->getId() ||
 //                !$app->managers->items->getBrand($item)->getId()
 //            )) {
-//            throw new NotFound();
+//            throw new NotFoundHttpException();
 //        }
 
         $app->managers->items->clear();

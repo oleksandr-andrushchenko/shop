@@ -3,9 +3,9 @@
 namespace SNOWGIRL_SHOP\Controller\Admin;
 
 use SNOWGIRL_CORE\Controller\Admin\PrepareServicesTrait;
-use SNOWGIRL_SHOP\App\Web as App;
-use SNOWGIRL_CORE\Exception\HTTP\BadRequest;
-use SNOWGIRL_CORE\Exception\HTTP\NotFound;
+use SNOWGIRL_SHOP\Http\HttpApp as App;
+use SNOWGIRL_CORE\Http\Exception\BadRequestHttpException;
+use SNOWGIRL_CORE\Http\Exception\NotFoundHttpException;
 use SNOWGIRL_SHOP\Entity\Page\Catalog as PageCatalog;
 use SNOWGIRL_SHOP\RBAC;
 
@@ -20,7 +20,7 @@ class PageCatalogCustomAddSeoTextAction
         $app->rbac->checkPerm(RBAC::PERM_ADD_UPDATE_CATALOG_SEO_TEXT);
 
         if (!$id = $app->request->get('id')) {
-            throw (new BadRequest)->setInvalidParam('id');
+            throw (new BadRequestHttpException)->setInvalidParam('id');
         }
 
         $manager = $app->managers->catalog;
@@ -28,7 +28,7 @@ class PageCatalogCustomAddSeoTextAction
         /** @var PageCatalog $pageCatalog */
 
         if (!$pageCatalog = $manager->find($id)) {
-            throw (new NotFound)->setNonExisting('page_catalog');
+            throw (new NotFoundHttpException)->setNonExisting('page_catalog');
         }
 
         $pageCatalogCustom = $manager->getPageCatalogCustom($pageCatalog);

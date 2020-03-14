@@ -5,13 +5,13 @@ namespace SNOWGIRL_SHOP\Util;
 use SNOWGIRL_CORE\Exception;
 use SNOWGIRL_CORE\Helper\WalkChunk;
 use SNOWGIRL_CORE\Util;
-use SNOWGIRL_CORE\App;
+use SNOWGIRL_CORE\AbstractApp;
 use SNOWGIRL_SHOP\Catalog\URI;
 use SNOWGIRL_SHOP\Entity\Brand as BrandEntity;
 use SNOWGIRL_SHOP\Manager\Page\Catalog as PageCatalogManager;
 use SNOWGIRL_SHOP\Entity\Item;
-use SNOWGIRL_CORE\Exception\HTTP\BadRequest;
-use SNOWGIRL_CORE\Exception\HTTP\NotFound;
+use SNOWGIRL_CORE\Http\Exception\BadRequestHttpException;
+use SNOWGIRL_CORE\Http\Exception\NotFoundHttpException;
 use SNOWGIRL_SHOP\Catalog\URI\Manager as CatalogUriManager;
 use SNOWGIRL_SHOP\Entity\Brand\Term as BrandTerm;
 use SNOWGIRL_SHOP\Manager\Brand\Term as BrandTermManager;
@@ -31,7 +31,7 @@ class Brand extends Util
     {
         $crossAttrUri = [];
 
-        foreach (array_diff(PageCatalogManager::getComponentsOrderByRdbmsKey(), [BrandEntity::class]) as $component) {
+        foreach (array_diff(PageCatalogManager::getComponentsOrderByDbKey(), [BrandEntity::class]) as $component) {
             foreach ($this->app->managers->getByEntityClass($component)->clear()
                          ->setColumns('uri')
                          ->getArrays() as $item) {
@@ -73,7 +73,7 @@ class Brand extends Util
                                 ->getObject();
 
                             if ($new) {
-                                $this->app->services->rdbms->updateMany(Item::getTable(), [BrandEntity::getPk() => $new->getId()], [
+                                $this->app->container->db->updateMany(Item::getTable(), [BrandEntity::getPk() => $new->getId()], [
                                     BrandEntity::getPk() => $item->getId()
                                 ]);
 
@@ -88,7 +88,7 @@ class Brand extends Util
                                 ->getObject();
 
                             if ($new) {
-                                $this->app->services->rdbms->updateMany(Item::getTable(), [BrandEntity::getPk() => $new->getId()], [
+                                $this->app->container->db->updateMany(Item::getTable(), [BrandEntity::getPk() => $new->getId()], [
                                     BrandEntity::getPk() => $item->getId()
                                 ]);
 
@@ -110,13 +110,13 @@ class Brand extends Util
     {
         (new WalkChunk(1000))
             ->setFnGet(function ($page, $size) {
-                return $this->app->services->rdbms->req(implode(' ', [
-                    'SELECT ' . $this->app->services->rdbms->quote('b') . '.*, COUNT(*) AS ' . $this->app->services->rdbms->quote('cnt'),
-                    'FROM ' . $this->app->services->rdbms->quote(BrandEntity::getTable()) . ' AS ' . $this->app->services->rdbms->quote('b'),
-                    'INNER JOIN ' . $this->app->services->rdbms->quote(Item::getTable()) . ' AS ' . $this->app->services->rdbms->quote('i') . ' USING(' . $this->app->services->rdbms->quote(BrandEntity::getPk()) . ')',
-                    'GROUP BY ' . $this->app->services->rdbms->quote(BrandEntity::getPk(), 'b'),
+                return $this->app->container->db->reqToArrays(implode(' ', [
+                    'SELECT ' . $this->app->container->db->quote('b') . '.*, COUNT(*) AS ' . $this->app->container->db->quote('cnt'),
+                    'FROM ' . $this->app->container->db->quote(BrandEntity::getTable()) . ' AS ' . $this->app->container->db->quote('b'),
+                    'INNER JOIN ' . $this->app->container->db->quote(Item::getTable()) . ' AS ' . $this->app->container->db->quote('i') . ' USING(' . $this->app->container->db->quote(BrandEntity::getPk()) . ')',
+                    'GROUP BY ' . $this->app->container->db->quote(BrandEntity::getPk(), 'b'),
                     'LIMIT ' . (($page - 1) * $size) . ', ' . $size
-                ]))->reqToArrays();
+                ]));
             })
             ->setFnDo(function ($items) {
                 foreach ($items as $item) {
@@ -148,27 +148,27 @@ class Brand extends Util
     public function doTransferBrandToBrand()
     {
         if (!$sourceBrandId = (int)trim($this->app->request->get('param_1'))) {
-            throw (new BadRequest)->setInvalidParam('source_brand_id');
+            throw (new BadRequestHttpException)->setInvalidParam('source_brand_id');
         }
 
         if (!$sourceBrand = $this->app->managers->brands->find($sourceBrandId)) {
-            throw (new NotFound)->setNonExisting('source_brand');
+            throw (new NotFoundHttpException)->setNonExisting('source_brand');
         }
 
         if (!$targetBrandId = (int)trim($this->app->request->get('param_2'))) {
-            throw (new BadRequest)->setInvalidParam('target_brand_id');
+            throw (new BadRequestHttpException)->setInvalidParam('target_brand_id');
         }
 
         if (!$targetBrand = $this->app->managers->brands->find($targetBrandId)) {
-            throw (new NotFound)->setNonExisting('target_brand');
+            throw (new NotFoundHttpException)->setNonExisting('target_brand');
         }
 
         $rotate = 1 == $this->app->request->get('param_4', 0);
 
-        $this->app->services->rdbms->makeTransaction(function () use ($sourceBrand, $targetBrand) {
+        $this->app->container->db->makeTransaction(function () use ($sourceBrand, $targetBrand) {
             $where = ['brand_id' => $sourceBrand->getId()];
 
-            $this->app->managers->items->updateMany(['brand_id' => $targetBrand->getId()], $where, true);
+            $this->app->managers->items->updateMany(['brand_id' => $targetBrand->getId()], $where, ['ignore'=>true]);
 
             (new CatalogUriManager($this->app))
                 ->addRedirect($sourceBrand->getCatalogUri(), new URI([
@@ -186,11 +186,11 @@ class Brand extends Util
         });
 
         if ($rotate) {
-//            $this->app->services->ftdbms->rotate($this->app);
-            $this->app->utils->items->doIndexFtdbms(1);
+//            $this->app->storage->elastic->flush();
+            $this->app->utils->items->doIndexIndexer(1);
             //@todo...
-//            $this->app->utils->catalog->doDeleteFtdbms(['brand.id' => $sourceBrand->getId()]);
-            $this->app->services->mcms->rotate();
+//            $this->app->utils->catalog->doDeleteIndexer(['brand.id' => $sourceBrand->getId()]);
+            $this->app->container->cache->flush();
         }
 
         return true;

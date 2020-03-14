@@ -3,22 +3,22 @@
 namespace SNOWGIRL_SHOP;
 
 use SNOWGIRL_CORE\Entity;
-use SNOWGIRL_CORE\Service\Storage\Query;
+use SNOWGIRL_CORE\Query;
 use SNOWGIRL_SHOP\Catalog\SRC;
 use SNOWGIRL_SHOP\Catalog\URI;
+use SNOWGIRL_SHOP\Console\ConsoleApp;
 use SNOWGIRL_SHOP\Entity\Stock;
+use SNOWGIRL_SHOP\Http\HttpApp;
 use SNOWGIRL_SHOP\Item\URI as ItemURI;
 use SNOWGIRL_SHOP\Entity\Item;
 use SNOWGIRL_SHOP\Entity\Vendor;
-use SNOWGIRL_SHOP\App\Web;
-use SNOWGIRL_SHOP\App\Console;
-use SNOWGIRL_CORE\Service\Storage\Query\Expr;
+use SNOWGIRL_CORE\Query\Expression;
 use SNOWGIRL_SHOP\View\Builder as Views;
 
 /**
  * @todo    remove custom hit logs and parse web-server's hit log file...
  * Class Analytics
- * @property Web|Console app
+ * @property HttpApp|ConsoleApp app
  * @package SNOWGIRL_SHOP
  */
 class Analytics extends \SNOWGIRL_CORE\Analytics
@@ -157,7 +157,7 @@ class Analytics extends \SNOWGIRL_CORE\Analytics
         /** @var Entity[] $pkToEntity */
         $pkToEntity = [];
 
-        foreach ($this->app->managers->catalog->getComponentsOrderByRdbmsKey() as $entity) {
+        foreach ($this->app->managers->catalog->getComponentsOrderByDbKey() as $entity) {
             if (array_key_exists('rating', $entity::getColumns())) {
                 $pkToCounts[$entity::getPk()] = [];
                 $pkToEntity[$entity::getPk()] = $entity;
@@ -226,7 +226,7 @@ class Analytics extends \SNOWGIRL_CORE\Analytics
             'orders' => ['rating' => SORT_DESC]
         ]);
 
-        $categoryIdToItems = $this->app->services->rdbms->selectFromEachGroup(
+        $categoryIdToItems = $this->app->container->db->selectFromEachGroup(
             $this->app->managers->items->getEntity()->getTable(),
             $this->app->managers->categories->getEntity()->getPk(),
             $perGroup,
@@ -267,28 +267,32 @@ class Analytics extends \SNOWGIRL_CORE\Analytics
 
     protected function updateCache($quantile = 0.95)
     {
-        $storage = $this->app->managers->items->getStorage();
+        $storage = $this->app->managers->items->getDb();
 
 
         $qr = $storage->quote('rating');
 
         $row = $this->app->managers->items->clear()
-            ->setColumns(new Expr(implode(' ', [
+            ->setColumns(new Expression(implode(' ', [
                 'SUBSTRING_INDEX(SUBSTRING_INDEX(GROUP_CONCAT(' . $qr . ' ORDER BY ' . $qr . ' SEPARATOR \',\'), \',\', ' . $quantile . ' * COUNT(*) + 1), \',\', -1)',
                 'AS ' . $storage->quote('quantile')
             ])))
             ->getArray();
 
         if ($row) {
-            return $this->app->managers->cache->set(self::CACHE_ITEM_RATING_START_COST, ceil((float)$row['quantile'] / Views::ITEM_RATING_STAR_MAX));
+            return $this->app->container->cache->set(self::CACHE_ITEM_RATING_START_COST, ceil((float)$row['quantile'] / Views::ITEM_RATING_STAR_MAX));
         }
 
-        return $this->app->managers->cache->delete(self::CACHE_ITEM_RATING_START_COST);
+        return $this->app->container->cache->delete(self::CACHE_ITEM_RATING_START_COST);
     }
 
-    public function getItemRatingStarCost()
+    public function getItemRatingStarCost(): ?int
     {
-        return $this->app->managers->cache->get(self::CACHE_ITEM_RATING_START_COST);
+        if ($this->app->container->cache->has(self::CACHE_ITEM_RATING_START_COST, $output)) {
+            return $output;
+        }
+
+        return null;
     }
 
     public function dropRatings()

@@ -2,9 +2,9 @@
 
 namespace SNOWGIRL_SHOP\Manager\Item;
 
-use APP\App\Console;
-use APP\App\Web;
+use SNOWGIRL_CORE\Console\ConsoleApp;
 use SNOWGIRL_CORE\Entity;
+use SNOWGIRL_CORE\Http\HttpApp;
 use SNOWGIRL_CORE\Manager;
 use SNOWGIRL_CORE\Exception;
 use SNOWGIRL_SHOP\Catalog\URI;
@@ -19,7 +19,7 @@ use SNOWGIRL_CORE\URI\Manager as UriManager;
 /**
  * Class Attr
  *
- * @property Web|Console app
+ * @property HttpApp|ConsoleApp app
  * @method Attr copy($clear = false)
  * @method Attr clear()
  * @method Attr setOrder($orders)
@@ -105,7 +105,7 @@ abstract class Attr extends Manager
         if ($this->checkUri) {
             if (0 < count($vars)) {
                 $manager = new UriManager($this->app);
-                $components = $this->app->managers->catalog->getComponentsOrderByRdbmsKey();
+                $components = $this->app->managers->catalog->getComponentsOrderByDbKey();
 
                 foreach ($vars as $var) {
                     if (!$manager->getEntitiesBySlug($var, $components)) {
@@ -114,7 +114,7 @@ abstract class Attr extends Manager
                 }
             }
 
-            $this->app->services->logger->make(__METHOD__ . ': can\'t find uri: ' . var_export($entity, true));
+            $this->app->container->logger->debug(__METHOD__ . ': can\'t find uri: ' . var_export($entity, true));
         } elseif (isset($vars[0])) {
             return $vars[0];
         }
@@ -126,7 +126,7 @@ abstract class Attr extends Manager
      * @param Entity $entity
      *
      * @return bool
-     * @throws Exception\EntityAttr\Required
+     * @throws Entity\EntityException
      */
     protected function onUpdated(Entity $entity)
     {
@@ -191,8 +191,8 @@ abstract class Attr extends Manager
     }
 
     /**
-     * @param URI        $uri
-     * @param null       $query
+     * @param URI $uri
+     * @param null $query
      * @param bool|false $prefix
      *
      * @return string
@@ -215,7 +215,7 @@ abstract class Attr extends Manager
     {
         $key = $this->getItemsCountsListByUriCacheKey($uri, $query, $prefix);
 
-        return $this->app->services->mcms->call($key, function () use ($uri, $query, $prefix) {
+        if (!$this->app->container->cache->has($key, $output)) {
             $output = [];
 
             $pk = $this->entity->getPk();
@@ -224,12 +224,14 @@ abstract class Attr extends Manager
                 $output[$i[$pk]] = (int)$i['cnt'];
             }
 
-            return $output;
-        });
+            $this->app->container->cache->set($key, $output);
+        }
+
+        return $output;
     }
 
     /**
-     * @param URI       $uri
+     * @param URI $uri
      * @param bool|true $itemsCounts
      *
      * @return Entity[]|ItemAttrEntity[]
@@ -245,9 +247,9 @@ abstract class Attr extends Manager
     }
 
     /**
-     * @param URI        $uri
+     * @param URI $uri
      * @param            $query
-     * @param bool|true  $itemsCounts
+     * @param bool|true $itemsCounts
      * @param bool|false $prefix
      *
      * @return Entity[]|ItemAttrEntity[]
@@ -263,7 +265,7 @@ abstract class Attr extends Manager
     }
 
     /**
-     * @param array      $itemId
+     * @param array $itemId
      * @param bool|false $names
      *
      * @return array

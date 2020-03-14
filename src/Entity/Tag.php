@@ -2,8 +2,8 @@
 
 namespace SNOWGIRL_SHOP\Entity;
 
-use SNOWGIRL_CORE\Exception\EntityAttr\MD5;
 use SNOWGIRL_SHOP\Entity\Item\Attr;
+use SNOWGIRL_CORE\Entity;
 
 class Tag extends Attr
 {
@@ -21,12 +21,12 @@ class Tag extends Attr
         'updated_at' => ['type' => self::COLUMN_TIME, 'default' => null]
     ];
 
-    public function setId($v)
+    public function setId($v): Entity
     {
         return $this->setTagId($v);
     }
 
-    public function getId($makeCompositeId = true)
+    public function getId(bool $makeCompositeId = true)
     {
         return $this->getTagId();
     }

@@ -5,13 +5,13 @@ namespace SNOWGIRL_SHOP\Manager\Item\DataProvider;
 use SNOWGIRL_SHOP\Catalog\URI;
 use SNOWGIRL_SHOP\Manager\Item\DataProvider;
 
-class Elastic extends DataProvider
+class Indexer extends DataProvider
 {
-    use \SNOWGIRL_CORE\Manager\DataProvider\Traits\Elastic;
+    use \SNOWGIRL_CORE\Manager\DataProvider\Traits\Indexer;
 
     public function getPricesByUri(URI $uri): array
     {
-        $where = $uri->getSRC()->getDataProvider('elastic')->getWhere();
+        $where = $uri->getSRC()->getDataProvider('indexer')->getWhere();
         unset($where[URI::PRICE_FROM]);
         unset($where[URI::PRICE_TO]);
 
@@ -55,7 +55,7 @@ class Elastic extends DataProvider
             'body' => $body
         ];
 
-        $raw = $this->manager->getApp()->storage->elastic(null, $this->manager->getMasterServices())
+        $raw = $this->manager->getApp()->container->indexer($this->manager->getMasterServices())
             ->searchRaw($this->manager->getEntity()->getTable(), $params, ['aggregations', 'filtered', 'price_ranges', 'buckets']);
 
         $output = [];
@@ -111,7 +111,7 @@ class Elastic extends DataProvider
 
         $exclude = array_merge($map, array_keys($map));
 
-        $where = array_filter($uri->getSRC()->getDataProvider('elastic')->getWhere(), function ($k) use ($exclude) {
+        $where = array_filter($uri->getSRC()->getDataProvider('indexer')->getWhere(), function ($k) use ($exclude) {
             return !in_array($k, $exclude);
         }, ARRAY_FILTER_USE_KEY);
 
@@ -134,7 +134,7 @@ class Elastic extends DataProvider
             'body' => $body
         ];
 
-        $raw = $this->manager->getApp()->storage->elastic(null, $this->manager->getMasterServices())
+        $raw = $this->manager->getApp()->container->indexer($this->manager->getMasterServices())
             ->searchRaw($this->manager->getEntity()->getTable(), $params);
 
         return array_filter([

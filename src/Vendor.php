@@ -40,8 +40,8 @@ abstract class Vendor
             if (count(HtmlParser::factoryByLink($link)->query($selector)) > 0) {
                 return true;
             }
-        } catch (\Exception $ex) {
-            $this->app->services->logger->makeException($ex);
+        } catch (Throwable $e) {
+            $this->app->container->logger->error($e);
         }
 
         return false;

@@ -3,7 +3,7 @@
 namespace SNOWGIRL_SHOP\Controller\Console;
 
 use SNOWGIRL_CORE\Controller\Console\PrepareServicesTrait;
-use SNOWGIRL_CORE\Controller\Console\RotateMcmsAction;
+use SNOWGIRL_CORE\Controller\Console\FlushCacheAction;
 use SNOWGIRL_SHOP\App\Console as App;
 use SNOWGIRL_SHOP\Entity\Import\Source as ImportSource;
 use SNOWGIRL_SHOP\Import;
@@ -16,13 +16,14 @@ class ImportAllAction
     {
         $this->prepareServices($app);
 
-        $rotate = 1 == $app->request->get('param_1', 1);
+        $debug = 1 == $app->request->get('param_1', 1);
+        $rotate = 1 == $app->request->get('param_2', 1);
 
-        Import::factoryAndRun($app, $importSource);
+        Import::factoryAndRun($app, $importSource, $debug);
 
         if ($rotate) {
             (new IndexElasticAction)($app);
-            (new RotateMcmsAction)($app);
+            (new FlushCacheAction)($app);
         }
     }
 }

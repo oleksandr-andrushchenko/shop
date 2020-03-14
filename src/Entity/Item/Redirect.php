@@ -6,7 +6,6 @@ class Redirect extends \SNOWGIRL_CORE\Entity
 {
     protected static $table = 'item_redirect';
     protected static $pk = 'item_redirect_id';
-    protected static $isFtdbmsIndex = false;
 
     protected static $columns = [
         'item_redirect_id' => ['type' => self::COLUMN_INT, self::AUTO_INCREMENT],
@@ -16,12 +15,12 @@ class Redirect extends \SNOWGIRL_CORE\Entity
         'updated_at' => ['type' => self::COLUMN_TIME, 'default' => null]
     ];
 
-    public function setId($v)
+    public function setId($v): Entity
     {
         return $this->setItemRedirectId($v);
     }
 
-    public function getId($makeCompositeId = true)
+    public function getId(bool $makeCompositeId = true)
     {
         return $this->getItemRedirectId();
     }
@@ -39,8 +38,8 @@ class Redirect extends \SNOWGIRL_CORE\Entity
     /**
      * @param $v
      *
-     * @return Redirect
-     * @throws \SNOWGIRL_CORE\Exception\EntityAttr\Required
+     * @return \SNOWGIRL_CORE\Entity
+     * @throws \SNOWGIRL_CORE\Entity\EntityException
      */
     public function setIdFrom($v)
     {

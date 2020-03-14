@@ -14,14 +14,20 @@ use SNOWGIRL_SHOP\Util\Builder as Utils;
  * Class App
  *
  * @property Analytics analytics
- * @property Views     views
- * @property Managers  managers
- * @property Utils     utils
- * @property SEO       seo
+ * @property Views views
+ * @property Managers managers
+ * @property Utils utils
+ * @property SEO seo
  * @package SNOWGIRL_SHOP
  */
 trait AppTrait
 {
+    protected function register()
+    {
+        \SNOWGIRL_SHOP\Catalog\URI::setApp($this);
+        \SNOWGIRL_SHOP\Item\URI::setApp($this);
+    }
+
     protected function addMaps($root)
     {
         parent::addMaps($root);
@@ -66,24 +72,5 @@ trait AppTrait
         $router->addRoute('catalog', new Route($route, $defaults));
 
         return $this;
-    }
-
-    public function findClass($rawClass, &$found = false)
-    {
-        $tmp = 'APP\\' . $rawClass;
-
-        if ($this->loader->findFile($tmp)) {
-            $found = true;
-            return $tmp;
-        }
-
-        $tmp = 'SNOWGIRL_SHOP\\' . $rawClass;
-
-        if ($this->loader->findFile($tmp)) {
-            $found = true;
-            return $tmp;
-        }
-
-        return 'SNOWGIRL_CORE\\' . $rawClass;
     }
 }

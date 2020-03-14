@@ -8,7 +8,6 @@ class Custom extends Entity
 {
     protected static $table = 'page_catalog_custom';
     protected static $pk = 'page_catalog_custom_id';
-    protected static $isFtdbmsIndex = false;
     protected static $columns = [
         'page_catalog_custom_id' => ['type' => self::COLUMN_INT, self::AUTO_INCREMENT],
         'params_hash' => ['type' => self::COLUMN_TEXT, self::MD5, self::REQUIRED, self::SEARCH_IN, self::SEARCH_DISPLAY],
@@ -29,14 +28,13 @@ class Custom extends Entity
      * @param $v
      *
      * @return Entity
-     * @throws \SNOWGIRL_CORE\Exception\EntityAttr\Required
      */
-    public function setId($v)
+    public function setId($v): Entity
     {
         return $this->setPageCatalogCustomId($v);
     }
 
-    public function getId($makeCompositeId = true)
+    public function getId(bool $makeCompositeId = true)
     {
         return $this->getPageCatalogCustomId();
     }
@@ -45,7 +43,7 @@ class Custom extends Entity
      * @param $v
      *
      * @return Entity
-     * @throws \SNOWGIRL_CORE\Exception\EntityAttr\Required
+     * @throws Entity\EntityException
      */
     public function setPageCatalogCustomId($v)
     {

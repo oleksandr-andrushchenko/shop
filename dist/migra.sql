@@ -53,7 +53,7 @@ alter table `import_history`
   add `count_total` int(5) unsigned null default null after `is_ok`,
   add `count_filtered_filter` int(5) unsigned null default null after `count_total`,
   add `count_filtered_modifier` int(5) unsigned null default null after `count_filtered_filter`,
-  add `count_skipped_unique` int(5) unsigned null default null after `count_row`,
+  add `count_skipped_unique` int(5) unsigned null default null after `count_filtered_modifier`,
   add `count_skipped_updated` int(5) unsigned null default null after `count_skipped_unique`,
   add `count_skipped_other` int(5) unsigned null default null after `count_skipped_updated`,
   add `count_passed` int(5) unsigned null default null after `count_skipped_other`,
@@ -90,4 +90,35 @@ CREATE TABLE `item_image` (
   `item_id` int(10) unsigned NOT NULL,
   `image_id` varchar(32) NOT NULL,
   PRIMARY KEY (`item_id`,`image_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
+
+
+CREATE TABLE `attribute` (
+  `attribute_id` tinyint(3) unsigned NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) NOT NULL,
+  `display_name` varchar(255) DEFAULT NULL,
+  `category_id` smallint(5) unsigned DEFAULT NULL,
+  `is_mva` tinyint(1) NOT NULL DEFAULT 0,
+  `is_active` tinyint(1) unsigned NOT NULL DEFAULT 0,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NULL DEFAULT NULL ON UPDATE current_timestamp(),
+  PRIMARY KEY (`attribute_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE `attribute_value` (
+  `attribute_value_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `attribute_id` tinyint(3) unsigned NOT NULL,
+  `name` varchar(255) NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NULL DEFAULT NULL ON UPDATE current_timestamp(),
+  PRIMARY KEY (`attribute_value_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE `item_attribute_value` (
+  `item_id` int(10) unsigned NOT NULL,
+  `attribute_id` tinyint(3) unsigned NOT NULL,
+  `attribute_value_id` int(10) unsigned NOT NULL,
+  PRIMARY KEY (`item_id`,`attribute_id`,`attribute_value_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;

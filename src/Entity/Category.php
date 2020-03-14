@@ -3,6 +3,7 @@
 namespace SNOWGIRL_SHOP\Entity;
 
 use SNOWGIRL_SHOP\Entity\Item\Attr;
+use SNOWGIRL_CORE\Entity;
 
 /**
  * Class Category
@@ -26,15 +27,15 @@ class Category extends Attr
         'is_leaf' => ['type' => self::COLUMN_INT, 'default' => 1],
         'parent_category_id' => ['type' => self::COLUMN_INT, 'default' => null, 'entity' => __CLASS__],
         'created_at' => ['type' => self::COLUMN_TIME, self::REQUIRED],
-        'updated_at' => ['type' => self::COLUMN_TIME, 'default' => null]
+        'updated_at' => ['type' => self::COLUMN_TIME, 'default' => null],
     ];
 
-    public function setId($v)
+    public function setId($v): Entity
     {
         return $this->setCategoryId($v);
     }
 
-    public function getId($makeCompositeId = true)
+    public function getId(bool $makeCompositeId = true)
     {
         return $this->getCategoryId();
     }
@@ -122,7 +123,7 @@ class Category extends Attr
         return $this->setRawAttr('created_at', self::normalizeTime($v));
     }
 
-    public function getCreatedAt($datetime = false)
+    public function getCreatedAt(bool $datetime = false)
     {
         return $datetime ? self::timeToDatetime($this->getRawAttr('created_at')) : $this->getRawAttr('created_at');
     }
@@ -132,7 +133,7 @@ class Category extends Attr
         return $this->setRawAttr('updated_at', self::normalizeTime($v, true));
     }
 
-    public function getUpdatedAt($datetime = false)
+    public function getUpdatedAt(bool $datetime = false)
     {
         return $datetime ? self::timeToDatetime($this->getRawAttr('updated_at')) : $this->getRawAttr('updated_at');
     }

@@ -2,9 +2,10 @@
 
 namespace SNOWGIRL_SHOP\Item;
 
-use SNOWGIRL_CORE\App;
+use SNOWGIRL_CORE\AbstractApp as App;
 use SNOWGIRL_CORE\Entity;
 use SNOWGIRL_CORE\Exception;
+use SNOWGIRL_CORE\Router;
 
 class URI
 {
@@ -17,31 +18,29 @@ class URI
     //prev + all extra dynamic
     public const OUTPUT_FULL = 2;
 
-    /** @var App */
-    protected static $app;
-
-    protected $normalizedParams;
-
-    protected $domain;
-    protected $map;
-
     public const DEFINED_PARAMS = [];
-
     public const SAFE_PARAMS = [];
 
-    protected static $pathParams;
+    /**
+     * @var App|Web|Console
+     */
+    private static $app;
 
-    public static function setApp(App $app)
-    {
-        self::$app = $app;
+    private $normalizedParams;
 
-        self::$pathParams = [self::ID];
-    }
+    private $domain;
+    private $map;
+
+    private static $pathParams = [self::ID];
+
+    private $src;
+    private $seo;
+    private $output;
+
 
     public function __construct(array $params = [], $domain = false)
     {
-        $this
-            ->setDomain($domain)
+        $this->setDomain($domain)
             ->setMap([
                 'defined' => self::DEFINED_PARAMS,
                 'safe' => self::SAFE_PARAMS
@@ -50,25 +49,34 @@ class URI
             ->setParams($params);
     }
 
-    public function setDomain($domain)
+    public static function setApp(App $app)
+    {
+        /** @var Web|Console $app */
+        self::$app = $app;
+    }
+
+    public function setDomain($domain): URI
     {
         $this->domain = $domain;
+
         return $this;
     }
 
-    public function setMap($map)
+    public function setMap($map): URI
     {
         $this->map = $map;
+
         return $this;
     }
 
-    public function setOutput(array $output)
+    public function setOutput(array $output): URI
     {
         $this->output = $output;
+
         return $this;
     }
 
-    public function setParams(array $params)
+    public function setParams(array $params): URI
     {
         $this->normalizedParams = $this->getNormalizedParams($params);
         $this->dropCache();
@@ -76,50 +84,39 @@ class URI
         return $this;
     }
 
-    protected function getNormalizedParams(array $params)
+    private function getNormalizedParams(array $params): array
     {
         return $params;
     }
 
-    protected function dropCache()
+    private function dropCache(): URI
     {
         $this->output = [];
+
+        return $this;
     }
 
-    public function getParams()
+    public function getParams(): array
     {
         return $this->normalizedParams;
     }
 
-    /**
-     * @todo normalize value...
-     *
-     * @param $k
-     * @param $v
-     *
-     * @return URI
-     */
-    public function set($k, $v)
+    public function set(string $key, $value): URI
     {
         $this->normalizedParams[$k] = $v;
         $this->dropCache();
+
         return $this;
     }
 
-    public function get($key, $default = null)
+    public function get(string $key, $default = null)
     {
         $tmp = $this->getParams();
+
         return $tmp[$key] ?? $default;
     }
 
-    /**
-     * @param array $params
-     * @param int   $mode
-     *
-     * @return string
-     * @throws Exception
-     */
-    public function getPathByParams(array &$params, $mode = self::OUTPUT_DEFINED)
+    public function getPathByParams(array &$params, $mode = self::OUTPUT_DEFINED): string
     {
         $ids = array_filter($params, function ($k) {
             return in_array($k, self::$pathParams);
@@ -143,48 +140,29 @@ class URI
             throw new Exception('no path params found');
         }
 
-        if (!$item = $this->getSRC()->getItem()) {
+        if (!$item = $this->getSRC(self::$app)->getItem()) {
             throw new Exception('no item found by id');
         }
 
         return self::buildPath($item->getName(), $item->getId());
     }
 
-    protected $src;
-
-    /**
-     * @return SRC
-     */
-    public function getSRC()
+    public function getSRC(): SRC
     {
         return $this->src ?: $this->src = new SRC($this);
     }
 
-    protected $seo;
-
-    /**
-     * @return SEO
-     */
-    public function getSEO()
+    public function getSEO(): SEO
     {
         return $this->seo ?: $this->seo = new SEO($this);
     }
 
-    public static function buildPath($name, $id)
+    public static function buildPath($name, $id): string
     {
         return Entity::normalizeUri($name) . '-' . $id;
     }
 
-    protected $output;
-
-    /**
-     * @param int  $mode
-     * @param bool $isNoFollow
-     *
-     * @return mixed
-     * @throws Exception
-     */
-    public function output($mode = self::OUTPUT_DEFINED, &$isNoFollow = false)
+    public function output($mode = self::OUTPUT_DEFINED, &$isNoFollow = false): string
     {
         if (isset($this->output[$mode])) {
             $isNoFollow = false !== strpos($this->output[$mode], '?');
@@ -194,18 +172,20 @@ class URI
         $params = $this->getParams();
         $params['uri'] = $this->getPathByParams($params, $mode);
 
-        $this->output[$mode] = self::$app->router->makeLink('item', $params, $this->domain);
+        $this->output[$mode] = $this->getApp()->router->makeLink('item', $params, $this->domain);
         return $this->output($mode, $isNoFollow);
     }
 
     /**
-     * @return mixed
-     * @throws Exception
+     * @return Web|Console
      */
+    public function getApp(): App
+    {
+        return self::$app;
+    }
+
     public function __toString()
     {
         return $this->output();
     }
 }
-
-URI::setApp(App::$instance);

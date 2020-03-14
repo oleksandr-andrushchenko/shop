@@ -3,6 +3,7 @@
 namespace SNOWGIRL_SHOP\Entity;
 
 use SNOWGIRL_SHOP\Entity\Item\Attr;
+use SNOWGIRL_CORE\Entity;
 
 /**
  * Class Color
@@ -28,12 +29,12 @@ class Color extends Attr
         'updated_at' => ['type' => self::COLUMN_TIME, 'default' => null]
     ];
 
-    public function setId($v)
+    public function setId($v): Entity
     {
         return $this->setColorId($v);
     }
 
-    public function getId($makeCompositeId = true)
+    public function getId(bool $makeCompositeId = true)
     {
         return $this->getColorId();
     }

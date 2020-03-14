@@ -2,18 +2,16 @@
 
 namespace SNOWGIRL_SHOP;
 
-use SNOWGIRL_CORE\App;
+use SNOWGIRL_CORE\AbstractApp;
 use SNOWGIRL_CORE\File;
-use SNOWGIRL_SHOP\App\Web;
-use SNOWGIRL_SHOP\App\Console;
 use SNOWGIRL_CORE\Entity;
 use SNOWGIRL_CORE\Exception;
 use SNOWGIRL_CORE\Helper\Arrays;
 use SNOWGIRL_CORE\Helper\Strings;
 use SNOWGIRL_CORE\Helper\FileSystem;
-use SNOWGIRL_CORE\Service\Logger;
 use SNOWGIRL_CORE\Script;
-use SNOWGIRL_CORE\Service\Storage\Query;
+use SNOWGIRL_CORE\Query;
+use SNOWGIRL_SHOP\Console\ConsoleApp;
 use SNOWGIRL_SHOP\Entity\Category;
 use SNOWGIRL_SHOP\Entity\Item;
 use SNOWGIRL_SHOP\Entity\Import\Source as ImportSource;
@@ -21,10 +19,11 @@ use SNOWGIRL_SHOP\Entity\Import\History as ImportHistory;
 use SNOWGIRL_CORE\Manager;
 use SNOWGIRL_CORE\Image;
 use SNOWGIRL_SHOP\Entity\Item\Attr as ItemAttr;
+use SNOWGIRL_SHOP\Http\HttpApp;
 use SNOWGIRL_SHOP\Manager\Item\Attr as ItemAttrManager;
 use SNOWGIRL_SHOP\Entity\Country;
 use SNOWGIRL_SHOP\Item\FixWhere;
-use SNOWGIRL_CORE\Service\Storage\Query\Expr;
+use SNOWGIRL_CORE\Query\Expression;
 use DateTime;
 use Throwable;
 
@@ -42,7 +41,7 @@ class Import
     protected const FILE_CACHE_MINUTES = 10;
 
     /**
-     * @var Web|Console
+     * @var HttpApp|ConsoleApp
      */
     protected $app;
 
@@ -66,7 +65,7 @@ class Import
     protected $isForceUpdate;
     protected $debug;
 
-    public function __construct(App $app, ImportSource $source)
+    public function __construct(App $app, ImportSource $source, bool $debug = null)
     {
         $this->app = $app;
         $this->source = $source;
@@ -76,10 +75,10 @@ class Import
         $this->filters = $this->getFilters();
         $this->mappings = $this->getMappings();
 
-        $this->debug = $app->isDev();
+        $this->debug = null === $debug ? $app->isDev() : $debug;
     }
 
-    protected function initMeta(): self
+    protected function initMeta(): Import
     {
         $meta = $this->getMeta();
         $this->indexes = $meta['indexes'];
@@ -756,6 +755,11 @@ class Import
                 if (is_int($rawNameOrId)) {
                     $id = $rawNameOrId;
                 } else {
+                    if (is_array($rawNameOrId)) {
+                        $this->log('sva['.$entityPk.'] as array found: ' . var_export($rawNameOrId, true));
+                        $rawNameOrId = $rawNameOrId[0];
+                    }
+
                     $rawNameOrId = trim($rawNameOrId);
                     $nameOrId = $data['entity']->normalizeText($rawNameOrId);
 
@@ -783,8 +787,8 @@ class Import
 
                             $data['nameToId'][$nameOrIdLower] = $id;
                             $data['uriToId'][$uri] = $id;
-                        } catch (Throwable $ex) {
-                            $this->app->services->logger->makeException($ex);
+                        } catch (Throwable $e) {
+                            $this->app->container->logger->error($e);
                             $this->log('can\'t insert entity: ' . var_export($entity, true));
                         }
                     }
@@ -1047,6 +1051,7 @@ class Import
 
             foreach ($this->images as $partnerItemId => $images) {
                 if (!isset($partnerItemIdToItemId[$partnerItemId])) {
+                    // @todo checkout & fix
                     $this->log('$partnerItemIdToItemId[' . $partnerItemId . '] not found... skipping...');
                     continue;
                 }
@@ -1068,9 +1073,9 @@ class Import
             $aff = $insert ? $manager->insertMany($insert, ['ignore' => true, 'log' => $this->debug]) : 0;
 
             $this->log('AFF ' . $table . ': ' . $aff);
-        } catch (Throwable $ex) {
-            $this->log('Error on image[' . $table . '] insert: ' . $ex->getMessage());
-            $this->app->services->logger->makeException($ex);
+        } catch (Throwable $e) {
+            $this->log('Error on image[' . $table . '] insert: ' . $e->getMessage());
+            $this->app->container->logger->error($e);
         }
 
         $this->images = [];
@@ -1143,11 +1148,11 @@ class Import
 
                                         break;
                                     }
-                                } catch (Throwable $ex) {
-                                    $this->app->services->logger->makeException($ex);
+                                } catch (Throwable $e) {
+                                    $this->app->container->logger->error($e);
 
-                                    if (Exception::_check($ex, 'Duplicate entry')) {
-                                        $tmp = $this->app->storage->mysql->selectOne($table, new Query([
+                                    if (Exception::_check($e, 'Duplicate entry')) {
+                                        $tmp = $this->app->container->db->selectOne($table, new Query([
                                             'columns' => $entityPk,
                                             'where' => ['uri' => $newUri]
                                         ]));
@@ -1178,9 +1183,9 @@ class Import
                 $aff = $insert ? $manager->getMvaLinkManager()->insertMany($insert, ['ignore' => true, 'log' => $this->debug]) : 0;
 
                 $this->log('AFF ' . $manager->getMvaLinkManager()->getEntity()->getTable() . ': ' . $aff);
-            } catch (Throwable $ex) {
-                $this->log('Error on mva[' . $manager->getMvaLinkManager()->getEntity()->getTable() . '] insert: ' . $ex->getMessage());
-                $this->app->services->logger->makeException($ex);
+            } catch (Throwable $e) {
+                $this->log('Error on mva[' . $manager->getMvaLinkManager()->getEntity()->getTable() . '] insert: ' . $e->getMessage());
+                $this->app->container->logger->error($e);
             }
 
             $this->mva[$entityPk]['values'] = [];
@@ -1446,7 +1451,7 @@ class Import
 
             $editableColumns = $this->isForceUpdate ? [] : self::getPostEditableColumns();
 
-            $db = $this->app->storage->mysql;
+            $db = $this->app->container->db;
 
             $onDuplicateClosure = function ($column, $value) use ($db) {
                 return $db->quote($column) . ' = ' . $value;
@@ -1493,36 +1498,45 @@ class Import
 
             $this->log('AFF item: ' . (int)$aff);
             return $aff;
-        } catch (\Exception $ex) {
-            $this->app->services->logger->makeException($ex);
+        } catch (Throwable $e) {
+            $this->app->container->logger->error($e);
             return false;
         }
     }
 
-    public static function factoryAndRun(App $app, ImportSource $importSource = null, bool $force = false, bool $safe = true)
+    public static function factoryAndRun(App $app, ImportSource $importSource = null, bool $debug = null): ?bool
     {
         /** @var Web|Console $app */
 
+
+        $where = ['is_cron' => 1];
+
+        if ($importSource) {
+            $where['import_source_id'] = $importSource->getId();
+        }
+
         /** @var ImportSource[] $importSources */
-        $importSources = $importSource ? [$importSource] : $app->managers->sources->clear()
-            ->setWhere($safe ? ['is_cron' => 1] : null)
+        $importSources = $app->managers->sources
+            ->setWhere($where)
             ->setOrders([ImportSource::getPk() => SORT_ASC])
             ->getObjects();
 
         if (!count($importSources)) {
-            return true;
+            $app->container->logger->debug('None of cron sources were found');
+
+            return null;
         }
 
         foreach ($importSources as $importSource) {
             try {
-                if (!$safe || $app->managers->sources->getVendor($importSource)->isActive()) {
-                    $app->managers->sources->getImport($importSource)->run();
+                if ($app->managers->sources->getVendor($importSource)->isActive()) {
+                    $app->managers->sources->getImport($importSource, $debug)->run();
                 } else {
-                    $app->services->logger->make('Vendor "' . $app->managers->sources->getVendor($importSource)->getName() . '" is disabled');
+                    $app->container->logger->debug('Vendor "' . $app->managers->sources->getVendor($importSource)->getName() . '" is disabled');
                 }
-            } catch (Throwable $ex) {
-                $app->services->logger->makeException($ex);
-                $app->services->logger->make('Import (import source id = ' . $importSource->getId() . ') failed!');
+            } catch (Throwable $e) {
+                $app->container->logger->error($e);
+                $app->container->logger->debug('Import (import source id = ' . $importSource->getId() . ') failed!');
             }
         }
 
@@ -1725,7 +1739,7 @@ class Import
 
         $images = array_diff($images, $output);
 
-        $db = $this->app->storage->mysql;
+        $db = $this->app->container->db;
 
         $query = new Query(['params' => []]);
         $query->text = implode(' ', [
@@ -1740,7 +1754,7 @@ class Import
         ]);
         $query->log = $this->debug;
 
-        foreach ($db->req($query)->reqToArrays() as $row) {
+        foreach ($db->reqToArrays($query) as $row) {
             $output[] = $row['image_id'];
         }
 
@@ -1941,9 +1955,9 @@ class Import
                             '[SKIPPED as garbage]',
                             'partner_id=' . $partnerItemId,
                             'image=' . $row['_images'][0],
-                            'name=' . $row['_name'],
-                            'price=' . $row['_price'],
-                            'link=' . $link
+//                            'name=' . $row['_name'],
+//                            'price=' . $row['_price'],
+//                            'link=' . $link
                         ]));
                         continue;
                     }
@@ -2049,9 +2063,9 @@ class Import
             $onEnd && $onEnd();
 
             return true;
-        } catch (Throwable $ex) {
-            $this->app->services->logger->makeException($ex);
-            $this->error = $ex->getTraceAsString();
+        } catch (Throwable $e) {
+            $this->app->container->logger->error($e);
+            $this->error = $e->getTraceAsString();
             return false;
         }
     }
@@ -2162,13 +2176,13 @@ class Import
         return FileSystem::getRemoteFileLastModifiedTime($this->getFilename());
     }
 
-    protected function check(): self
+    protected function check(): Import
     {
         if (!$this->app->managers->sources->getVendor($this->source)->isActive()) {
             throw new \Exception('vendor [import_source_id=' . $this->source->getName() . '] is disabled');
         }
 
-        if ($this->app->request->isCli() && !$this->source->isCron()) {
+        if ('cli' == PHP_SAPI && !$this->source->isCron()) {
             throw new \Exception('[import_source_id=' . $this->source->getName() . '] is out of cron');
         }
 
@@ -2290,16 +2304,16 @@ class Import
             if ($this->aff) {
                 $this->app->utils->items->doFixWithNonExistingAttrs($fixWhere);
 
-                $aff = $this->app->utils->attrs->doDeleteNonExistingItemsMva($fixWhere);
+                $aff = $this->app->utils->attrs->doDeleteNonExistingItemsMva($fixWhere, ['log' => $this->debug]);
                 $this->log('updated with invalid mva: ' . $aff);
 
 //                $this->app->utils->attrs->doAddMvaByInclusions($fixWhere);
-                $this->app->utils->items->doFixItemsCategories($fixWhere);
+                $this->app->utils->items->doFixItemsCategories($fixWhere, ['log' => $this->debug]);
             }
 
             $this->deleteOldFiles();
-        } catch (Throwable $ex) {
-            $this->app->services->logger->makeException($ex);
+        } catch (Throwable $e) {
+            $this->app->container->logger->error($e);
         }
 
         $this->deletePid();
@@ -2338,7 +2352,8 @@ class Import
 
     protected function log(string $msg, string $type = Logger::TYPE_DEBUG)
     {
-        $this->app->services->logger->make('import[' . $this->source->getId() . ']: ' . $msg, $type);
+        $this->app->container->logger->make('import[' . $this->source->getId() . ']: ' . $msg, $type);
+
         return $this;
     }
 }

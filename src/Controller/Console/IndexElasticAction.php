@@ -16,7 +16,7 @@ class IndexElasticAction
         (new IndexItemElasticAction)($app);
         (new IndexCatalogElasticAction)($app);
 
-        $app->response->setBody(implode("\r\n", [
+        $app->response->addToBody(implode("\r\n", [
             __CLASS__,
             'DONE'
         ]));

@@ -2,40 +2,26 @@
 
 namespace SNOWGIRL_SHOP\Item;
 
-use SNOWGIRL_CORE\App;
+use SNOWGIRL_CORE\AbstractApp;
 use SNOWGIRL_SHOP\Entity\Item;
 use SNOWGIRL_SHOP\Manager\Builder as Managers;
 
 class SRC
 {
-    /** @var App */
-    protected $app;
-    protected $uri;
+    private $uri;
+    private $item;
 
     public function __construct(URI $uri)
     {
         $this->uri = $uri;
-        $this->app = App::$instance;
     }
 
-    /**
-     * @param          $id
-     * @param Managers $managers
-     *
-     * @return Item
-     */
-    public static function checkId($id, Managers $managers)
+    public static function checkId($id, Managers $managers): Item
     {
         return self::getById($id, $managers);
     }
 
-    /**
-     * @param          $id
-     * @param Managers $managers
-     *
-     * @return Item
-     */
-    protected static function getById($id, Managers $managers)
+    private static function getById(int $id, Managers $managers): Item
     {
         if (!$item = $managers->items->find($id)) {
             if ($archive = $managers->archiveItems->find($id)) {
@@ -47,15 +33,10 @@ class SRC
         return $item;
     }
 
-    protected $item;
-
-    /**
-     * @return Item
-     */
-    public function getItem()
+    public function getItem(): Item
     {
         if (null === $this->item) {
-            $this->item = self::getById($this->uri->get(URI::ID), $this->app->managers);
+            $this->item = self::getById($this->uri->get(URI::ID), $this->uri->getApp()->managers);
         }
 
         return $this->item;

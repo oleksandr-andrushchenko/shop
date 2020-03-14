@@ -2,8 +2,8 @@
 
 namespace SNOWGIRL_SHOP\Controller\Admin;
 
-use SNOWGIRL_CORE\Service\Storage\Query\Expr;
-use SNOWGIRL_SHOP\App\Web as App;
+use SNOWGIRL_CORE\Query\Expression;
+use SNOWGIRL_SHOP\Http\HttpApp as App;
 use SNOWGIRL_CORE\Controller\Admin\PrepareServicesTrait;
 use SNOWGIRL_SHOP\Entity\Page\Catalog\Custom as PageCatalogCustom;
 use SNOWGIRL_SHOP\RBAC;
@@ -22,10 +22,10 @@ class CatalogAction
 
         $content = $view->setContentByTemplate('@shop/admin/catalog.phtml', [
             'searchTerm' => $app->request->get('search_term'),
-            'maxArticleLength' => $app->config->catalog->seo_text_body_length(2500),
+            'maxArticleLength' => $app->config('catalog.seo_text_body_length', 2500),
             'client' => $app->request->getClient()->getUser(),
             'searchPrefix' => 1 == $app->request->get('search_prefix'),
-            'searchInRdbms' => 1 == $app->request->get('search_in_rdbms'),
+            'searchInDb' => 1 == $app->request->get('search_in_rdbms'),
         ]);
 
         $page = (int)$app->request->get('page', 1);
@@ -37,7 +37,7 @@ class CatalogAction
             ->calcTotal(true);
 
 //        if (rdbms) {
-            $manager->addOrder(new Expr('ABS(JSON_EXTRACT(' . $app->storage->mysql->quote('meta') . ', \'$.count\')) DESC'));
+        $manager->addOrder(new Expression('ABS(JSON_EXTRACT(' . $app->container->db->quote('meta') . ', \'$.count\')) DESC'));
 //        }
 
 //        if ($content->searchTerm) {
@@ -51,7 +51,7 @@ class CatalogAction
         $params = [
             $content->searchTerm ?: '',
             $content->searchPrefix ? true : false,
-            $content->searchInRdbms ? 'mysql' : null
+            $content->searchInDb ? 'db' : null
         ];
 
         $objects = $manager->getObjectsByQuery(...$params);

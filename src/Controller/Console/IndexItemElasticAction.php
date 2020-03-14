@@ -13,9 +13,11 @@ class IndexItemElasticAction
     {
         $this->prepareServices($app);
 
-        $app->response->setBody(implode("\r\n", [
+        $debug = 1 == $app->request->get('param_1', 1);
+
+        $app->response->addToBody(implode("\r\n", [
             __CLASS__,
-            ($aff = $app->utils->items->doIndexElastic()) ? "DONE: {$aff}" : 'FAILED'
+            ($aff = $app->utils->items($debug)->doIndexElastic()) ? "DONE: {$aff}" : 'FAILED'
         ]));
     }
 }

@@ -1,11 +1,8 @@
-<!---->
 <?php
 
 use SNOWGIRL_CORE\View;
 use SNOWGIRL_CORE\Entity;
 use SNOWGIRL_SHOP\Entity\Vendor;
-use SNOWGIRL_CORE\Script\Css;
-use SNOWGIRL_CORE\Script\Js;
 use SNOWGIRL_CORE\View\Widget\Form\Input\Value;
 use SNOWGIRL_SHOP\Entity\Import\Source as ImportSource;
 use SNOWGIRL_SHOP\Entity\Import\History as ImportSourceHistory;
@@ -28,14 +25,14 @@ $this->getLayout()
     ->addBreadcrumb('Офферы', $this->makeLink('admin', 'offers'))
     ->addBreadcrumb($source->getName())
     ->setH1($title)
-    ->addHeadCss(new Css('@shop/admin/import-source.css'))
-    ->addHeadCss(new Css('@core/jquery.easyzoom.css'))
-    ->addJs(new Js('@core/jquery.easyzoom.js'))
+    ->addHeadCss('@shop/admin/import-source.css')
+    ->addHeadCss('@core/jquery.easyzoom.css')
+    ->addJs('@core/jquery.easyzoom.js')
     ->addJsConfig('importSourceId', $source->getId())
     ->addJsConfig('svaValues', $this->svaValues)
     ->addJsConfig('isShowModifiersItems', $this->isShowModifiersItems)
     ->addJsConfig('mappingModifyTags', $this->mappingModifyTags)
-    ->addJs(new Js('@shop/admin/import-source.js'));
+    ->addJs('@shop/admin/import-source.js');
 ?>
 
 <?php echo '<div class="vs">' ?>

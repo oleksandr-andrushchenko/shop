@@ -1,8 +1,6 @@
-<!---->
 <?php
+
 use SNOWGIRL_CORE\View;
-use SNOWGIRL_CORE\Script\Css;
-use SNOWGIRL_CORE\Script\Js;
 use SNOWGIRL_SHOP\Manager\Category as CategoryManager;
 
 /** @var View $this */
@@ -10,9 +8,9 @@ $this->getLayout()
     ->setTitle($title = 'Дерево категорий')
     ->addBreadcrumb($title)
     ->setH1($title)
-    ->addHeadCss(new Css('@shop/admin/categories.css'))
-    ->addJs(new Js('@core/jquery.nestable.js'))
-    ->addJs(new Js('@shop/admin/categories.js'));
+    ->addHeadCss('@shop/admin/categories.css')
+    ->addJs('@core/jquery.nestable.js')
+    ->addJs('@shop/admin/categories.js');
 ?>
 <a class="btn btn-primary btn-toggle-collapse-all"><span class="glyphicon glyphicon-chevron-up"></span> Свернуть</a>
 <a class="btn btn-success btn-build-tree"

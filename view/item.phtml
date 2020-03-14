@@ -1,8 +1,6 @@
 <?php
 
 use SNOWGIRL_CORE\View;
-use SNOWGIRL_CORE\Script\Css;
-use SNOWGIRL_CORE\Script\Js;
 use SNOWGIRL_SHOP\Entity\Item;
 use SNOWGIRL_CORE\Images;
 use SNOWGIRL_CORE\Helper;
@@ -30,9 +28,9 @@ $vendor = $this->app->managers->items->getVendor($item);
 $vendorName = ucfirst($vendor->getName());
 
 $this->getLayout()
-    ->addHeadCss(new Css('@shop/item.css'))
-    ->addHeadCss(new Css('@core/jquery.easyzoom.css'))
-    ->addJs(new Js('@core/jquery.easyzoom.js'))
+    ->addHeadCss('@shop/item.css')
+    ->addHeadCss('@core/jquery.easyzoom.css')
+    ->addJs('@core/jquery.easyzoom.js')
     ->addJsConfig('filterParams', $this->relatedUriFilterParams)
     ->addJsConfig('viewParams', $this->relatedUriViewParams)
     ->addJsConfig('itemId', $item->getId())
@@ -40,7 +38,7 @@ $this->getLayout()
     ->addJsConfig('vendorName', $vendorName)
     ->addJsConfig('deviceDesktop', $this->deviceDesktop)
     ->addJsConfig('typeOwn', $this->typeOwn)
-    ->addJs(new Js('@shop/item.js'));
+    ->addJs('@shop/item.js');
 
 $attrToName = [
     'category_id' => 'Категория',
@@ -207,14 +205,12 @@ if ((!$item->get('archive')) && $item->isInStock()) {
                     <tr>
                         <td>Разделы</td>
                         <?php $texts = SEO::getTypesToTexts(true); ?>
-                        <td><?php echo implode(', ', array_map(function ($type) use ($item, $texts) {
-                                $uri = new URI([
-                                    'category_id' => $item->getCategoryId(),
-                                    $type => 1
-                                ]);
-
-                                return '<a class="label label-default" href="' . $uri->output() . '">' . $texts[$type] . '</a>';
-                            }, $this->types)) ?></td>
+                        <td>
+                            <?php foreach ($this->types as $type) { ?>
+                                <a class="label label-default"
+                                   href="<?php echo new URI(['category_id' => $item->getCategoryId(), $type => 1]) ?>"><?php echo $texts[$type] ?></a>
+                            <?php } ?>
+                        </td>
                     </tr>
                 <?php } ?>
 
@@ -224,15 +220,12 @@ if ((!$item->get('archive')) && $item->isInStock()) {
                             <?php $attrs = is_array($this->attrs[$attr]) ? $this->attrs[$attr] : [$this->attrs[$attr]] ?>
                             <tr>
                                 <td><?php echo $name ?></td>
-                                <td><?php echo implode(', ', array_map(function ($entity) use ($attr, $item) {
-                                        /** @var Entity $entity */
-                                        $uri = new URI([
-                                            $entity->getPk() => $entity->getId(),
-                                            'category_id' => $item->getCategoryId()
-                                        ]);
-
-                                        return '<a class="label label-default" href="' . $uri->output() . '">' . $entity->get('name') . '</a>';
-                                    }, $attrs)) ?></td>
+                                <td>
+                                    <?php foreach ($attrs as $entity) { ?>
+                                        <a class="label label-default"
+                                           href="<?php echo new URI([$entity->getPk() => $entity->getId(), 'category_id' => $item->getCategoryId()]) ?>"><?php echo $entity->get('name') ?></a>
+                                    <?php } ?>
+                                </td>
                             </tr>
                         <?php } ?>
                     <?php } ?>

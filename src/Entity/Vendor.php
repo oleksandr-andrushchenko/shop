@@ -3,6 +3,7 @@
 namespace SNOWGIRL_SHOP\Entity;
 
 use SNOWGIRL_SHOP\Entity\Item\Attr;
+use SNOWGIRL_CORE\Entity;
 
 /**
  * Class Vendor
@@ -29,12 +30,12 @@ class Vendor extends Attr implements PartnerLinkHolderInterface
         'updated_at' => ['type' => self::COLUMN_TIME, 'default' => null]
     ];
 
-    public function setId($v)
+    public function setId($v): Entity
     {
         return $this->setVendorId($v);
     }
 
-    public function getId($makeCompositeId = true)
+    public function getId(bool $makeCompositeId = true)
     {
         return $this->getVendorId();
     }

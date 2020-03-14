@@ -8,7 +8,6 @@ class Catalog extends Entity
 {
     protected static $table = 'page_catalog';
     protected static $pk = 'page_catalog_id';
-    protected static $isFtdbmsIndex = true;
     protected static $columns = [
         'page_catalog_id' => ['type' => self::COLUMN_INT, self::AUTO_INCREMENT],
         'name' => ['type' => self::COLUMN_TEXT, self::SEARCH_IN, self::SEARCH_DISPLAY, self::FTDBMS_FIELD, self::REQUIRED],
@@ -23,12 +22,12 @@ class Catalog extends Entity
         'ix_params' => ['params_hash']
     ];
 
-    public function setId($v)
+    public function setId($v): Entity
     {
         return $this->setPageCatalogId($v);
     }
 
-    public function getId($makeCompositeId = true)
+    public function getId(bool $makeCompositeId = true)
     {
         return $this->getPageCatalogId();
     }
@@ -46,8 +45,8 @@ class Catalog extends Entity
     /**
      * @param $v
      *
-     * @return Catalog
-     * @throws \SNOWGIRL_CORE\Exception\EntityAttr\Required
+     * @return Entity
+     * @throws Entity\EntityException
      */
     public function setName($v)
     {
@@ -62,8 +61,8 @@ class Catalog extends Entity
     /**
      * @param $v
      *
-     * @return Catalog
-     * @throws \SNOWGIRL_CORE\Exception\EntityAttr\Required
+     * @return Entity
+     * @throws Entity\EntityException
      */
     public function setUri($v)
     {

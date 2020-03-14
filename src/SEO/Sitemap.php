@@ -2,10 +2,10 @@
 
 namespace SNOWGIRL_SHOP\SEO;
 
-use SNOWGIRL_CORE\Service\Rdbms;
+use SNOWGIRL_CORE\Service\Db;
 use SNOWGIRL_CORE\Sitemap as Generator;
 use SNOWGIRL_CORE\Helper\WalkChunk2;
-use SNOWGIRL_CORE\Service\Storage\Query\Expr;
+use SNOWGIRL_CORE\Query\Expression;
 use SNOWGIRL_SHOP\Catalog\URI;
 use SNOWGIRL_SHOP\Item\URI as ItemURI;
 use SNOWGIRL_SHOP\SEO;
@@ -77,8 +77,8 @@ class Sitemap extends \SNOWGIRL_CORE\SEO\Sitemap
             $catalog = $app->managers->catalog->clear();
             $customCatalog = $app->managers->catalogCustom->clear();
 
-            /** @var Rdbms $db */
-            $db = $app->managers->catalogCustom->getStorage();
+            /** @var Db $db */
+            $db = $app->managers->catalogCustom->getDb();
 
             $table = $customCatalog->getEntity()->getTable();
             $pk = $customCatalog->getEntity()->getPk();
@@ -87,7 +87,7 @@ class Sitemap extends \SNOWGIRL_CORE\SEO\Sitemap
             (new WalkChunk2(1000))
                 ->setFnGet(function ($lastId, $size) use ($db, $table, $pk, $table2, $catalog, $customCatalog) {
                     if ($lastId) {
-                        $customCatalog->setWhere(new Expr($db->quote($pk) . ' > ?', $lastId));
+                        $customCatalog->setWhere(new Expression($db->quote($pk) . ' > ?', $lastId));
                     }
 
                     $customs = $customCatalog
@@ -124,7 +124,7 @@ class Sitemap extends \SNOWGIRL_CORE\SEO\Sitemap
     }
 
     /**
-     * Alternative method - much more effective (using [is_article, count] Rdbms key and last-id instead of limit's
+     * Alternative method - much more effective (using [is_article, count] Db key and last-id instead of limit's
      * offsets)
      *
      * @return \Closure
@@ -133,7 +133,7 @@ class Sitemap extends \SNOWGIRL_CORE\SEO\Sitemap
     {
         return function (Generator $sitemap) {
             $app = $this->seo->getApp();
-            $db = $app->services->rdbms;
+            $db = $app->container->db;
 
             $catalog = $app->managers->catalog->clear();
 
@@ -144,7 +144,7 @@ class Sitemap extends \SNOWGIRL_CORE\SEO\Sitemap
             (new WalkChunk2(1000))
                 ->setFnGet(function ($lastId, $size) use ($db, $catalog, $pk) {
                     if ($lastId) {
-                        $catalog->setWhere(new Expr($db->quote($pk) . ' > ?', $lastId));
+                        $catalog->setWhere(new Expression($db->quote($pk) . ' > ?', $lastId));
                     }
 
                     return $catalog
@@ -168,14 +168,14 @@ class Sitemap extends \SNOWGIRL_CORE\SEO\Sitemap
     {
         return function (Generator $sitemap) {
             $app = $this->seo->getApp();
-            $db = $app->services->rdbms;
+            $db = $app->container->db;
             $items = $app->managers->items->clear();
             $pk = $items->getEntity()->getPk();
 
             (new WalkChunk2(1000))
                 ->setFnGet(function ($lastId, $size) use ($db, $items, $pk) {
                     if ($lastId) {
-                        $items->setWhere(new Expr($db->quote($pk) . ' > ?', $lastId));
+                        $items->setWhere(new Expression($db->quote($pk) . ' > ?', $lastId));
                     }
 
                     return $items

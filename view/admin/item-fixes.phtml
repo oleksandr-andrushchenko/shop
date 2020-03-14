@@ -1,8 +1,6 @@
-<!---->
 <?php
+
 use SNOWGIRL_CORE\View;
-use SNOWGIRL_CORE\Script\Css;
-use SNOWGIRL_CORE\Script\Js;
 use SNOWGIRL_SHOP\Entity\Item;
 use SNOWGIRL_CORE\Image;
 use SNOWGIRL_CORE\Entity;
@@ -19,11 +17,11 @@ $this->getLayout()
     ->setTitle($title = 'Фиксы предложений')
     ->addBreadcrumb($title)
     ->setH1('Фиксы')
-    ->addHeadCss(new Css('@core/admin/database.css'))
-    ->addHeadCss(new Css('@shop/admin/item-fixes.css'))
-    ->addHeadCss(new Css('@core/jquery.easyzoom.css'))
-    ->addJs(new Js('@core/jquery.easyzoom.js'))
-    ->addJs(new Js('@shop/admin/item-fixes.js'));
+    ->addHeadCss('@core/admin/database.css')
+    ->addHeadCss('@shop/admin/item-fixes.css')
+    ->addHeadCss('@core/jquery.easyzoom.css')
+    ->addJs('@core/jquery.easyzoom.js')
+    ->addJs('@shop/admin/item-fixes.js');
 ?>
 <ul class="list-inline">
     <li><a href="<?php echo $this->makeLink('admin', 'category-fixes') ?>">Категории</a></li>
@@ -38,7 +36,7 @@ $this->getLayout()
         <select name="search_by" id="search_by" class="form-control">
             <?php foreach ($this->columns as $column => $columnOptions) { ?>
                 <option
-                    value="<?php echo $column ?>" <?php echo $column == $this->searchBy ? 'selected' : '' ?>><?php echo $column ?></option>
+                        value="<?php echo $column ?>" <?php echo $column == $this->searchBy ? 'selected' : '' ?>><?php echo $column ?></option>
             <?php } ?>
         </select>
         <label for="search_value" class="control-label">по</label>
@@ -60,7 +58,7 @@ $this->getLayout()
         <select name="order_by" id="order_by" class="form-control">
             <?php foreach ($this->columns as $column => $columnOptions) { ?>
                 <option
-                    value="<?php echo $column ?>" <?php echo $column == $this->orderBy ? 'selected' : '' ?>><?php echo $column ?></option>
+                        value="<?php echo $column ?>" <?php echo $column == $this->orderBy ? 'selected' : '' ?>><?php echo $column ?></option>
             <?php } ?>
         </select>
         <label for="order_value" class="control-label">по</label>
@@ -121,7 +119,7 @@ $this->getLayout()
                                             <option value="0">- <?php echo $column ?> -</option>
                                             <?php foreach ($this->{$selectMap[$column]} as $id => $v) { ?>
                                                 <option
-                                                    value="<?php echo $id ?>" <?php echo $id == $item->get($column) ? 'selected' : '' ?>>
+                                                        value="<?php echo $id ?>" <?php echo $id == $item->get($column) ? 'selected' : '' ?>>
                                                     <?php echo $v->get('name') ?>
                                                 </option>
                                             <?php } ?>

@@ -1,16 +1,15 @@
 <?php
+
 use SNOWGIRL_CORE\View;
-use SNOWGIRL_CORE\Script\Css;
-use SNOWGIRL_CORE\Script\Js;
 use SNOWGIRL_SHOP\Entity\Brand;
 
 /** @var View $this */
 /** @var Brand $item */
 $this->getLayout()
     ->addBreadcrumb($this->h1)
-    ->addHeadCss(new Css('@shop/brands.css'))
+    ->addHeadCss('@shop/brands.css')
     ->addJsConfig('groupPerPageSize', $this->groupPerPageSize)
-    ->addJs(new Js('@shop/brands.js'));
+    ->addJs('@shop/brands.js');
 ?>
 
 <div class="row">

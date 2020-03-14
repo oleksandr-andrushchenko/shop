@@ -7,22 +7,22 @@ use SNOWGIRL_CORE\Entity;
 use SNOWGIRL_CORE\Helper\Arrays;
 use SNOWGIRL_CORE\Helper\WalkChunk2;
 use SNOWGIRL_CORE\HtmlParser;
-use SNOWGIRL_CORE\Service\Storage\Query;
-use SNOWGIRL_CORE\Service\Storage\Query\Expr;
+use SNOWGIRL_CORE\Query;
+use SNOWGIRL_CORE\Query\Expression;
 use SNOWGIRL_CORE\Util;
-use SNOWGIRL_SHOP\App\Web;
-use SNOWGIRL_SHOP\App\Console;
 
+use SNOWGIRL_SHOP\Console\ConsoleApp;
 use SNOWGIRL_SHOP\Entity\Page\Catalog as PageCatalog;
 use SNOWGIRL_SHOP\Entity\Page\Catalog\Custom as PageCatalogCustom;
 
 use Google\Cloud\Translate\TranslateClient;
 use SNOWGIRL_SHOP\Catalog\URI;
+use SNOWGIRL_SHOP\Http\HttpApp;
 
 /**
  * Class Catalog
  *
- * @property Web|Console app
+ * @property HttpApp|ConsoleApp app
  * @package SNOWGIRL_SHOP\Util
  */
 class Catalog extends Util
@@ -41,7 +41,7 @@ class Catalog extends Util
             'seo_texts',
             'updated_at' => 'created_at'
         ];
-        $where = new Expr($this->app->services->rdbms->quote('updated_at') . ' IS NOT NULL');
+        $where = new Expression($this->app->container->db->quote('updated_at') . ' IS NOT NULL');
 
         $output = $this->app->utils->database->doMigrateDataFromTableToTable($tableFrom, $tableTo, $columns, $where);
 
@@ -57,8 +57,8 @@ class Catalog extends Util
     {
         if (null === $this->trans) {
             $this->trans = new TranslateClient([
-                'key' => $this->app->config->keys->google_api_key,
-                'projectId' => $this->app->config->keys->google_cloud_project_id
+                'key' => $this->app->config('keys.google_api_key'),
+                'projectId' => $this->app->config('keys.google_cloud_project_id')
             ]);
         }
 
@@ -259,7 +259,7 @@ class Catalog extends Util
     {
         $aff = 0;
 
-        $site = ucfirst($this->app->config->site->name);
+        $site = ucfirst($this->app->config('site.name'));
 
         foreach ($remoteUriToUriParams as $remoteUri => $uriParams) {
             if (!$uri = new URI(is_array($uriParams) ? $uriParams : ['category_id' => $uriParams])) {
@@ -272,7 +272,7 @@ class Catalog extends Util
                 continue;
             }
 
-            $custom = $this->app->managers->catalogCustom->getStorage()
+            $custom = $this->app->managers->catalogCustom->getDb()
                 ->selectOne($this->app->managers->catalogCustom->getEntity()->getTable(), new Query([
                     'params' => [],
                     'where' => ['params_hash' => $page->getParamsHash()]
@@ -358,11 +358,11 @@ class Catalog extends Util
         return $aff;
     }
 
-    public function doIndexFtdbms(int $reindexDays = 0)
+    public function doIndexIndexer(int $reindexDays = 0)
     {
-        return $this->doIndexElastic(new Expr(implode(' OR ', [
-            $this->app->storage->mysql->quote('created_at') . ' >= (CURDATE() - INTERVAL ? DAY)',
-            $this->app->storage->mysql->quote('updated_at') . ' >= (CURDATE() - INTERVAL ? DAY)',
+        return $this->doIndexElastic(new Expression(implode(' OR ', [
+            $this->app->container->db->quote('created_at') . ' >= (CURDATE() - INTERVAL ? DAY)',
+            $this->app->container->db->quote('updated_at') . ' >= (CURDATE() - INTERVAL ? DAY)',
         ]), $reindexDays, $reindexDays));
     }
 
@@ -384,7 +384,7 @@ class Catalog extends Util
         );
     }
 
-    protected function getElasticMappings(): array
+    protected function getIndexerMappings(): array
     {
         $properties = [
             'uri' => 'text',
@@ -407,11 +407,10 @@ class Catalog extends Util
     {
         $index = $index ?: $this->app->managers->catalog->getEntity()->getTable();
 
-        $elastic = $this->app->storage->elastic;
+        $indexerManager = $this->app->container->indexer->getManager();
+        $indexerManager->deleteIndex($index);
 
-        $elastic->deleteIndex($index);
-
-        if (!$elastic->createIndex($index, $this->getElasticMappings())) {
+        if (!$indexerManager->createIndex($index, $this->getIndexerMappings())) {
             return false;
         }
 
@@ -484,20 +483,22 @@ class Catalog extends Util
 
         $where = Arrays::cast($where);
 
+        $indexerManager = $this->app->container->indexer->getManager();
+
         (new WalkChunk2(1000))
             ->setFnGet(function ($lastId, $size) use ($manager, $catalogPk, $where) {
                 if ($lastId) {
-                    $where[] = new Expr($this->app->storage->mysql->quote($catalogPk) . ' > ?', $lastId);
+                    $where[] = new Expression($this->app->container->db->quote($catalogPk) . ' > ?', $lastId);
                 }
 
                 return $manager->setWhere($where)->setLimit($size)->getObjects();
             })
-            ->setFnDo(function ($pages) use ($index, &$aff) {
+            ->setFnDo(function ($pages) use ($index, $indexerManager, &$aff) {
                 $documents = Arrays::mapByKeyValueMaker($pages, function ($i, $page) {
                     return [$page->getId(), $this->getElasticDocument($page)];
                 });
 
-                $aff += $this->app->storage->elastic->indexMany($index, $documents);
+                $aff += $indexerManager->indexMany($index, $documents);
 
                 return end($documents) ? key($documents) : false;
             })
@@ -506,19 +507,15 @@ class Catalog extends Util
         return $aff;
     }
 
-    public function doIndexElastic($where = null): int
+    public function doIndexElastic(): int
     {
-//        if ($where) {
-//            return $this->doDeleteMissingElastic() + $this->doRawIndexElastic(null, $where);
-//        }
-
-        $elastic = $this->app->storage->elastic;
+        $indexerManager = $this->app->container->indexer->getManager();
         $alias = $this->app->managers->catalog->getEntity()->getTable();
         $newIndex = $alias . '_' . time();
 
         $this->doCreateElasticIndex($newIndex);
 
-        return $elastic->switchAliasIndex($alias, $newIndex, function ($index) {
+        return $indexerManager->switchAliasIndex($alias, $newIndex, function ($index) {
             return $this->doRawIndexElastic($index);
         });
     }

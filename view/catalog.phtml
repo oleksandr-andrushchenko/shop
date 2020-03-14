@@ -2,8 +2,6 @@
 <?php
 
 use SNOWGIRL_CORE\View;
-use SNOWGIRL_CORE\Script\Css;
-use SNOWGIRL_CORE\Script\Js;
 use SNOWGIRL_SHOP\Catalog\URI;
 use SNOWGIRL_CORE\Helper;
 use SNOWGIRL_SHOP\Entity\Category;
@@ -28,13 +26,13 @@ use SNOWGIRL_SHOP\Entity\Season;
 /** @var Season $season */
 
 $this->getLayout()
-    ->addHeadCss(new Css('@shop/catalog.css'))
+    ->addHeadCss('@shop/catalog.css')
     ->addJsConfig('filterParams', $this->uriFilterParams)
     ->addJsConfig('viewParams', $this->uriViewParams)
     ->addJsConfig('showTags', $this->showTags)
     ->addJsConfig('hasItems', $this->hasItems)
     ->addJsConfig('asyncFilters', $this->asyncFilters)
-    ->addJs(new Js('@shop/catalog.js'));
+    ->addJs('@shop/catalog.js');
 
 $typeColors = [
 //    URI::SPORT => 'default',
@@ -234,7 +232,8 @@ $typeColors = [
 
     <?php if ($this->hasItems) { ?>
         <div class="col-md-9 col-lg-10 right views obj-toggle-sm-views nav-sm" id="view">
-            <form class="inner form-inline" action="<?php echo (new URI($this->uriParams))->_unset(URI::PAGE_NUM)->output() ?>" method="get">
+            <form class="inner form-inline"
+                  action="<?php echo (new URI($this->uriParams))->_unset(URI::PAGE_NUM)->output() ?>" method="get">
                 <?php $this->noIndexOpen() ?>
                 <label><span class="text">Сортировать по:</span>
                     <select class="form-control input-sm" name="sort">

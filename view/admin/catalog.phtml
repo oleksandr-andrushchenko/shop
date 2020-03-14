@@ -2,8 +2,6 @@
 <?php
 
 use SNOWGIRL_CORE\View;
-use SNOWGIRL_CORE\Script\Css;
-use SNOWGIRL_CORE\Script\Js;
 use SNOWGIRL_SHOP\Entity\Page\Catalog as PageCatalog;
 use SNOWGIRL_SHOP\Entity\Page\Catalog\Custom as PageCatalogCustom;
 use SNOWGIRL_SHOP\RBAC;
@@ -16,8 +14,8 @@ $this->getLayout()
     ->setTitle($title = 'Страницы')
     ->addBreadcrumb($title)
     ->setH1($title)
-    ->addHeadCss(new Css('@shop/admin/catalog.css'))
-    ->addJs(new Js('@shop/admin/catalog.js'));
+    ->addHeadCss('@shop/admin/catalog.css')
+    ->addJs('@shop/admin/catalog.js');
 ?>
 <?php echo '<div class="vs">' ?>
 <?php if ($this->priorityLinks) { ?>
@@ -52,7 +50,7 @@ $this->getLayout()
             <div class="checkbox">
                 <label>
                     <input type="checkbox" name="search_in_rdbms"
-                           value="1"<?php echo $this->searchInRdbms ? ' checked' : '' ?>>
+                           value="1"<?php echo $this->searchInDb ? ' checked' : '' ?>>
                     рдбмс
                 </label>
             </div>

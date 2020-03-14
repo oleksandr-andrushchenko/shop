@@ -2,7 +2,7 @@
 
 namespace SNOWGIRL_SHOP\Item;
 
-use SNOWGIRL_CORE\Service\Storage\Query\Expr;
+use SNOWGIRL_CORE\Query\Expression;
 use SNOWGIRL_SHOP\App\Console as App;
 use SNOWGIRL_SHOP\Entity\Import\Source as ImportSource;
 
@@ -130,26 +130,26 @@ class FixWhere
         $orWhere = [];
 
         if ($this->partnerUpdatedAtFrom || $this->partnerUpdatedAtTo) {
-            $q = $this->app->storage->mysql->quote('partner_updated_at');
+            $q = $this->app->container->db->quote('partner_updated_at');
 
             if ($tmp = $this->partnerUpdatedAtFrom) {
-                $where[] = new Expr($q . ' > ?', $tmp);
+                $where[] = new Expression($q . ' > ?', $tmp);
             }
 
             if ($tmp = $this->partnerUpdatedAtTo) {
-                $where[] = new Expr($q . ' < ?', $tmp);
+                $where[] = new Expression($q . ' < ?', $tmp);
             }
         }
 
         if ($this->createdAtFrom || $this->createdAtTo) {
-            $q = $this->app->storage->mysql->quote('created_at', $this->app->managers->items->getEntity()->getTable());
+            $q = $this->app->container->db->quote('created_at', $this->app->managers->items->getEntity()->getTable());
 
             if ($tmp = $this->formatDate($this->createdAtFrom)) {
-                $where[] = new Expr($q . ' > ?', $tmp);
+                $where[] = new Expression($q . ' > ?', $tmp);
             }
 
             if ($tmp = $this->formatDate($this->createdAtTo)) {
-                $where[] = new Expr($q . ' < ?', $tmp);
+                $where[] = new Expression($q . ' < ?', $tmp);
             }
         }
 
@@ -159,18 +159,18 @@ class FixWhere
         }
 
         if ($this->updatedAtFrom || $this->updatedAtTo || $this->updatedAtIsNull) {
-            $q = $this->app->storage->mysql->quote('updated_at', $this->app->managers->items->getEntity()->getTable());
+            $q = $this->app->container->db->quote('updated_at', $this->app->managers->items->getEntity()->getTable());
 
             if ($tmp = $this->formatDate($this->updatedAtFrom)) {
-                $where[] = new Expr(($this->updatedAtFromWithNulls ? ($q . ' IS NULL OR ') : '') . $q . ' > ?', $tmp);
+                $where[] = new Expression(($this->updatedAtFromWithNulls ? ($q . ' IS NULL OR ') : '') . $q . ' > ?', $tmp);
             }
 
             if ($tmp = $this->formatDate($this->updatedAtTo)) {
-                $where[] = new Expr(($this->updatedAtToWithNulls ? ($q . ' IS NULL OR ') : '') . $q . ' < ?', $tmp);
+                $where[] = new Expression(($this->updatedAtToWithNulls ? ($q . ' IS NULL OR ') : '') . $q . ' < ?', $tmp);
             }
 
             if ($this->updatedAtIsNull) {
-                $where[] = new Expr($q . ' IS NULL');
+                $where[] = new Expression($q . ' IS NULL');
             }
         }
 
@@ -232,7 +232,7 @@ class FixWhere
         $args = array_merge($args, $pos1 < $pos2 ? $expr1->getParams() : $expr2->getParams());
         $args = array_merge($args, $pos1 < $pos2 ? $expr2->getParams() : $expr1->getParams());
 
-        return new Expr(...$args);
+        return new Expression(...$args);
     }
 
     /**

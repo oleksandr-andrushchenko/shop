@@ -3,7 +3,7 @@
 namespace SNOWGIRL_SHOP\Controller\Console;
 
 use SNOWGIRL_CORE\Controller\Console\PrepareServicesTrait;
-use SNOWGIRL_CORE\Exception\HTTP\BadRequest;
+use SNOWGIRL_CORE\Http\Exception\BadRequestHttpException;
 use SNOWGIRL_SHOP\App\Console as App;
 
 class FixImportSourceAction
@@ -15,11 +15,11 @@ class FixImportSourceAction
         $this->prepareServices($app);
 
         if (!$id = $app->request->get('param_1')) {
-            throw (new BadRequest)->setInvalidParam('id');
+            throw (new BadRequestHttpException)->setInvalidParam('id');
         }
 
         if (!$source = $app->managers->sources->find($id)) {
-            throw (new NotFound)->setNonExisting('source');
+            throw (new NotFoundHttpException)->setNonExisting('source');
         }
 
         $aff = $app->utils->sources->doFixSource($source);

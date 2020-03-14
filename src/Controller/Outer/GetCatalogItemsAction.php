@@ -4,7 +4,7 @@ namespace SNOWGIRL_SHOP\Controller\Outer;
 
 use SNOWGIRL_CORE\Ads;
 use SNOWGIRL_CORE\Controller\Outer\PrepareServicesTrait;
-use SNOWGIRL_SHOP\App\Web as App;
+use SNOWGIRL_SHOP\Http\HttpApp as App;
 use SNOWGIRL_SHOP\Catalog\URI;
 use SNOWGIRL_SHOP\View\Widget\Grid\Items as ItemsGrid;
 use SNOWGIRL_CORE\View\Widget\Ad\LargeRectangle as LargeRectangleAd;

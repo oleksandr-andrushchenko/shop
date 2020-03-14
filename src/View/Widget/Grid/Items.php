@@ -2,6 +2,7 @@
 
 namespace SNOWGIRL_SHOP\View\Widget\Grid;
 
+use SNOWGIRL_CORE\View\Node;
 use SNOWGIRL_CORE\View\Widget;
 use SNOWGIRL_CORE\View\Widget\Ad;
 
@@ -19,19 +20,20 @@ class Items extends Widget
     protected $h21;
     /** @var Ad */
     protected $banner;
+    protected $bannerIndex;
 
-    protected function makeParams(array $params = [])
+    protected function makeParams(array $params = []): array
     {
         return array_merge([
-            'buyOnClick' => $this->app->config->catalog->force_buy_on_click(false),
+            'buyOnClick' => $this->app->config('catalog.force_buy_on_click', false),
             'currency' => (object)[
-                'iso' => $tmp = $this->app->config->catalog->currency('UAH'),
+                'iso' => $tmp = $this->app->config('catalog.currency', 'UAH'),
                 'text' => 'UAH' == $tmp ? 'грн' : 'руб'
             ]
         ], parent::makeParams($params));
     }
 
-    protected function addScripts()
+    protected function addScripts(): Widget
     {
         return parent::addScripts()
             ->addCssScript('@shop/widget/grid.items.css');
@@ -41,8 +43,6 @@ class Items extends Widget
     {
         return 2;
     }
-
-    protected $bannerIndex;
 
     protected function stringifyPrepare()
     {
@@ -71,12 +71,12 @@ class Items extends Widget
         ]);
     }
 
-    protected function getNode()
+    protected function getNode(): ?Node
     {
         return null;
     }
 
-    public function isOk()
+    public function isOk(): bool
     {
         return 0 < count($this->items);
     }

@@ -3,8 +3,8 @@
 namespace SNOWGIRL_SHOP\Manager;
 
 use SNOWGIRL_CORE\Entity;
-use SNOWGIRL_CORE\Service\Storage\Query\Expr;
-use SNOWGIRL_CORE\Service\Storage\Query;
+use SNOWGIRL_CORE\Query\Expression;
+use SNOWGIRL_CORE\Query;
 use SNOWGIRL_SHOP\Entity\Brand as BrandEntity;
 use SNOWGIRL_SHOP\Manager\Item\Attr;
 
@@ -42,13 +42,14 @@ class Brand extends Attr
 
         $this->clear();
 
-        /** @var BrandEntity[] $items */
-        $items = $this->populateList($this->app->services->mcms->call($this->getNonEmptyGroupedByFirstChar($perCharLimit), function () use ($perCharLimit) {
-            $db = $this->app->services->rdbms;
+        $cacheKey = $this->getNonEmptyGroupedByFirstChar($perCharLimit);
+
+        if (!$this->app->container->cache->has($cacheKey, $list)) {
+            $db = $this->app->container->db;
 
             if (1 == $perCharLimit) {
                 return $this->copy(true)
-                    ->setGroups(new Expr('UPPER(SUBSTR(' . $db->quote('name') . ', 1, 1))'))
+                    ->setGroups(new Expression('UPPER(SUBSTR(' . $db->quote('name') . ', 1, 1))'))
                     ->setOrders(['name' => SORT_ASC])
                     ->getList();
             }
@@ -61,11 +62,11 @@ class Brand extends Attr
                 'FROM (',
                 $db->makeSelectSQL([
                     '*',
-                    new Expr('@num := IF(IFNULL(@group, \'\') = ' . $db->quote('char') . ', IFNULL(@num, 0) + 1, 1) AS ' . $db->quote('row')),
-                    new Expr('@group := ' . $db->quote('char'))
+                    new Expression('@num := IF(IFNULL(@group, \'\') = ' . $db->quote('char') . ', IFNULL(@num, 0) + 1, 1) AS ' . $db->quote('row')),
+                    new Expression('@group := ' . $db->quote('char'))
                 ], false, $query->params),
                 'FROM (',
-                $db->makeSelectSQL(['*', new Expr('UPPER(SUBSTR(' . $db->quote('name') . ', 1, 1)) AS ' . $db->quote('char'))], false, $query->params),
+                $db->makeSelectSQL(['*', new Expression('UPPER(SUBSTR(' . $db->quote('name') . ', 1, 1)) AS ' . $db->quote('char'))], false, $query->params),
                 $db->makeFromSQL(BrandEntity::getTable()),
                 ') t',
                 $db->makeOrderSQL(['name' => SORT_ASC], $query->params),
@@ -73,10 +74,15 @@ class Brand extends Attr
                 'WHERE x.row < ?'
             ]);
 
-            return array_map(function ($row) use ($pk) {
+            $list = array_map(function ($row) use ($pk) {
                 return $row[$pk];
-            }, $db->req($query)->reqToArrays());
-        }));
+            }, $db->reqToArrays($query));
+
+            $this->app->container->cache->set($cacheKey, $list);
+        }
+
+        /** @var BrandEntity[] $items */
+        $items = $this->populateList($list);
 
         foreach ($items as $item) {
             $char = mb_strtoupper(mb_substr($item->getName(), 0, 1));

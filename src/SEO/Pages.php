@@ -3,7 +3,6 @@
 namespace SNOWGIRL_SHOP\SEO;
 
 use SNOWGIRL_CORE\Entity;
-use SNOWGIRL_CORE\Service\Logger;
 use SNOWGIRL_SHOP\Catalog\URI;
 use SNOWGIRL_SHOP\Catalog\SRC;
 use SNOWGIRL_SHOP\Catalog\SEO;
@@ -16,6 +15,7 @@ use SNOWGIRL_CORE\Helper\Classes;
 use SNOWGIRL_SHOP\Entity\Category\Child as CategoryChild;
 use SNOWGIRL_SHOP\Entity\Item\Attr as ItemAttr;
 use SNOWGIRL_SHOP\Entity\Item\Attr\Alias as ItemAttrAlias;
+use Throwable;
 
 /**
  * @todo    ... test & fix
@@ -33,7 +33,7 @@ class Pages extends \SNOWGIRL_CORE\SEO\Pages
 
     protected function initialize()
     {
-        $this->components = $this->seo->getApp()->managers->catalog->getComponentsOrderByRdbmsKey();
+        $this->components = $this->seo->getApp()->managers->catalog->getComponentsOrderByDbKey();
         $this->mvaComponents = $this->seo->getApp()->managers->catalog->getMvaComponents();
         $this->types = URI::TYPE_PARAMS;
         $this->itemTable = $this->seo->getApp()->managers->items->getEntity()->getTable();
@@ -44,15 +44,15 @@ class Pages extends \SNOWGIRL_CORE\SEO\Pages
 
     public function update()
     {
-        $this->seo->getApp()->services->rdbms->truncateTable($this->catalogTable);
+        $this->seo->getApp()->container->db->truncateTable($this->catalogTable);
 
         $this->generateCatalogPages(false);
 
-        if ($this->seo->getApp()->config->catalog->aliases(false)) {
+        if ($this->seo->getApp()->config('catalog.aliases', false)) {
             $this->generateCatalogPages(true);
         }
 
-        $this->seo->getApp()->utils->catalog->doIndexFtdbms();
+        $this->seo->getApp()->utils->catalog->doIndexIndexer();
 
         return true;
     }
@@ -71,7 +71,7 @@ class Pages extends \SNOWGIRL_CORE\SEO\Pages
 
         $this->seo->getApp()->managers->categories->syncTree();
 
-        $db = $this->seo->getApp()->services->rdbms;
+        $db = $this->seo->getApp()->container->db;
 
         $components = $this->components;
         $types = $this->types;
@@ -438,10 +438,10 @@ class Pages extends \SNOWGIRL_CORE\SEO\Pages
             ]);
 
             try {
-//                $this->seo->getApp()->services->logger->make($query);
+//                $this->seo->getApp()->container->logger->make($query);
                 $aff += $db->req($query)->affectedRows();
-            } catch (\Exception $ex) {
-                $this->seo->getApp()->services->logger->makeException($ex);
+            } catch (Throwable $e) {
+                $this->seo->getApp()->container->logger->error($e);
             }
         }
 
@@ -450,7 +450,7 @@ class Pages extends \SNOWGIRL_CORE\SEO\Pages
 
     /**
      * @param array $componentsAndTypes
-     * @param bool  $aliases
+     * @param bool $aliases
      *
      * @return array
      */

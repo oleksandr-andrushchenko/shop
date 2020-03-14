@@ -14,11 +14,11 @@ class OutArchiveVendorAction
         $this->prepareServices($app);
 
         if (!$vendorId = $app->request->get('param_1')) {
-            throw (new BadRequest)->setInvalidParam('vendor_id');
+            throw (new BadRequestHttpException)->setInvalidParam('vendor_id');
         }
 
         if (!$vendor = $app->managers->vendors->find($vendorId)) {
-            throw (new NotFound)->setNonExisting('vendor');
+            throw (new NotFoundHttpException)->setNonExisting('vendor');
         }
 
 //        $aff1 = $app->managers->vendors->updateOne($vendor->setIsActive(true));

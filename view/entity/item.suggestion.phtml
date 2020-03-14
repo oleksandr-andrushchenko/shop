@@ -1,4 +1,5 @@
 <?php
+
 use SNOWGIRL_CORE\View;
 use SNOWGIRL_SHOP\Entity\Item;
 use SNOWGIRL_CORE\Helper;
@@ -22,7 +23,7 @@ $item = $this->entity;
             <div class="price">
                 <span class="text" style="display:none">Цена</span>
                 <span class="val"><?php echo Helper::makeNiceNumber($item->getPrice()) ?></span>
-                <span class="unit"><?php echo $this->makeText('catalog.currency_' . $this->app->config->catalog->currency('RUB')) ?></span>
+                <span class="unit"><?php echo $this->makeText('catalog.currency_' . $this->app->config('catalog.currency', 'RUB')) ?></span>
             </div>
         </div>
     </div>

@@ -1,11 +1,11 @@
 <?php
+
 use SNOWGIRL_CORE\View;
-use SNOWGIRL_CORE\Script\Css;
 
 /** @var View $this */
 $this->getLayout()
     ->addBreadcrumb($this->h1)
-    ->addHeadCss(new Css('@shop/contacts.css'));
+    ->addHeadCss('@shop/contacts.css');
 
 $map = [
     'phone' => 'Позвоните нам',

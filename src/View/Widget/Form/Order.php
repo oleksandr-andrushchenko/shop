@@ -2,6 +2,7 @@
 
 namespace SNOWGIRL_SHOP\View\Widget\Form;
 
+use SNOWGIRL_CORE\View\Widget;
 use SNOWGIRL_CORE\View\Widget\Form\Contact;
 
 class Order extends Contact
@@ -12,9 +13,8 @@ class Order extends Contact
     protected $classColLabel = 'col-sm-4';
     protected $classColInput = 'col-sm-8';
 
-    protected function addTexts()
+    protected function addTexts(): Widget
     {
-        return parent::addTexts()
-            ->addText('widget.form.order');
+        return parent::addTexts()->addText('widget.form.order');
     }
 }
