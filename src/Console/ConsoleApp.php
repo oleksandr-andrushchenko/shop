@@ -2,6 +2,26 @@
 
 namespace SNOWGIRL_SHOP\Console;
 
+use SNOWGIRL_CORE\AbstractApp;
+use SNOWGIRL_CORE\Helper\Arrays;
+use SNOWGIRL_SHOP\Analytics;
+use SNOWGIRL_SHOP\Catalog\URI;
+
+use SNOWGIRL_SHOP\Manager\Builder as Managers;
+use SNOWGIRL_SHOP\SEO;
+use SNOWGIRL_SHOP\View\Builder as Views;
+use SNOWGIRL_SHOP\Util\Builder as Utils;
+
+/**
+ * Class App
+ *
+ * @property Analytics analytics
+ * @property Views views
+ * @property Managers managers
+ * @property Utils utils
+ * @property SEO seo
+ * @package SNOWGIRL_SHOP
+ */
 class ConsoleApp extends \SNOWGIRL_CORE\Console\ConsoleApp
 {
     protected function register()
@@ -10,7 +30,7 @@ class ConsoleApp extends \SNOWGIRL_CORE\Console\ConsoleApp
         \SNOWGIRL_SHOP\Item\URI::setApp($this);
     }
 
-    protected function addMaps($root)
+    protected function addMaps($root): AbstractApp
     {
         parent::addMaps($root);
 

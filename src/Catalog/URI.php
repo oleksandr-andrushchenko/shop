@@ -4,11 +4,13 @@ namespace SNOWGIRL_SHOP\Catalog;
 
 use SNOWGIRL_CORE\AbstractApp as App;
 use SNOWGIRL_CORE\Entity;
+use SNOWGIRL_SHOP\Console\ConsoleApp;
 use SNOWGIRL_SHOP\Entity\Brand;
 use SNOWGIRL_SHOP\Entity\Item\Attr as ItemAttr;
 use SNOWGIRL_CORE\Helper\Arrays;
 use SNOWGIRL_CORE\Helper\Strings;
 use SNOWGIRL_SHOP\Entity\Vendor;
+use SNOWGIRL_SHOP\Http\HttpApp;
 use SNOWGIRL_SHOP\Manager\Item\Attr as AttrManager;
 
 class URI
@@ -107,7 +109,7 @@ class URI
 
     public static function setApp(App $app)
     {
-        /** @var Web|Console $app */
+        /** @var HttpApp|ConsoleApp $app */
         self::$app = $app;
 
         $components = $app->managers->catalog->getComponentsOrderByDbKey();

@@ -6,8 +6,24 @@ use SNOWGIRL_CORE\AbstractApp;
 use SNOWGIRL_CORE\Http\Route;
 use SNOWGIRL_CORE\Http\Router;
 use SNOWGIRL_CORE\Helper\Arrays;
+use SNOWGIRL_SHOP\Analytics;
 use SNOWGIRL_SHOP\Catalog\URI;
 
+use SNOWGIRL_SHOP\Manager\Builder as Managers;
+use SNOWGIRL_SHOP\SEO;
+use SNOWGIRL_SHOP\View\Builder as Views;
+use SNOWGIRL_SHOP\Util\Builder as Utils;
+
+/**
+ * Class App
+ *
+ * @property Analytics analytics
+ * @property Views views
+ * @property Managers managers
+ * @property Utils utils
+ * @property SEO seo
+ * @package SNOWGIRL_SHOP
+ */
 class HttpApp extends \SNOWGIRL_CORE\Http\HttpApp
 {
     protected function register()
