@@ -15,7 +15,7 @@ class SRC
         $this->uri = $uri;
     }
 
-    public static function checkId($id, Managers $managers): Item
+    public static function checkId($id, Managers $managers): ?Item
     {
         return self::getById($id, $managers);
     }
