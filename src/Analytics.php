@@ -31,7 +31,7 @@ class Analytics extends \SNOWGIRL_CORE\Analytics
 
     private const CACHE_ITEM_RATING_START_COST = 'item_rating_star_cost';
 
-    public function logGoHit(Entity $entity)
+    public function logGoHit(Entity $entity): bool
     {
         switch (get_class($entity)) {
             case Item::class:
@@ -48,40 +48,76 @@ class Analytics extends \SNOWGIRL_CORE\Analytics
         }
     }
 
-    /**
-     * @param Item $item
-     *
-     * @return bool
-     */
-    public function logItemBuyHit(Item $item)
+    public function logItemBuyHit(Item $item): bool
     {
-        $this->logHit(self::ITEM_BUY_HIT, implode(' ', [
+        return $this->logHit(self::ITEM_BUY_HIT, implode(' ', [
             $item->getId(),
             $item->isInStock() ? 1 : 0
         ]));
-
-        return true;
     }
 
-    public function logItemShopHit(Vendor $shop)
+    public function logItemShopHit(Vendor $shop): bool
     {
-        $this->logHit(self::ITEM_SHOP_HIT, implode(' ', [
+        return $this->logHit(self::ITEM_SHOP_HIT, implode(' ', [
             $shop->getId()
         ]));
-
-        return true;
     }
 
-    public function logItemStockHit(Stock $stock)
+    public function logItemStockHit(Stock $stock): bool
     {
-        $this->logHit(self::ITEM_STOCK_HIT, implode(' ', [
+        return $this->logHit(self::ITEM_STOCK_HIT, implode(' ', [
             $stock->getId()
         ]));
-
-        return true;
     }
 
-    protected function updateItemsRatingsByBuyHits()
+    public function logItemPageHit(ItemURI $uri): bool
+    {
+        $item = $uri->getSRC()->getItem();
+
+        return $this->logHit(self::ITEM_PAGE_HIT, implode(' ', [
+            $item->getId(),
+            $item->get('archive') ? 0 : 1,
+            $item->isInStock() ? 1 : 0
+        ]));
+    }
+
+    public function logCatalogPageHit(URI $uri): bool
+    {
+        return $this->logHit(self::CATALOG_PAGE_HIT, json_encode($uri->getParams()));
+    }
+
+    public function updateRatings(): bool
+    {
+        $output = parent::updateRatings();
+
+        $output = $output && $this->updateAttributesRatings();
+        $output = $output && $this->updateItemsRatingsByPageHits();
+        $output = $output && $this->updateItemsRatingsByBuyHits();
+        $output = $output && $this->updateCache();
+
+        return $output;
+    }
+
+    public function getItemRatingStarCost(): ?int
+    {
+        if ($this->app->container->cache->has(self::CACHE_ITEM_RATING_START_COST, $output)) {
+            return $output;
+        }
+
+        return null;
+    }
+
+    public function dropRatings(): bool
+    {
+        $output = parent::dropRatings();
+
+        $output = $output && $this->dropItemsRatings();
+        $output = $output && $this->updateCache();
+
+        return $output;
+    }
+
+    private function updateItemsRatingsByBuyHits(): bool
     {
         $counts = [];
 
@@ -104,21 +140,7 @@ class Analytics extends \SNOWGIRL_CORE\Analytics
         return true;
     }
 
-    public function logItemPageHit(ItemURI $uri)
-    {
-        $item = $uri->getSRC()->getItem();
-
-        $this->logHit(self::ITEM_PAGE_HIT, implode(' ', [
-            $item->getId(),
-            $item->get('archive') ? 0 : 1,
-            $item->isInStock() ? 1 : 0
-        ]));
-    }
-
-    /**
-     * @return bool
-     */
-    protected function updateItemsRatingsByPageHits()
+    private function updateItemsRatingsByPageHits(): bool
     {
         $counts = [];
 
@@ -145,12 +167,7 @@ class Analytics extends \SNOWGIRL_CORE\Analytics
         return true;
     }
 
-    public function logCatalogPageHit(URI $uri)
-    {
-        $this->logHit(self::CATALOG_PAGE_HIT, json_encode($uri->getParams()));
-    }
-
-    protected function updateAttributesRatings()
+    private function updateAttributesRatings(): bool
     {
         $pkToCounts = [];
 
@@ -199,23 +216,11 @@ class Analytics extends \SNOWGIRL_CORE\Analytics
         return true;
     }
 
-    public function updateRatings()
-    {
-        $output = parent::updateRatings();
-
-        $output = $output && $this->updateAttributesRatings();
-        $output = $output && $this->updateItemsRatingsByPageHits();
-        $output = $output && $this->updateItemsRatingsByBuyHits();
-        $output = $output && $this->updateCache();
-
-        return $output;
-    }
-
     /** @todo improve
      *
      * @return bool
      */
-    protected function dropItemsRatings()
+    private function dropItemsRatings(): bool
     {
         $pk = $this->app->managers->items->getEntity()->getPk();
         $perGroup = 2 * SRC::getDefaultShowValue($this->app);
@@ -265,7 +270,7 @@ class Analytics extends \SNOWGIRL_CORE\Analytics
         return $this->updateRatingsByEntity(Item::class, $counts, false);
     }
 
-    protected function updateCache($quantile = 0.95)
+    private function updateCache($quantile = 0.95)
     {
         $storage = $this->app->managers->items->getDb();
 
@@ -284,24 +289,5 @@ class Analytics extends \SNOWGIRL_CORE\Analytics
         }
 
         return $this->app->container->cache->delete(self::CACHE_ITEM_RATING_START_COST);
-    }
-
-    public function getItemRatingStarCost(): ?int
-    {
-        if ($this->app->container->cache->has(self::CACHE_ITEM_RATING_START_COST, $output)) {
-            return $output;
-        }
-
-        return null;
-    }
-
-    public function dropRatings()
-    {
-        $output = parent::dropRatings();
-
-        $output = $output && $this->dropItemsRatings();
-        $output = $output && $this->updateCache();
-
-        return $output;
     }
 }

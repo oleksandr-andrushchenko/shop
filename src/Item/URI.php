@@ -6,6 +6,8 @@ use SNOWGIRL_CORE\AbstractApp as App;
 use SNOWGIRL_CORE\Entity;
 use SNOWGIRL_CORE\Exception;
 use SNOWGIRL_CORE\Router;
+use SNOWGIRL_SHOP\Console\ConsoleApp;
+use SNOWGIRL_SHOP\Http\HttpApp;
 
 class URI
 {
@@ -177,7 +179,7 @@ class URI
     }
 
     /**
-     * @return Web|Console
+     * @return HttpApp|ConsoleApp
      */
     public function getApp(): App
     {

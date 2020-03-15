@@ -2,11 +2,11 @@
 
 namespace SNOWGIRL_SHOP\Item;
 
-use SNOWGIRL_CORE\AbstractApp;
 use SNOWGIRL_CORE\Helper;
 use SNOWGIRL_CORE\View\Layout;
 use SNOWGIRL_CORE\Entity\Page;
 use SNOWGIRL_SHOP\Catalog\URI as CatalogURI;
+use Throwable;
 
 class SEO
 {
@@ -88,7 +88,7 @@ class SEO
      * @param array $params
      *
      * @return $this|SEO
-     * @throws \SNOWGIRL_CORE\Exception
+     * @throws Throwable
      */
     public function managePage(Layout $view, array $params = [])
     {
