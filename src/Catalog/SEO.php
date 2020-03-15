@@ -2,8 +2,6 @@
 
 namespace SNOWGIRL_SHOP\Catalog;
 
-use SNOWGIRL_CORE\AbstractApp;
-
 use SNOWGIRL_CORE\View\Layout;
 use SNOWGIRL_CORE\View\Widget\Pager;
 
@@ -21,6 +19,7 @@ use SNOWGIRL_CORE\Helper;
 use SNOWGIRL_CORE\Helper\Data as DataHelper;
 
 use SNOWGIRL_SHOP\Entity\Category\Alias as CategoryAlias;
+use Throwable;
 
 /**
  * Available params:
@@ -95,6 +94,10 @@ class SEO
         $this->uri = $uri;
     }
 
+    /**
+     * @return array
+     * @throws Throwable
+     */
     public function getParams(): array
     {
         if (null === $this->params) {
@@ -127,6 +130,14 @@ class SEO
         return $this;
     }
 
+    /**
+     * @param string $attr
+     * @param null $default
+     * @param array $params
+     *
+     * @return \DateTime|int|mixed|null|string
+     * @throws Throwable
+     */
     private function makeAttrValue(string $attr, $default = null, array $params = [])
     {
         if ($page = $this->uri->getSRC()->getCatalogPage()) {
@@ -172,6 +183,10 @@ class SEO
         return $this->uri->getApp()->config('catalog.default_category', 'Каталог');
     }
 
+    /**
+     * @return SEO
+     * @throws Throwable
+     */
     private function addCategoryParams(): SEO
     {
         $pk = Category::getPk();
@@ -605,6 +620,10 @@ class SEO
         return $this;
     }
 
+    /**
+     * @return SEO
+     * @throws Throwable
+     */
     private function addCountParams(): SEO
     {
         $num = $this->uri->getSRC()->getPageNum();
@@ -639,6 +658,14 @@ class SEO
         return $this;
     }
 
+    /**
+     * @param string $key
+     * @param array $params
+     * @param bool $nice
+     *
+     * @return \DateTime|int|mixed|null|string|string[]
+     * @throws Throwable
+     */
     public function getParam(string $key, array $params = [], bool $nice = true)
     {
         $params = array_merge($this->getParams(), $params);
@@ -651,6 +678,13 @@ class SEO
         return $output;
     }
 
+    /**
+     * @param Layout $view
+     * @param array $params
+     *
+     * @return SEO
+     * @throws Throwable
+     */
     public function managePage(Layout $view, array $params = []): SEO
     {
         if ($pageCatalog = $this->uri->getSRC()->getCatalogPage()) {
@@ -733,6 +767,13 @@ class SEO
         return $this;
     }
 
+    /**
+     * @param Pager $pager
+     * @param Layout $view
+     *
+     * @return SEO
+     * @throws Throwable
+     */
     public function managePager(Pager $pager, Layout $view): SEO
     {
         $page = $pager->getCurrentPageNumber();
@@ -758,11 +799,11 @@ class SEO
     }
 
     /**
-     * @param        $h1ParamsSize
+     * @param $h1ParamsSize
      * @param Layout $view
      *
+     * @throws Throwable
      * @throws \SNOWGIRL_CORE\Exception
-     * @throws \Exception
      */
     public function manageBreadcrumbs($h1ParamsSize, Layout $view)
     {

@@ -5,7 +5,6 @@ namespace SNOWGIRL_SHOP\Catalog;
 use SNOWGIRL_CORE\AbstractApp as App;
 use SNOWGIRL_SHOP\Catalog\SRC\DataProvider;
 
-use SNOWGIRL_CORE\AbstractApp;
 use SNOWGIRL_CORE\Helper\Arrays;
 use SNOWGIRL_CORE\Entity;
 use SNOWGIRL_CORE\Manager;
@@ -16,6 +15,7 @@ use SNOWGIRL_CORE\Entity\Page;
 use SNOWGIRL_SHOP\Entity\Page\Catalog as PageCatalog;
 use SNOWGIRL_SHOP\Entity\Page\Catalog\Custom as PageCatalogCustom;
 use stdClass;
+use Throwable;
 
 class SRC
 {
@@ -242,15 +242,6 @@ class SRC
         return null;
     }
 
-    public function call(string $key, callable $valueGenerator, int $lifetime = null)
-    {
-        if (!$this->has($key, $value)) {
-            $this->set($key, $value = $valueGenerator(), $lifetime);
-        }
-
-        return $value;
-    }
-
     public function getTotalCount(): int
     {
         if (null === $this->totalCount) {
@@ -427,7 +418,8 @@ class SRC
     /**
      * @param bool $retrieve
      *
-     * @return bool|PageCatalog
+     * @return bool|mixed|null|PageCatalog
+     * @throws Throwable
      */
     public function getCatalogPage(bool $retrieve = false)
     {
@@ -459,6 +451,7 @@ class SRC
      * @param bool $retrieve
      *
      * @return bool|PageCatalogCustom
+     * @throws Throwable
      */
     public function getCatalogCustomPage(bool $retrieve = false)
     {
@@ -477,6 +470,10 @@ class SRC
         return $this->catalogCustomPage = $page;
     }
 
+    /**
+     * @return array
+     * @throws Throwable
+     */
     public function getAliases(): array
     {
         if ($page = $this->getCatalogPage()) {
@@ -489,8 +486,8 @@ class SRC
     /**
      * @param $k
      *
-     * @return bool
-     * @throws \Exception
+     * @return bool|Item\Attr\Alias
+     * @throws Throwable
      */
     public function getAliasObject($k)
     {

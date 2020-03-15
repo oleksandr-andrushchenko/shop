@@ -3,6 +3,7 @@
 namespace SNOWGIRL_SHOP\Catalog;
 
 use SNOWGIRL_CORE\AbstractApp as App;
+use SNOWGIRL_CORE\AbstractApp;
 use SNOWGIRL_CORE\Entity;
 use SNOWGIRL_SHOP\Console\ConsoleApp;
 use SNOWGIRL_SHOP\Entity\Brand;
@@ -12,6 +13,7 @@ use SNOWGIRL_CORE\Helper\Strings;
 use SNOWGIRL_SHOP\Entity\Vendor;
 use SNOWGIRL_SHOP\Http\HttpApp;
 use SNOWGIRL_SHOP\Manager\Item\Attr as AttrManager;
+use Throwable;
 
 class URI
 {
@@ -66,7 +68,7 @@ class URI
     public const NON_ATTR_PATH_PARAMS = self::TYPE_PARAMS;
 
     /**
-     * @var App|Web|Console
+     * @var AbstractApp|HttpApp|ConsoleApp
      */
     private static $app;
 
@@ -87,7 +89,7 @@ class URI
     private static $src = [];
     private $seo;
     private $cacheKey;
-    private $aliases;
+//    private $aliases;
 
     private $output;
 
@@ -549,6 +551,14 @@ class URI
         return $this->cacheKey ?: $this->cacheKey = md5(serialize($this->getParams()));
     }
 
+    /**
+     * @param int $mode
+     * @param bool $aliases
+     * @param bool $isNoFollow
+     *
+     * @return string
+     * @throws Throwable
+     */
     public function output($mode = self::OUTPUT_DEFINED, bool $aliases = false, &$isNoFollow = false): string
     {
         if (isset($this->output[$mode])) {
@@ -565,13 +575,17 @@ class URI
     }
 
     /**
-     * @return Web|Console
+     * @return HttpApp|ConsoleApp
      */
     public function getApp(): App
     {
         return self::$app;
     }
 
+    /**
+     * @return string
+     * @throws Throwable
+     */
     public function __toString()
     {
         return $this->output();
