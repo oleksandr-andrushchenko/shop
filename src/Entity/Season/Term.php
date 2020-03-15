@@ -2,6 +2,8 @@
 
 namespace SNOWGIRL_SHOP\Entity\Season;
 
+use SNOWGIRL_CORE\Entity;
+
 class Term extends \SNOWGIRL_SHOP\Entity\Term
 {
     protected static $table = 'season_term';

@@ -2,6 +2,7 @@
 
 namespace SNOWGIRL_SHOP\Entity\Brand;
 
+use SNOWGIRL_CORE\Entity;
 use SNOWGIRL_CORE\Exception;
 
 class Term extends \SNOWGIRL_SHOP\Entity\Term

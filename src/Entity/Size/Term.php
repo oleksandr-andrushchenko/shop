@@ -2,6 +2,8 @@
 
 namespace SNOWGIRL_SHOP\Entity\Size;
 
+use SNOWGIRL_CORE\Entity;
+
 class Term extends \SNOWGIRL_SHOP\Entity\Term
 {
     protected static $table = 'size_term';
