@@ -9,7 +9,7 @@ use SNOWGIRL_CORE\Helper\WalkChunk;
 use SNOWGIRL_CORE\Manager;
 use SNOWGIRL_CORE\Query;
 use SNOWGIRL_CORE\Query\Expression;
-use SNOWGIRL_SHOP\App\Console as App;
+use SNOWGIRL_SHOP\Console\ConsoleApp as App;
 use SNOWGIRL_SHOP\Manager\Item\Attr;
 
 class DeleteItemsExtraMvaValuesAction

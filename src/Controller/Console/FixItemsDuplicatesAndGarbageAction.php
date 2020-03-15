@@ -7,7 +7,7 @@ use SNOWGIRL_CORE\Controller\Console\PrepareServicesTrait;
 use SNOWGIRL_CORE\Http\Exception\BadRequestHttpException;
 use SNOWGIRL_CORE\Helper\WalkChunk;
 use SNOWGIRL_CORE\Query\Expression;
-use SNOWGIRL_SHOP\App\Console as App;
+use SNOWGIRL_SHOP\Console\ConsoleApp as App;
 
 class FixItemsDuplicatesAndGarbageAction
 {

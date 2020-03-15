@@ -13,7 +13,7 @@ use SNOWGIRL_CORE\Service\Nosql\Mongo;
 use SNOWGIRL_CORE\Service\Db\Mysql;
 use SNOWGIRL_CORE\Query;
 use SNOWGIRL_CORE\Util;
-use SNOWGIRL_SHOP\App\Console as App;
+use SNOWGIRL_SHOP\Console\ConsoleApp as App;
 use SNOWGIRL_SHOP\Catalog\SRC;
 use SNOWGIRL_SHOP\Catalog\URI;
 use SNOWGIRL_SHOP\Entity\Category;

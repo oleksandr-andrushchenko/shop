@@ -6,8 +6,7 @@ use SNOWGIRL_CORE\Controller\Console\PrepareServicesTrait;
 use SNOWGIRL_SHOP\Catalog\SEO;
 use SNOWGIRL_SHOP\Entity\Item\Attr;
 use SNOWGIRL_CORE\Http\Exception\BadRequestHttpException;
-use SNOWGIRL_CORE\Helper\Arrays;
-use SNOWGIRL_SHOP\App\Console as App;
+use SNOWGIRL_SHOP\Console\ConsoleApp as App;
 use SNOWGIRL_SHOP\Catalog\URI;
 use SNOWGIRL_SHOP\Entity\Page\Catalog;
 
@@ -24,6 +23,12 @@ class AddCatalogPageAction
 {
     use PrepareServicesTrait;
 
+    /**
+     * @param App $app
+     *
+     * @throws \SNOWGIRL_CORE\Entity\EntityException
+     * @throws \SNOWGIRL_CORE\Http\Exception\NotFoundHttpException
+     */
     public function __invoke(App $app)
     {
         $this->prepareServices($app);

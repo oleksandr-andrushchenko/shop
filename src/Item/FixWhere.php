@@ -3,7 +3,7 @@
 namespace SNOWGIRL_SHOP\Item;
 
 use SNOWGIRL_CORE\Query\Expression;
-use SNOWGIRL_SHOP\App\Console as App;
+use SNOWGIRL_SHOP\Console\ConsoleApp as App;
 use SNOWGIRL_SHOP\Entity\Import\Source as ImportSource;
 
 class FixWhere

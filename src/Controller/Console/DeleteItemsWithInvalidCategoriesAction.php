@@ -3,7 +3,8 @@
 namespace SNOWGIRL_SHOP\Controller\Console;
 
 use SNOWGIRL_CORE\Controller\Console\PrepareServicesTrait;
-use SNOWGIRL_SHOP\App\Console as App;
+use SNOWGIRL_CORE\Http\Exception\NotFoundHttpException;
+use SNOWGIRL_SHOP\Console\ConsoleApp as App;
 use SNOWGIRL_SHOP\Item\FixWhere;
 
 class DeleteItemsWithInvalidCategoriesAction
@@ -20,7 +21,7 @@ class DeleteItemsWithInvalidCategoriesAction
      *
      * @param App $app
      *
-     * @throws \SNOWGIRL_CORE\Exception\HTTP\NotFound
+     * @throws NotFoundHttpException
      */
     public function __invoke(App $app)
     {

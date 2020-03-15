@@ -4,7 +4,7 @@ namespace SNOWGIRL_SHOP\Controller\Console;
 
 use SNOWGIRL_CORE\Controller\Console\PrepareServicesTrait;
 use SNOWGIRL_CORE\Controller\Console\FlushCacheAction;
-use SNOWGIRL_SHOP\App\Console as App;
+use SNOWGIRL_SHOP\Console\ConsoleApp as App;
 use SNOWGIRL_SHOP\Entity\Import\Source as ImportSource;
 use SNOWGIRL_SHOP\Import;
 

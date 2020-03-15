@@ -5,7 +5,7 @@ namespace SNOWGIRL_SHOP\Controller\Console;
 use SNOWGIRL_CORE\Controller\Console\PrepareServicesTrait;
 use SNOWGIRL_CORE\Http\Exception\BadRequestHttpException;
 use SNOWGIRL_CORE\Image;
-use SNOWGIRL_SHOP\App\Console as App;
+use SNOWGIRL_SHOP\Console\ConsoleApp as App;
 
 class DownloadImageAction
 {
