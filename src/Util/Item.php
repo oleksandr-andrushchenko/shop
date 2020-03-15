@@ -1101,7 +1101,7 @@ class Item extends Util
                     return [$id, $item];
                 });
 
-                $aff += $indexerManager->indexMany($index, $items);
+                $aff += $indexerManager->getManager()->indexMany($index, $items);
 
                 return end($items) ? key($items) : false;
             })

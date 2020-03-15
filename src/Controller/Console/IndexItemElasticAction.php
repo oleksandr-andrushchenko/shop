@@ -9,6 +9,11 @@ class IndexItemElasticAction
 {
     use PrepareServicesTrait;
 
+    /**
+     * @param App $app
+     *
+     * @throws \SNOWGIRL_CORE\Http\Exception\NotFoundHttpException
+     */
     public function __invoke(App $app)
     {
         $this->prepareServices($app);

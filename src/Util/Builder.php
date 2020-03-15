@@ -54,8 +54,9 @@ class Builder extends \SNOWGIRL_CORE\Util\Builder
     {
         switch ($fn) {
             case 'items':
+                return $this->get(Item::class, $args[0] ?? null);
             case 'catalog':
-                return $this->get($fn, $args[0] ?? null);
+                return $this->get(Catalog::class, $args[0] ?? null);
             default:
                 return parent::_call($fn, $args);
         }
