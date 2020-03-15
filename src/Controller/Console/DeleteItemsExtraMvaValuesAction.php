@@ -4,13 +4,8 @@ namespace SNOWGIRL_SHOP\Controller\Console;
 
 use SNOWGIRL_CORE\Controller\Console\OutputTrait;
 use SNOWGIRL_CORE\Controller\Console\PrepareServicesTrait;
-use SNOWGIRL_CORE\Http\Exception\BadRequestHttpException;
-use SNOWGIRL_CORE\Helper\WalkChunk;
-use SNOWGIRL_CORE\Manager;
-use SNOWGIRL_CORE\Query;
-use SNOWGIRL_CORE\Query\Expression;
 use SNOWGIRL_SHOP\Console\ConsoleApp as App;
-use SNOWGIRL_SHOP\Manager\Item\Attr;
+use SNOWGIRL_SHOP\Manager\Item\Attr as ItemAttrManager;
 
 class DeleteItemsExtraMvaValuesAction
 {

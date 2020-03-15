@@ -12,6 +12,12 @@ class ImportAction
 {
     use PrepareServicesTrait;
 
+    /**
+     * @param App $app
+     *
+     * @throws Exception
+     * @throws NotFoundHttpException
+     */
     public function __invoke(App $app)
     {
         $this->prepareServices($app);

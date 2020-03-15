@@ -2,21 +2,17 @@
 
 namespace SNOWGIRL_SHOP\Util;
 
+use SNOWGIRL_CORE\Db\DbInterface;
 use SNOWGIRL_CORE\Entity;
-use SNOWGIRL_CORE\Exception;
 use SNOWGIRL_CORE\Helper\WalkChunk;
 use SNOWGIRL_CORE\Helper\WalkChunk2;
 use SNOWGIRL_CORE\Manager;
-use SNOWGIRL_CORE\Service\Db;
 use SNOWGIRL_CORE\Query\Expression;
-use SNOWGIRL_CORE\Service\Nosql\Mongo;
-use SNOWGIRL_CORE\Service\Db\Mysql;
 use SNOWGIRL_CORE\Query;
 use SNOWGIRL_CORE\Util;
 use SNOWGIRL_SHOP\Console\ConsoleApp as App;
 use SNOWGIRL_SHOP\Catalog\SRC;
 use SNOWGIRL_SHOP\Catalog\URI;
-use SNOWGIRL_SHOP\Entity\Category;
 use SNOWGIRL_SHOP\Entity\Item as ItemEntity;
 use SNOWGIRL_SHOP\Item\FixWhere;
 use SNOWGIRL_SHOP\Item\URI as ItemUri;
@@ -24,6 +20,7 @@ use SNOWGIRL_SHOP\Entity\Brand;
 use SNOWGIRL_CORE\Helper\Arrays;
 use SNOWGIRL_SHOP\Manager\Item\Attr as ItemAttrManager;
 use SNOWGIRL_SHOP\Entity\Item\Archive as ItemArchive;
+use Throwable;
 
 /**
  * Class Item
@@ -169,8 +166,8 @@ class Item extends Util
 
             $info = $src->getOrderInfo();
 
-            if (!in_array($info->cache_column, $db->getColumns($table))) {
-                $db->debugReq(implode(' ', [
+            if (!in_array($info->cache_column, $db->getManager()->getColumns($table))) {
+                $db->req(implode(' ', [
                     'ALTER TABLE' . ' ' . $db->quote($table),
                     'ADD COLUMN ' . $db->quote($info->cache_column) . ' int(11) NOT NULL DEFAULT \'0\'',
                     'AFTER ' . $db->quote($after)
@@ -190,7 +187,7 @@ class Item extends Util
                 'SET ' . $db->quote($info->cache_column, 'i') . ' = ' . $db->quote('num', 'i2')
             ]);
 
-            $aff = $db->debugReq($query)->affectedRows();
+            $aff = $db->req($query)->affectedRows();
 
             $after = $info->cache_column;
 
@@ -288,7 +285,7 @@ class Item extends Util
         $db = $this->app->container->db;
 
         $itemTable = $this->app->managers->items->getEntity()->getTable();
-        $showCreate = $db->showCreateTable($itemTable);
+        $showCreate = $db->getManager()->showCreateTable($itemTable);
 
         foreach ($this->archiveIgnore as $column) {
             $showCreate = preg_replace('/' . $db->quote($column) . ' [^\,]+\,/', '', $showCreate);
@@ -326,7 +323,7 @@ class Item extends Util
         $itemPk = $this->app->managers->items->getEntity()->getPk();
 
         $archiveTable = $this->app->managers->archiveItems->getEntity()->getTable();
-        $archiveColumns = $db->getColumns($archiveTable);
+        $archiveColumns = $db->getManager()->getColumns($archiveTable);
 
         $mva = $this->app->managers->catalog->getMvaPkToTable();
         $mva['image_id'] = 'image';
@@ -399,7 +396,7 @@ class Item extends Util
         $itemPk = $this->app->managers->items->getEntity()->getPk();
 
         $archiveTable = $this->app->managers->archiveItems->getEntity()->getTable();
-        $archiveColumns = $db->getColumns($archiveTable);
+        $archiveColumns = $db->getManager()->getColumns($archiveTable);
 
         $mva = $this->app->managers->catalog->getMvaPkToTable();
         $mva['image_id'] = 'image';
@@ -430,8 +427,8 @@ class Item extends Util
 
         $aff += $affTmp;
 
-        $db->dropTable('numbers');
-        $db->createTable('numbers', [
+        $db->getManager()->dropTable('numbers');
+        $db->getManager()->createTable('numbers', [
             ($qv = $db->quote('value')) . ' TINYINT(1) UNSIGNED NOT NULL',
             'PRIMARY KEY (' . $qv . ')'
         ], 'MyISAM');
@@ -706,7 +703,7 @@ class Item extends Util
 
     public function doTransferByAttrs($source, $target)
     {
-        return $this->app->container->db->makeTransaction(function (Db $db) use ($target, $source) {
+        return $this->app->container->db->makeTransaction(function (DbInterface $db) use ($target, $source) {
             $affGlobal = 0;
 
             $mva = Manager::mapEntitiesAddPksAsKeys($this->app->managers->catalog->getMvaComponents());
@@ -791,138 +788,6 @@ class Item extends Util
 
             return $affGlobal;
         });
-    }
-
-    /**
-     * @return bool|int
-     * @throws \Exception
-     */
-    public function doInMongoTransfer()
-    {
-        /** @var Mysql $rdbms */
-        $rdbms = $this->app->container->db;
-
-        /** @var Mongo $nosql */
-        $nosql = $this->app->services->nosql;
-
-//        $nosql->dropSchema($nosql->getSchema());
-
-        /** @var string|Entity $entity */
-        $entity = $this->app->managers->items->getEntity();
-
-        $table = $entity->getTable();
-        $pk = $entity->getPk();
-
-        if (!$nosql->createCollection($table)) {
-            return false;
-        }
-
-        $sva = $this->app->managers->catalog->getSvaPkToTable();
-        $mva = $this->app->managers->catalog->getMvaPkToTable();
-
-        $columns = array_merge(array_keys($entity->getColumns()), array_keys($mva));
-
-        $aff = 0;
-
-        (new WalkChunk2(1000))
-            ->setFnGet(function ($lastId, $size) use ($rdbms, $pk, $table, $mva, $columns) {
-                $query = new Query(['params' => []]);
-                $query->text = implode(' ', [
-                    'SELECT ' . implode(', ', array_map(function ($column) use ($rdbms, $mva, $table) {
-                        if (array_key_exists($column, $mva)) {
-                            return 'GROUP_CONCAT(DISTINCT ' . $rdbms->quote($column, 'item_' . $mva[$column]) . ') AS ' . $rdbms->quote($column);
-                        }
-
-                        return $rdbms->quote($column, $table);
-                    }, $columns)),
-                    'FROM ' . $rdbms->quote($table) . ' ' . implode(' ', array_map(function ($attrTable) use ($rdbms, $table, $pk) {
-                        $linkTable = 'item_' . $attrTable;
-                        return 'LEFT JOIN ' . $rdbms->quote($linkTable) . ' ON' . $rdbms->quote($pk, $table) . ' = ' . $rdbms->quote($pk, $linkTable);
-                    }, $mva)),
-                    $lastId ? $rdbms->makeWhereSQL(new Expression($rdbms->quote($pk, $table) . ' > ?', $lastId), $query->params, $table) : '',
-//                    $rdbms->makeWhereSQL(['item_id' => 309018], $query->params, $table),
-                    $rdbms->makeGroupSQL($pk, $query->params, $table),
-                    $rdbms->makeOrderSQL([$pk => SORT_ASC], $query->params, $table),
-                    $rdbms->makeLimitSQL(0, $size, $query->params)
-                ]);
-
-//                print_r($query->text);
-//                die;
-
-                return $rdbms->reqToArrays($query);
-            })
-            ->setFnDo(function ($items) use ($nosql, $entity, $pk, $table, $sva, $mva, &$aff) {
-                $items = array_map(function ($item) use ($pk, $sva, $mva, $entity) {
-                    $item = array_filter($item, function ($v) {
-                        return null !== $v;
-                    });
-
-                    $item['_id'] = $item[$pk];
-
-                    foreach ($entity->getColumns() as $column => $options) {
-                        if (isset($item[$column])) {
-                            switch ($options['type']) {
-                                case Entity::COLUMN_FLOAT:
-                                    if ($item[$column]) {
-                                        $item[$column] = (float)$item[$column];
-                                    } else {
-                                        $item[$column] = $options['default'];
-                                    }
-                                    break;
-                                case Entity::COLUMN_INT:
-                                    if ($item[$column]) {
-                                        $item[$column] = (int)$item[$column];
-                                    } else {
-                                        $item[$column] = $options['default'];
-                                    }
-                                    break;
-                                case Entity::COLUMN_TIME:
-                                    if ($item[$column]) {
-//                                    $item[$column] = new UTCDateTime(strtotime($item[$column]) * 1000);
-                                    } else {
-                                        $item[$column] = $options['default'];
-                                    }
-                                    break;
-                                default:
-                                    break;
-                            }
-                        }
-                    }
-
-                    foreach ($sva as $pk => $table) {
-                        if (isset($item[$pk])) {
-                            if ($item[$pk]) {
-                                $item[$pk] = (int)$item[$pk];
-                            } else {
-                                unset($item[$pk]);
-//                            $item[$pk] = null;
-                            }
-                        }
-                    }
-
-                    foreach ($mva as $pk => $table) {
-                        if (isset($item[$pk])) {
-                            if ($item[$pk]) {
-                                $item[$pk] = array_map('intval', explode(',', $item[$pk]));
-                            } else {
-                                unset($item[$pk]);
-//                            $item[$pk] = null;
-//                            $item[$pk] = [];
-                            }
-                        }
-                    }
-
-                    return $item;
-                }, $items);
-
-                $aff += $nosql->insertMany($table, $items);
-//                die;
-
-                return ($last = array_pop($items)) ? $last[$pk] : false;
-            })
-            ->run();
-
-        return $aff;
     }
 
     public function doIndexIndexer(int $reindexDays = 0)
@@ -1253,7 +1118,7 @@ class Item extends Util
 
         $this->doCreateElasticIndex($newIndex);
 
-        return $indexerManager->switchAliasIndex($alias, $newIndex, function ($index) {
+        return $indexerManager->getManager()->switchAliasIndex($alias, $newIndex, function ($index) {
             return $this->doRawIndexElastic($index);
         });
     }

@@ -167,6 +167,12 @@ class AddCatalogPageAction
         return json_encode($output);
     }
 
+    /**
+     * @param App $app
+     *
+     * @return string
+     * @throws \Exception
+     */
     protected function buildElasticIndexName(App $app): string
     {
         $table = $app->managers->items->getEntity()->getTable();
