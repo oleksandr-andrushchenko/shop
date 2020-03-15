@@ -13,6 +13,7 @@ use SNOWGIRL_CORE\View\Widget\Ad\LongHorizontal as LongHorizontalAd;
 use SNOWGIRL_CORE\View\Widget\Ad\LargeRectangle as LargeRectangleAd;
 use SNOWGIRL_SHOP\Entity\Category;
 use SNOWGIRL_SHOP\View\Widget\Grid\Items as ItemsGrid;
+use Throwable;
 
 class CatalogAction
 {
@@ -24,7 +25,7 @@ class CatalogAction
      * @param App $app
      *
      * @return bool
-     * @throws \SNOWGIRL_CORE\Exception
+     * @throws Throwable
      */
     public function __invoke(App $app)
     {
@@ -67,6 +68,7 @@ class CatalogAction
             'h1' => '{category} {sport} {size_plus} {tags} {brands} {sizes} {colors} {materials} {seasons} {countries} {vendors} {sales}',
             'description' => '{category} {sport} {size_plus} {tags} {brands} {sizes} {colors} {materials} {seasons} {countries} {vendors} {sales}',
         ]);
+
         $app->analytics->logCatalogPageHit($uri);
 
         $filtersNames = array_diff($app->managers->catalog->getComponentsPKs(), [Category::getPk()]);
