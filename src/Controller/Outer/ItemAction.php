@@ -3,8 +3,8 @@
 namespace SNOWGIRL_SHOP\Controller\Outer;
 
 use SNOWGIRL_CORE\Controller\Outer\PrepareServicesTrait;
-use SNOWGIRL_CORE\Http\Exception\NotFoundHttpException;
 use SNOWGIRL_CORE\Helper;
+use SNOWGIRL_CORE\Http\Exception\NotFoundHttpException;
 use SNOWGIRL_SHOP\Http\HttpApp as App;
 use SNOWGIRL_SHOP\Catalog\SRC;
 use SNOWGIRL_SHOP\Catalog\URI;
@@ -12,12 +12,19 @@ use SNOWGIRL_SHOP\Item\URI\Manager as ItemUriManager;
 use SNOWGIRL_SHOP\View\Widget\Grid\Items as ItemsGrid;
 use SNOWGIRL_CORE\View\Widget\Ad\LargeRectangle as LargeRectangleAd;
 use SNOWGIRL_SHOP\Entity\Import\Source as ImportSource;
+use Throwable;
 
 class ItemAction
 {
     use PrepareServicesTrait;
     use GetCurrencyObjectTrait;
 
+    /**
+     * @param App $app
+     *
+     * @return bool
+     * @throws Throwable
+     */
     public function __invoke(App $app)
     {
         $this->prepareServices($app);
@@ -32,7 +39,7 @@ class ItemAction
         ]);
 
         //cache all categories...
-        $categories = $app->managers->categories->findAll();
+        $app->managers->categories->findAll();
 
         $app->request->set('uri', null);
 
@@ -53,16 +60,12 @@ class ItemAction
             'h1' => '{name}',
             'description' => '{name}',
         ]);
+
         $app->analytics->logItemPageHit($uri);
 
-        $item = $uri->getSRC()->getItem();
-
-//        if ($item->get('archive') && (
-//                !$app->managers->items->getCategory($item)->getId() ||
-//                !$app->managers->items->getBrand($item)->getId()
-//            )) {
-//            throw new NotFoundHttpException();
-//        }
+        if (!$item = $uri->getSRC()->getItem()) {
+            throw new NotFoundHttpException();
+        }
 
         $app->managers->items->clear();
 
@@ -115,5 +118,7 @@ class ItemAction
         $app->seo->manageItemBreadcrumbs($uri, $view);
 
         $app->response->setHTML(200, $view);
+
+        return true;
     }
 }
