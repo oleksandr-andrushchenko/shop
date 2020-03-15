@@ -2,29 +2,46 @@
 
 namespace SNOWGIRL_SHOP\Catalog\URI;
 
+use Psr\Log\LoggerInterface;
 use SNOWGIRL_CORE\AbstractApp as App;
 use SNOWGIRL_CORE\Entity;
 use SNOWGIRL_CORE\Http\HttpRequest;
 use SNOWGIRL_CORE\Query\Expression;
-use SNOWGIRL_CORE\Request;
-use SNOWGIRL_CORE\Service\Db as DB;
+use SNOWGIRL_CORE\Db\DbInterface;
 use SNOWGIRL_CORE\Query;
-use SNOWGIRL_CORE\AbstractApp;
 use SNOWGIRL_SHOP\Catalog\URI;
+use SNOWGIRL_SHOP\Console\ConsoleApp;
+use SNOWGIRL_SHOP\Http\HttpApp;
 use SNOWGIRL_SHOP\Manager\Builder as Managers;
 use SNOWGIRL_SHOP\Entity\Page\Catalog as PageCatalog;
 use SNOWGIRL_CORE\Helper\Arrays;
 use SNOWGIRL_CORE\Entity\Redirect;
+use Throwable;
 
 class Manager
 {
-    /** @var Managers */
-    protected $managers;
-    /** @var DB */
-    protected $db;
-    /** @var Logger */
-    protected $logger;
+    /**
+     * @var Managers
+     */
+    private $managers;
 
+    /**
+     * @var DbInterface
+     */
+    private $db;
+
+    /**
+     * @var LoggerInterface
+     */
+    private $logger;
+
+    private $checkRedirectWithPartialsParamsCache;
+
+    /**
+     * Manager constructor.
+     *
+     * @param App|HttpApp|ConsoleApp $app
+     */
     public function __construct(App $app)
     {
         $this->managers = $app->managers;
@@ -32,6 +49,14 @@ class Manager
         $this->logger = $app->container->logger;
     }
 
+    /**
+     * @param HttpRequest $request
+     * @param bool $domain
+     *
+     * @return bool|URI
+     * @throws Throwable
+     * @throws \SNOWGIRL_CORE\Exception
+     */
     public function createFromRequest(HttpRequest $request, $domain = false)
     {
         $params = $this->parseRequestPath($request, $page);
@@ -53,7 +78,109 @@ class Manager
         return false;
     }
 
-    protected function getComponentsTableToPk()
+    /**
+     * @todo remove...
+     *
+     * @param URI $uri
+     * @param string $domain
+     *
+     * @return mixed|string
+     */
+    public function getRequestUri(URI $uri, $domain = 'master')
+    {
+        $output = $uri->output(false);
+
+        if (($tmp = parse_url($output)) && isset($tmp['path'])) {
+            $output = $tmp['path'];
+
+            if (isset($tmp['query']) && $tmp['query']) {
+                $output .= '?' . $tmp['query'];
+            }
+        } else {
+            $output = str_replace($domain, '', $output);
+        }
+
+        return $output;
+    }
+
+    public function addRedirect(URI $from, URI $to): bool
+    {
+        $tmp = [
+            'uri_from' => $this->getRequestUri($from),
+            'uri_to' => $this->getRequestUri($to)
+        ];
+
+        foreach ($tmp as $column => $value) {
+            $tmp[$column] = trim(ltrim(str_replace(URI::CATALOG, '', trim($value, '/')), '?'), '/');
+        }
+
+        $redirect = new Redirect($tmp);
+
+        return $this->managers->redirects->insertOne($redirect, ['ignore' => true]);
+    }
+
+    /**
+     * Hard-weight operation...
+     *
+     * @param URI $uri
+     * @param callable $itemMapper
+     *
+     * @return URI[]
+     */
+    public function getOtherVariants(URI $uri, callable $itemMapper)
+    {
+        $output = [];
+
+        /** @var PageCatalog $searchPage */
+//        $searchPage = null;
+
+//        if ($query = $uri->get(URI::QUERY)) {
+//            while ($query) {
+//                $query = mb_substr($query, 0, mb_strlen($query) - 1);
+//
+//                if ($page = $this->managers->catalog->getObjectByQuery($query)) {
+//                    $searchPage = $page;
+//                    break;
+//                }
+//            }
+//        }
+
+//        if ($searchPage) {
+//            $params = $this->managers->catalog->getUriParams($searchPage);
+//        } else {
+        $params = $uri->getParams();
+//        }
+
+        $combinations = Arrays::getUniqueCombinations(array_keys($params));
+        $paramsCount = count($params);
+        $combinations = array_filter($combinations, function ($combination) use ($paramsCount) {
+            return count($combination) < $paramsCount;
+        });
+
+        $combinations = array_reverse($combinations);
+
+        foreach ($combinations as $combination) {
+            $tmpParams = [];
+
+            foreach ($combination as $param) {
+                $tmpParams[$param] = $params[$param];
+            }
+
+            $tmp = new URI($tmpParams);
+
+            if ($tmp->getSRC()->getTotalCount()) {
+                $output[] = $tmp;
+            }
+        }
+
+        foreach ($output as $k => $uri) {
+            $output[$k] = $itemMapper($uri);
+        }
+
+        return $output;
+    }
+
+    private function getComponentsTableToPk()
     {
         $components = $this->managers->catalog->getComponentsOrderByDbKey();
 
@@ -69,13 +196,14 @@ class Manager
      *
      * @todo optimize loop... then remove URI's cache prefetch
      *
-     * @param Request $request
+     * @param HttpRequest $request
      * @param PageCatalog|null $page
      *
-     * @return array|bool
-     * @throws \Exception
+     * @return array|bool|mixed|null
+     * @throws Throwable
+     * @throws \SNOWGIRL_CORE\Exception
      */
-    protected function parseRequestPath(HttpRequest $request, PageCatalog &$page = null)
+    private function parseRequestPath(HttpRequest $request, PageCatalog &$page = null)
     {
         $output = [];
 
@@ -147,7 +275,7 @@ class Manager
      * @return array
      * @throws \Exception
      */
-    protected function getUriAttrParamsByComponentsTables(array $uri, &$unknown = null, $activeOnly = false)
+    private function getUriAttrParamsByComponentsTables(array $uri, &$unknown = null, bool $activeOnly = false)
     {
         $output = [];
 
@@ -207,13 +335,14 @@ class Manager
     }
 
     /**
-     * @param         $uri
-     * @param         $rawUri
-     * @param Request $request
+     * @param $uri
+     * @param $rawUri
+     * @param HttpRequest $request
      *
      * @return bool
+     * @throws Throwable
      */
-    protected function checkRedirectWithOldFormat($uri, $rawUri, Request $request)
+    private function checkRedirectWithOldFormat($uri, $rawUri, HttpRequest $request): bool
     {
         foreach (['category', 'brand', 'color'] as $k) {
             if ($k . '/' . $uri == $rawUri) {
@@ -226,16 +355,13 @@ class Manager
     }
 
     /**
-     * @todo ...
-     * @todo use ftdbms...
-     * @todo add rdbms as alternative...
+     * @param $rawUri
+     * @param HttpRequest $request
      *
-     * @param         $rawUri
-     * @param Request $request
-     *
-     * @throws \Exception
+     * @return bool
+     * @throws Throwable
      */
-    protected function checkRedirectWithCatalogHistory($rawUri, Request $request)
+    private function checkRedirectWithCatalogHistory($rawUri, HttpRequest $request): bool
     {
         /** @var PageCatalog $page */
         $page = $this->managers->catalog
@@ -260,11 +386,12 @@ class Manager
 
     /**
      * @param array $rawUri
-     * @param Request $request
+     * @param HttpRequest $request
      *
      * @return bool
+     * @throws Throwable
      */
-    protected function checkRedirectWithSeoUriFix(array $rawUri, Request $request)
+    private function checkRedirectWithSeoUriFix(array $rawUri, HttpRequest $request): bool
     {
         $tmp = array_map(function ($slug) {
             return Entity::normalizeUri($slug);
@@ -279,15 +406,13 @@ class Manager
     }
 
     /**
-     * @todo ...
-     * @todo fix... (check live logs...)
-     *
      * @param array $rawUri
-     * @param Request $request
+     * @param HttpRequest $request
      *
      * @return bool
+     * @throws Throwable
      */
-    protected function checkRedirectWithTable(array $rawUri, Request $request)
+    private function checkRedirectWithTable(array $rawUri, HttpRequest $request): bool
     {
         $nonComponents = $rawUri;
 
@@ -331,12 +456,12 @@ class Manager
 
     /**
      * @param array $params
-     * @param Request $request
+     * @param HttpRequest $request
      *
      * @return bool
-     * @throws \Exception
+     * @throws Throwable
      */
-    protected function checkRedirectWithPageComponents(array $params, Request $request)
+    private function checkRedirectWithPageComponents(array $params, HttpRequest $request): bool
     {
         if ($params && $page = $this->managers->catalog->clear()->findByParams($params)) {
             $request->redirect($this->managers->catalog->getLink($page), 301);
@@ -346,18 +471,16 @@ class Manager
         return false;
     }
 
-    protected $checkRedirectWithPartialsParamsCache;
-
     /**
      * @param array $unknownUriArray
      * @param array $params
-     * @param         $sayIfCanOnly
-     * @param Request $request
+     * @param $sayIfCanOnly
+     * @param HttpRequest $request
      *
      * @return bool
-     * @throws \Exception
+     * @throws Throwable
      */
-    protected function checkRedirectWithPartials(array $unknownUriArray, array $params, $sayIfCanOnly, Request $request)
+    private function checkRedirectWithPartials(array $unknownUriArray, array $params, $sayIfCanOnly, HttpRequest $request): bool
     {
         $rawParams = $params;
 
@@ -409,7 +532,14 @@ class Manager
         return false;
     }
 
-    protected function checkRedirectWithLessRequirements(array $params, Request $request)
+    /**
+     * @param array $params
+     * @param HttpRequest $request
+     *
+     * @return bool
+     * @throws \SNOWGIRL_CORE\Exception
+     */
+    private function checkRedirectWithLessRequirements(array $params, HttpRequest $request): bool
     {
 //        if (!$request->getDevice()->isRobot()) {
         $request->redirect(new URI($params), 301);
@@ -421,11 +551,12 @@ class Manager
 
     /**
      * @param array $rawUri
-     * @param Request $request
+     * @param HttpRequest $request
      *
      * @return bool
+     * @throws \SNOWGIRL_CORE\Exception
      */
-    protected function checkRedirectWithDuplicates(array $rawUri, Request $request)
+    private function checkRedirectWithDuplicates(array $rawUri, HttpRequest $request): bool
     {
         $tmp = array_unique($rawUri);
 
@@ -438,117 +569,17 @@ class Manager
     }
 
     /**
-     * @todo remove...
+     * @param $path
+     * @param HttpRequest $request
      *
-     * @param URI $uri
-     * @param string $domain
-     *
-     * @return mixed|string
+     * @return bool
+     * @throws \SNOWGIRL_CORE\Exception
      */
-    public function getRequestUri(URI $uri, $domain = 'master')
-    {
-        $output = $uri->output(false);
-
-        if (($tmp = parse_url($output)) && isset($tmp['path'])) {
-            $output = $tmp['path'];
-
-            if (isset($tmp['query']) && $tmp['query']) {
-                $output .= '?' . $tmp['query'];
-            }
-        } else {
-            $output = str_replace($domain, '', $output);
-        }
-
-        return $output;
-    }
-
-    /**
-     * @param URI $from
-     * @param URI $to
-     *
-     * @return int
-     */
-    public function addRedirect(URI $from, URI $to)
-    {
-        $tmp = [
-            'uri_from' => $this->getRequestUri($from),
-            'uri_to' => $this->getRequestUri($to)
-        ];
-
-        foreach ($tmp as $column => $value) {
-            $tmp[$column] = trim(ltrim(str_replace(URI::CATALOG, '', trim($value, '/')), '?'), '/');
-        }
-
-        $redirect = new Redirect($tmp);
-
-        return $this->managers->redirects->insertOne($redirect, ['ignore' => true]);
-    }
-
-    /**
-     * Hard-weight operation...
-     *
-     * @param URI $uri
-     * @param \Closure $itemMapper
-     *
-     * @return URI[]
-     */
-    public function getOtherVariants(URI $uri, \Closure $itemMapper)
-    {
-        $output = [];
-
-        /** @var PageCatalog $searchPage */
-//        $searchPage = null;
-
-//        if ($query = $uri->get(URI::QUERY)) {
-//            while ($query) {
-//                $query = mb_substr($query, 0, mb_strlen($query) - 1);
-//
-//                if ($page = $this->managers->catalog->getObjectByQuery($query)) {
-//                    $searchPage = $page;
-//                    break;
-//                }
-//            }
-//        }
-
-//        if ($searchPage) {
-//            $params = $this->managers->catalog->getUriParams($searchPage);
-//        } else {
-        $params = $uri->getParams();
-//        }
-
-        $combinations = Arrays::getUniqueCombinations(array_keys($params));
-        $paramsCount = count($params);
-        $combinations = array_filter($combinations, function ($combination) use ($paramsCount) {
-            return count($combination) < $paramsCount;
-        });
-
-        $combinations = array_reverse($combinations);
-
-        foreach ($combinations as $combination) {
-            $tmpParams = [];
-
-            foreach ($combination as $param) {
-                $tmpParams[$param] = $params[$param];
-            }
-
-            $tmp = new URI($tmpParams);
-
-            if ($tmp->getSRC()->getTotalCount()) {
-                $output[] = $tmp;
-            }
-        }
-
-        foreach ($output as $k => $uri) {
-            $output[$k] = $itemMapper($uri);
-        }
-
-        return $output;
-    }
-
-    protected function checkRedirectIndex($path, HttpRequest $request)
+    private function checkRedirectIndex($path, HttpRequest $request): bool
     {
         false && $path;
         $request->redirectToRoute('default', [], 301);
+
         return true;
     }
 }
