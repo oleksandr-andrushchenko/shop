@@ -24,11 +24,6 @@ class Custom extends Entity
         'uk_params' => ['params_hash']
     ];
 
-    /**
-     * @param $v
-     *
-     * @return Entity
-     */
     public function setId($v): Entity
     {
         return $this->setPageCatalogCustomId($v);
