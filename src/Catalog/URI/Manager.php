@@ -85,6 +85,7 @@ class Manager
      * @param string $domain
      *
      * @return mixed|string
+     * @throws Throwable
      */
     public function getRequestUri(URI $uri, $domain = 'master')
     {
@@ -103,6 +104,13 @@ class Manager
         return $output;
     }
 
+    /**
+     * @param URI $from
+     * @param URI $to
+     *
+     * @return bool
+     * @throws Throwable
+     */
     public function addRedirect(URI $from, URI $to): bool
     {
         $tmp = [
@@ -318,7 +326,7 @@ class Manager
             $tables = explode(',', $item['table']);
 
             if (1 < count($tables)) {
-                $this->logger->error(implode(' ', [
+                $this->logger->warning(implode(' ', [
                     'Cross-table "' . $item['uri'] . '" uri',
                     'duplicates found in',
                     '"' . implode('", "', $tables) . '"'
