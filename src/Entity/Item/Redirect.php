@@ -2,6 +2,8 @@
 
 namespace SNOWGIRL_SHOP\Entity\Item;
 
+use SNOWGIRL_CORE\Entity;
+
 class Redirect extends \SNOWGIRL_CORE\Entity
 {
     protected static $table = 'item_redirect';
