@@ -396,7 +396,9 @@ class Item extends Manager implements GoLinkBuilderInterface
             /** @var Entity|string $attrEntity */
             /** @var null|Entity|Entity[] $attrObjects */
             if ($attrObjects) {
-                $output[$attrEntity::getPk()] = $attrObjects;
+                $output[$attrEntity::getPk()] = array_filter($attrObjects, function ($attrObject) {
+                    return is_object($attrObject);
+                });
             }
         }
 
