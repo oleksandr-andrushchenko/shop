@@ -257,8 +257,8 @@ if ((!$item->get('archive')) && $item->isInStock()) {
                            class="btn btn-sm btn-default"
                            rel="noopener noreferrer<?php echo $isNoFollow ? ' nofollow' : '' ?>"
                            target="_blank"><?php echo $tag->getSEO()->getParam('h1', [
-                                'category' => ($tmp = $tag->get(Category::getPk()))
-                                    ? $this->app->managers->categories->find($tmp)->getName()
+                                'category' => ($tmp = $tag->get(Category::getPk())) && ($category = $this->app->managers->categories->find($tmp))
+                                    ? $category->getName()
                                     : $this->makeText('catalog.catalog')
                             ]) ?></a>
                     <?php } ?>
