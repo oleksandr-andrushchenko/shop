@@ -52,7 +52,6 @@ class Item extends Manager implements GoLinkBuilderInterface
 
     /**
      * @param ItemEntity $item
-     *
      * @return URI[]
      */
     public function getTagsURI(ItemEntity $item)
@@ -148,7 +147,6 @@ class Item extends Manager implements GoLinkBuilderInterface
 
     /**
      * @param ItemEntity $item
-     *
      * @return Item[]
      */
     public function getImages(ItemEntity $item)
@@ -173,9 +171,7 @@ class Item extends Manager implements GoLinkBuilderInterface
      * @todo ...[https://example.com/dublenka-lost-ink-57916866] SELECT  `item`.`item_id`, `brand_id` FROM `item`
      *       USE INDEX(`ix_order_desc_rating`)  WHERE `is_active` = 1 AND `is_sport` = 0 AND `is_size_plus` = 0 AND
      *       `category_id` = 1228 AND `brand_id` = 298  ORDER BY `order_desc_rating` ASC LIMIT 0, 40;
-     *
      * @param ItemEntity $item
-     *
      * @return URI
      */
     public function getRelatedCatalogURI(ItemEntity $item)
@@ -218,8 +214,8 @@ class Item extends Manager implements GoLinkBuilderInterface
             }
         }
 
-        $params[URI::PRICE_FROM] = (int)($item->getPrice() * .8);
-        $params[URI::PRICE_TO] = (int)($item->getPrice() * 1.2);
+        $params[URI::PRICE_FROM] = (int) ($item->getPrice() * .8);
+        $params[URI::PRICE_TO] = (int) ($item->getPrice() * 1.2);
 
         return new URI($params);
     }
@@ -233,7 +229,6 @@ class Item extends Manager implements GoLinkBuilderInterface
      * @param ItemEntity $item
      * @param array $attrs
      * @param bool|false $keysAsKeys
-     *
      * @return array - [attrEntity => attrId[]]
      */
     public function getMva(ItemEntity $item, array $attrs = [], $keysAsKeys = false)
@@ -290,7 +285,7 @@ class Item extends Manager implements GoLinkBuilderInterface
         $tmp = array_map(function ($attrId) {
             if ($attrId) {
                 return array_map(function ($attrId) {
-                    return (int)$attrId;
+                    return (int) $attrId;
                 }, explode(',', $attrId));
             }
 
@@ -319,7 +314,6 @@ class Item extends Manager implements GoLinkBuilderInterface
     /**
      * @param ItemEntity $item
      * @param array $attrs
-     *
      * @return Entity|Entity[]|array - [attrEntity => attrObject[]]
      */
     public function getAttrsObjects(ItemEntity $item, array $attrs = [])
@@ -358,7 +352,6 @@ class Item extends Manager implements GoLinkBuilderInterface
 
     /**
      * @param ItemEntity $item
-     *
      * @return array
      */
     public function getTypes(ItemEntity $item)
@@ -385,7 +378,6 @@ class Item extends Manager implements GoLinkBuilderInterface
     /**
      * @param ItemEntity $item
      * @param array $attrs
-     *
      * @return array
      */
     public function getAttrs(ItemEntity $item, array $attrs = [])
@@ -395,7 +387,7 @@ class Item extends Manager implements GoLinkBuilderInterface
         foreach ($this->getAttrsObjects($item, $attrs) as $attrEntity => $attrObjects) {
             /** @var Entity|string $attrEntity */
             /** @var null|Entity|Entity[] $attrObjects */
-            if ($attrObjects) {
+            if ($attrObjects && is_array($attrObjects)) {
                 $output[$attrEntity::getPk()] = array_filter($attrObjects, function ($attrObject) {
                     return is_object($attrObject);
                 });
@@ -422,7 +414,6 @@ class Item extends Manager implements GoLinkBuilderInterface
 
     /**
      * @param URI $uri
-     *
      * @return string
      */
     public function getPricesByUriCacheKey(URI $uri)
@@ -440,9 +431,7 @@ class Item extends Manager implements GoLinkBuilderInterface
 
     /**
      * @todo replace inner selects with joins in case of Db...
-     *
      * @param URI $uri
-     *
      * @return array|bool|mixed
      */
     public function getPricesByUri(URI $uri)
@@ -457,9 +446,9 @@ class Item extends Manager implements GoLinkBuilderInterface
                 foreach ($row as $k => $v) {
                     if (1 == $v && 'cnt' != $k) {
                         $tmp2 = explode('_', $k);
-                        $items[] = (object)[
-                            'from' => (int)$tmp2[1],
-                            'to' => (int)$tmp2[2],
+                        $items[] = (object) [
+                            'from' => (int) $tmp2[1],
+                            'to' => (int) $tmp2[2],
                             'cnt' => $row['cnt']
                         ];
                     }
@@ -496,7 +485,6 @@ class Item extends Manager implements GoLinkBuilderInterface
      * Keep category and types (in links)
      *
      * @param URI $uri
-     *
      * @return array|bool|mixed
      */
     public function getTypesByUri(URI $uri)
@@ -533,7 +521,7 @@ class Item extends Manager implements GoLinkBuilderInterface
 
             foreach ($tmp2 as $type => $count) {
                 if ((null === $count) || ($count > 0)) {
-                    $output[$type] = (object)[
+                    $output[$type] = (object) [
                         'name' => $type,
                         'count' => $count,
                         'active' => !!$uri->get($type)
@@ -550,7 +538,6 @@ class Item extends Manager implements GoLinkBuilderInterface
     /**
      * @param array|null $where
      * @param int $countPerGroup
-     *
      * @return array
      */
     public function getFirstItemsFromEachCategory(array $where = null, $countPerGroup = 5)
@@ -578,7 +565,7 @@ class Item extends Manager implements GoLinkBuilderInterface
         $output = [];
 
         foreach ($db->reqToArrays($query) as $item) {
-            $id = (int)$item[$groupColumn];
+            $id = (int) $item[$groupColumn];
 
             if (!isset($output[$id])) {
                 $output[$id] = [];
@@ -593,7 +580,6 @@ class Item extends Manager implements GoLinkBuilderInterface
     /**
      * @param ItemEntity $item
      * @param bool $default
-     *
      * @return Entity|CategoryEntity
      */
     public function getCategory(ItemEntity $item, $default = true)
@@ -613,7 +599,6 @@ class Item extends Manager implements GoLinkBuilderInterface
     /**
      * @param ItemEntity $item
      * @param bool $default
-     *
      * @return Entity|BrandEntity
      */
     public function getBrand(ItemEntity $item, $default = true)
@@ -634,7 +619,6 @@ class Item extends Manager implements GoLinkBuilderInterface
 
     /**
      * @param ItemEntity $item
-     *
      * @return Entity|CountryEntity
      */
     public function getCountry(ItemEntity $item)
@@ -645,7 +629,6 @@ class Item extends Manager implements GoLinkBuilderInterface
     /**
      * @param ItemEntity $item
      * @param bool $default
-     *
      * @return Entity|VendorEntity
      */
     public function getVendor(ItemEntity $item, $default = true)
@@ -715,7 +698,6 @@ class Item extends Manager implements GoLinkBuilderInterface
 
     /**
      * @param ItemEntity $item
-     *
      * @return Entity|Source
      */
     public function getSource(ItemEntity $item)
