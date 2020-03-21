@@ -87,7 +87,7 @@ class Entity extends Manager
 
         $db->req($query);
 
-        $this->deleteMany(new Expr($categoryPkQuotted . ' NOT IN (SELECT ' . $categoryPkQuotted . ' FROM ' . $categoryTableQuotted . ')'));
+        $this->deleteMany(new Expression($categoryPkQuotted . ' NOT IN (SELECT ' . $categoryPkQuotted . ' FROM ' . $categoryTableQuotted . ')'));
         $this->deleteMany(['is_active' => 0, 'count' => 0]);
 
         return self::$generated = true;
@@ -170,7 +170,7 @@ class Entity extends Manager
 
         array_unshift($params, $query);
 
-        return [new Expr(...$params)];
+        return [new Expression(...$params)];
     }
 
     public function updateByParentsAndEntities(FixWhere $fixWhere = null, array $params = []): int
@@ -216,7 +216,7 @@ class Entity extends Manager
                     array_merge($where, [
                         'category_id' => $parentCategoryId,
                         'entity' => '',
-                        new Expr($this->app->container->db->quote('name') . ' LIKE ?', $category->getName() . '%')
+                        new Expression($this->app->container->db->quote('name') . ' LIKE ?', $category->getName() . '%')
                     ]),
                     $params
                 );
@@ -243,7 +243,7 @@ class Entity extends Manager
                         array_merge($where, [
                             'category_id' => $parentCategoryId,
                             'entity' => '',
-                            new Expr($this->app->container->db->quote('name') . ' LIKE ?', $entity->getEntity() . '%')
+                            new Expression($this->app->container->db->quote('name') . ' LIKE ?', $entity->getEntity() . '%')
                         ], $this->getStopWordsWhere($entity->getStopWords())),
                         $params
                     );
@@ -292,7 +292,7 @@ class Entity extends Manager
                     __FUNCTION__,
                     $entity->getCategoryId(),
                     array_merge($where, [
-                        new Expr($this->app->container->db->quote('entity') . ' LIKE ?', $entity->getEntity() . '%')
+                        new Expression($this->app->container->db->quote('entity') . ' LIKE ?', $entity->getEntity() . '%')
                     ], $this->getStopWordsWhere($entity->getStopWords())),
                     $params
                 );

@@ -23,7 +23,6 @@ use Throwable;
 
 /**
  * Available params:
- *
  * site,
  * phone,
  * total,
@@ -72,7 +71,6 @@ use Throwable;
  * order_keys,
  * page,
  * page_long,
- *
  * Class SEO
  *
  * @package SNOWGIRL_SHOP\Catalog
@@ -134,7 +132,6 @@ class SEO
      * @param string $attr
      * @param null $default
      * @param array $params
-     *
      * @return \DateTime|int|mixed|null|string
      * @throws Throwable
      */
@@ -198,7 +195,10 @@ class SEO
 
             if (!isset($name)) {
                 if (!$category = $this->uri->getApp()->managers->categories->find($id)) {
-                    $this->uri->getApp()->container->logger->error('invalid category');
+                    $this->uri->getApp()->container->logger->error('invalid category', [
+                        'category_id' => $id,
+                    ]);
+
                     return $this;
                 }
 
@@ -662,7 +662,6 @@ class SEO
      * @param string $key
      * @param array $params
      * @param bool $nice
-     *
      * @return \DateTime|int|mixed|null|string|string[]
      * @throws Throwable
      */
@@ -681,7 +680,6 @@ class SEO
     /**
      * @param Layout $view
      * @param array $params
-     *
      * @return SEO
      * @throws Throwable
      */
@@ -755,7 +753,7 @@ class SEO
             });
 
             if (0 < count($articles)) {
-                $view->about = (string)$this->uri->getApp()->views->get('@shop/catalog/about.phtml', [
+                $view->about = (string) $this->uri->getApp()->views->get('@shop/catalog/about.phtml', [
                     'articles' => $articles,
                     'site' => $this->uri->getApp()->getSite(),
                     'uri' => isset($canUri) ? $canUri : $this->uri->output(URI::OUTPUT_DEFINED, true),
@@ -770,7 +768,6 @@ class SEO
     /**
      * @param Pager $pager
      * @param Layout $view
-     *
      * @return SEO
      * @throws Throwable
      */
@@ -801,7 +798,6 @@ class SEO
     /**
      * @param $h1ParamsSize
      * @param Layout $view
-     *
      * @throws Throwable
      * @throws \SNOWGIRL_CORE\Exception
      */
@@ -810,7 +806,7 @@ class SEO
         $categoryId = $this->uri->get(Category::getPk());
 
         if ($categoryId) {
-            $view->addBreadcrumb($this->uri->getApp()->trans->makeText('catalog.catalog'), (string)new URI);
+            $view->addBreadcrumb($this->uri->getApp()->trans->makeText('catalog.catalog'), (string) new URI);
 
             $category = $this->uri->getApp()->managers->categories->find($categoryId);
 
@@ -837,7 +833,7 @@ class SEO
             if (0 == $h1ParamsSize) {
                 $categoryBreadcrumb = $this->uri->getApp()->trans->makeText('catalog.catalog');
             } else {
-                $view->addBreadcrumb($this->uri->getApp()->trans->makeText('catalog.catalog'), (string)new URI);
+                $view->addBreadcrumb($this->uri->getApp()->trans->makeText('catalog.catalog'), (string) new URI);
                 $categoryBreadcrumb = '';
             }
         }

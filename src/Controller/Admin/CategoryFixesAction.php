@@ -60,9 +60,9 @@ class CategoryFixesAction
                 $query = $db->makeQuery($searchValue);
                 $tmp = 'MATCH(' . $db->quote($searchBy) . ') AGAINST (? IN BOOLEAN MODE)';
 
-                $srcWhat[] = new Expr($tmp . ' AS ' . $db->quote('relevance'), $query);
-                $srcWhat[] = new Expr('CHAR_LENGTH(' . $db->quote($searchBy) . ') AS ' . $db->quote('length'));
-                $srcWhere[] = new Expr($tmp, $query);
+                $srcWhat[] = new Expression($tmp . ' AS ' . $db->quote('relevance'), $query);
+                $srcWhat[] = new Expression('CHAR_LENGTH(' . $db->quote($searchBy) . ') AS ' . $db->quote('length'));
+                $srcWhere[] = new Expression($tmp, $query);
                 $srcOrder['length'] = SORT_ASC;
                 $srcOrder['relevance'] = SORT_DESC;
             } else {

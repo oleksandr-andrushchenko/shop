@@ -211,13 +211,13 @@ class FixWhere
     }
 
     /**
-     * @param Expr   $expr1
-     * @param Expr   $expr2
+     * @param Expression   $expr1
+     * @param Expression   $expr2
      * @param string $template
      *
-     * @return Expr
+     * @return Expression
      */
-    protected function mergeExprs(Expr $expr1, Expr $expr2, $template = '($1) AND ($2)')
+    protected function mergeExprs(Expression $expr1, Expression $expr2, $template = '($1) AND ($2)')
     {
         $args = [];
 
@@ -239,11 +239,11 @@ class FixWhere
      * @param array  $input
      * @param string $template
      *
-     * @return Expr
+     * @return Expression
      */
     protected function mergeExprsArray(array $input, $template = '($1) AND ($2)')
     {
-        /** @var Expr $output */
+        /** @var Expression $output */
         $output = array_shift($input);
 
         foreach ($input as $v) {
