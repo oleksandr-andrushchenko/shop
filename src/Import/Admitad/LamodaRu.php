@@ -32,8 +32,8 @@ class LamodaRu extends Admitad
         # @todo checkout && test
         $partnerItemId = $this->getPartnerItemIdByRow($row);
 
-        if (isset($this->dbPartnerItemIdCategory[$partnerItemId])) {
-            return $this->dbPartnerItemIdCategory[$partnerItemId];
+        if (isset($this->dbRows[$partnerItemId])) {
+            return $this->dbRows[$partnerItemId]['category_id'];
         }
 
         $pk = 'category_id';
@@ -41,9 +41,9 @@ class LamodaRu extends Admitad
         $value = trim($row[$this->indexes[$this->mappings[$pk]['column']]]);
 
         if (array_key_exists('modify', $map) && array_key_exists($value, $modifies = $map['modify']) && $modifies[$value]['value']) {
-            $this->rememberMva($this->getPartnerItemIdByRow($row), 'tag_id', $modifies[$value]['tags']);
-            $this->sport = $this->sport || in_array('is_sport', $modifies[$value]);
-            $this->sizePlus = $this->sizePlus || in_array('is_size_plus', $modifies[$value]);
+            $this->rememberMva($partnerItemId, 'tag_id', $modifies[$value]['tags']);
+            $this->sport[$partnerItemId] = in_array('is_sport', $modifies[$value]);
+            $this->sizePlus[$partnerItemId] = in_array('is_size_plus', $modifies[$value]);
             return (int)$modifies[$value]['value'];
         }
 
