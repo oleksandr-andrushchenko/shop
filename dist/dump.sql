@@ -751,6 +751,7 @@ CREATE TABLE `vendor` (
   `uri` varchar(256) NOT NULL,
   `image` char(32) DEFAULT NULL,
   `class_name` text DEFAULT NULL,
+  `is_in_stock_check` tinyint(1) NOT NULL DEFAULT 0,
   `is_active` tinyint(1) unsigned NOT NULL DEFAULT 0,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NULL DEFAULT NULL ON UPDATE current_timestamp(),

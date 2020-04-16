@@ -122,3 +122,6 @@ CREATE TABLE `item_attribute_value` (
   `attribute_value_id` int(10) unsigned NOT NULL,
   PRIMARY KEY (`item_id`,`attribute_id`,`attribute_value_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
+alter table vendor add `is_in_stock_check` tinyint(1) NOT NULL DEFAULT 0 after class_name;
