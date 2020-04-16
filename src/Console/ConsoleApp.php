@@ -28,6 +28,8 @@ class ConsoleApp extends \SNOWGIRL_CORE\Console\ConsoleApp
 {
     protected function register()
     {
+        parent::register();
+
         \SNOWGIRL_SHOP\Catalog\URI::setApp($this);
         \SNOWGIRL_SHOP\Item\URI::setApp($this);
     }
@@ -48,7 +50,7 @@ class ConsoleApp extends \SNOWGIRL_CORE\Console\ConsoleApp
         return $this;
     }
 
-    protected function addRoutes(Router $router)
+    protected function addRoutes(Router $router): AbstractApp
     {
         $router->addRoute('item', new Route((URI::addUriPrefix() ? (URI::CATALOG . '/') : '') . ':uri', [
             'controller' => 'outer',
@@ -60,7 +62,7 @@ class ConsoleApp extends \SNOWGIRL_CORE\Console\ConsoleApp
         return $this;
     }
 
-    protected function addFakeRoutes(Router $router)
+    protected function addFakeRoutes(Router $router): AbstractApp
     {
         $route = ':uri';
         $defaults = [
