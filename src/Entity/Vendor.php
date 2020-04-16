@@ -25,7 +25,8 @@ class Vendor extends Attr implements PartnerLinkHolderInterface
         'image' => ['type' => self::COLUMN_TEXT, self::IMAGE],
         'class_name' => ['type' => self::COLUMN_TEXT],
 //        'sales_notes' => ['type' => self::COLUMN_TEXT],
-        'is_active' => ['type' => self::COLUMN_INT, self::REQUIRED, 'default' => 0],
+        'is_in_stock_check' => ['type' => self::COLUMN_INT, self::REQUIRED, self::BOOL, 'default' => 0],
+        'is_active' => ['type' => self::COLUMN_INT, self::REQUIRED, self::BOOL, 'default' => 0],
         'created_at' => ['type' => self::COLUMN_TIME, self::REQUIRED],
         'updated_at' => ['type' => self::COLUMN_TIME, 'default' => null]
     ];
@@ -42,12 +43,12 @@ class Vendor extends Attr implements PartnerLinkHolderInterface
 
     public function setVendorId($v)
     {
-        return $this->setRequiredAttr('vendor_id', (int)$v);
+        return $this->setRequiredAttr('vendor_id', (int) $v);
     }
 
     public function getVendorId()
     {
-        return (int)$this->getRawAttr('vendor_id');
+        return (int) $this->getRawAttr('vendor_id');
     }
 
     public function setPartnerLink($v)
@@ -83,17 +84,32 @@ class Vendor extends Attr implements PartnerLinkHolderInterface
         return $this->getRawAttr('class_name');
     }
 
+    public function setIsInStockCheck($v)
+    {
+        return $this->setRawAttr('is_in_stock_check', $v ? 1 : 0);
+    }
+
+    public function getIsInStockCheck(): int
+    {
+        return (int) $this->getRawAttr('is_in_stock_check');
+    }
+
+    public function isInStockCheck(): bool
+    {
+        return 1 == $this->getIsInStockCheck();
+    }
+
     public function setIsActive($v)
     {
         return $this->setRawAttr('is_active', $v ? 1 : 0);
     }
 
-    public function getIsActive()
+    public function getIsActive(): int
     {
-        return (int)$this->getRawAttr('is_active');
+        return (int) $this->getRawAttr('is_active');
     }
 
-    public function isActive()
+    public function isActive(): bool
     {
         return 1 == $this->getIsActive();
     }
