@@ -39,6 +39,10 @@ class AddItemsMultiValueAttrsAction
             array_map('trim', explode(',', $app->request->get('param_1', '')))
         );
 
-        $app->response->setBody($output ? 'DONE' : 'FAILED');
+        $app->response->addToBody(implode("\r\n", [
+            '',
+            __CLASS__,
+            $output ? 'DONE' : 'FAILED',
+        ]));
     }
 }

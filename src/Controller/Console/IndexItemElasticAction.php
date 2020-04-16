@@ -21,8 +21,9 @@ class IndexItemElasticAction
         $debug = 1 == $app->request->get('param_1', 1);
 
         $app->response->addToBody(implode("\r\n", [
+            '',
             __CLASS__,
-            ($aff = $app->utils->items($debug)->doIndexElastic()) ? "DONE: {$aff}" : 'FAILED'
+            ($aff = $app->utils->items($debug)->doIndexElastic()) ? "DONE: {$aff}" : 'FAILED',
         ]));
     }
 }

@@ -37,8 +37,6 @@ class StockAction
                 ->cacheOutput(Stock::CACHE_STOCK_PAGE)
                 ->getObjects(),
             'manager' => $app->managers->stock,
-            'vkontakteLike' => $app->views->vkontakteLike($view)->stringify(),
-            'facebookLike' => $app->views->facebookLike($view)->stringify()
         ]);
 
         if ((!$app->request->getDevice()->isMobile()) && $banner = $app->ads->findBanner(LongHorizontalAd::class, 'stock', [], $view)) {

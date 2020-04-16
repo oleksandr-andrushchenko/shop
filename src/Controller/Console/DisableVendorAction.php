@@ -11,6 +11,10 @@ class DisableVendorAction
 {
     use PrepareServicesTrait;
 
+    /**
+     * @param App $app
+     * @throws NotFoundHttpException
+     */
     public function __invoke(App $app)
     {
         $this->prepareServices($app);
@@ -27,9 +31,10 @@ class DisableVendorAction
 
         $app->managers->vendors->updateOne($vendor);
 
-        $app->response->setBody(implode("\r\n", [
+        $app->response->addToBody(implode("\r\n", [
+            '',
             __CLASS__,
-            'DONE'
+            'DONE',
         ]));
     }
 }

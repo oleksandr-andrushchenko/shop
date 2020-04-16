@@ -10,6 +10,10 @@ class FixItemsDuplicatesAction
 {
     use PrepareServicesTrait;
 
+    /**
+     * @param App $app
+     * @throws \SNOWGIRL_CORE\Http\Exception\NotFoundHttpException
+     */
     public function __invoke(App $app)
     {
         $this->prepareServices($app);
@@ -18,9 +22,10 @@ class FixItemsDuplicatesAction
             throw (new BadRequestHttpException)->setInvalidParam('import_source_id');
         }
 
-        $app->response->setBody(implode("\r\n", [
+        $app->response->addToBody(implode("\r\n", [
+            '',
             __CLASS__,
-            $app->utils->items->doFixDuplicates($importSourceId) ? 'DONE' : 'FAILED'
+            $app->utils->items->doFixDuplicates($importSourceId) ? 'DONE' : 'FAILED',
         ]));
     }
 }

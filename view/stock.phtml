@@ -8,14 +8,17 @@ use SNOWGIRL_SHOP\Entity\Stock;
 $this->getLayout()
     ->addBreadcrumb($this->h1)
     ->addHeadCss('@shop/stock.css');
+
+$vkontakteLike = $this->app->views->vkontakteLike($this)->stringify();
+$facebookLike = $this->app->views->facebookLike($this)->stringify();
 ?>
 <h1 class="title"><?php echo htmlspecialchars($this->h1) ?></h1>
 
 <div class="vs">
-    <?php if ($this->vkontakteLike || $this->facebookLike) { ?>
+    <?php if ($vkontakteLike || $facebookLike) { ?>
         <div class="subscribe">
-            <?php echo $this->vkontakteLike ?>
-            <?php echo $this->facebookLike ?>
+            <?php echo $vkontakteLike ?>
+            <?php echo $facebookLike ?>
         </div>
     <?php } ?>
 

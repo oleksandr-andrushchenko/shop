@@ -4,13 +4,10 @@ namespace SNOWGIRL_SHOP\Import;
 
 use SNOWGIRL_SHOP\Import;
 use SNOWGIRL_SHOP\Entity\Item;
-use SNOWGIRL_SHOP\Entity\Import\History as ImportHistory;
-use SNOWGIRL_CORE\Helper\Arrays;
 
 /**
  * @todo param processing (as for asos)
  * Class Admitad
- *
  * @package SNOWGIRL_SHOP\Import
  */
 class Admitad extends Import
@@ -66,7 +63,7 @@ class Admitad extends Import
                 $output = [];
 
                 foreach (['Размер', 'Объем', 'size', 'Size'] as $k) {
-                    if (isset($params[$k])) {
+                    if (!empty($params[$k])) {
                         $output = array_merge($output, array_map('trim', explode(',', $params[$k])));
                     }
                 }
@@ -78,7 +75,7 @@ class Admitad extends Import
                 $output = [];
 
                 foreach (['Цвет', 'color', 'Color', 'ЦВЕТ', 'ОСНОВНОЙ ЦВЕТ'] as $k) {
-                    if (isset($params[$k])) {
+                    if (!empty($params[$k])) {
                         $output = array_merge($output, array_map('trim', explode(',', $params[$k])));
                     }
                 }
@@ -87,28 +84,40 @@ class Admitad extends Import
             };
 
             $this->paramsCallbacks['season_id'] = function ($params) {
-                if (isset($params['Сезонность'])) {
+                if (!empty($params['Сезонность'])) {
                     return array_map('trim', explode(',', $params['Сезонность']));
                 }
+
+                return null;
             };
 
-//            $this->paramsCallbacks['country_id'] = function ($params) {
-//                if (isset($params['Страна-изготовитель'])) {
-//                    return array_map('trim', explode(',', $params['Страна-изготовитель']));
-//                }
-//            };
+            $this->paramsCallbacks['country_id'] = function ($params) {
+                if (!empty($params['Страна-изготовитель'])) {
+                    return array_map('trim', explode(',', $params['Страна-изготовитель']))[0];
+                }
+
+                return null;
+            };
 
             $this->paramsCallbacks['material_id'] = function ($params) {
                 $output = [];
 
                 foreach (['Материал', 'СОСТАВ'] as $k) {
-                    if (isset($params[$k])) {
+                    if (!empty($params[$k])) {
                         $output = array_merge($output, array_map('trim', explode(',', $params[$k])));
                     }
                 }
 
                 return $output ?: null;
             };
+
+//            $this->paramsCallbacks['collection_id'] = function ($params) {
+//                if (!empty($params['Коллекция'])) {
+//                    return array_map('trim', explode(',', $params['Коллекция']));
+//                }
+//
+//                return null;
+//            };
 
         }
     }
@@ -159,7 +168,6 @@ class Admitad extends Import
      * Returns mixed names
      *
      * @param $row
-     *
      * @return array
      */
     protected function getColorsByRow($row)
@@ -175,7 +183,6 @@ class Admitad extends Import
      * Returns mixed names
      *
      * @param $row
-     *
      * @return array
      */
     protected function getSeasonsByRow($row)
@@ -191,7 +198,6 @@ class Admitad extends Import
      * Returns mixed names
      *
      * @param $row
-     *
      * @return string|integer
      */
     protected function getCountryByRow($row)
@@ -207,7 +213,6 @@ class Admitad extends Import
      * Returns mixed names
      *
      * @param $row
-     *
      * @return array
      */
     protected function getSizesByRow($row)
@@ -223,7 +228,6 @@ class Admitad extends Import
      * Returns mixed names
      *
      * @param $row
-     *
      * @return array
      */
     protected function getMaterialsByRow($row)

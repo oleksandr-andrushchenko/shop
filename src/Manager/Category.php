@@ -9,6 +9,7 @@ use SNOWGIRL_SHOP\Entity\Category as CategoryEntity;
 use SNOWGIRL_SHOP\Catalog\URI;
 use SNOWGIRL_SHOP\Manager\Category\Alias;
 use SNOWGIRL_SHOP\Manager\Item\Attr;
+use Throwable;
 
 /**
  * Class Category
@@ -42,7 +43,6 @@ class Category extends Attr
 
     /**
      * @param Entity $entity
-     *
      * @return bool
      * @throws Throwable
      */
@@ -83,7 +83,6 @@ class Category extends Attr
 
     /**
      * @param Entity $entity
-     *
      * @return bool
      * @throws Exception
      */
@@ -110,7 +109,6 @@ class Category extends Attr
 
     /**
      * @param Entity $entity
-     *
      * @return bool
      * @throws \Exception
      */
@@ -142,7 +140,6 @@ class Category extends Attr
 
     /**
      * @param \Closure|null $changedCallback
-     *
      * @return bool
      */
     public function syncIsLeafColumn(\Closure $changedCallback = null)
@@ -220,8 +217,7 @@ class Category extends Attr
 
     /**
      * @param string|int|Category $item
-     * @param bool|false          $useSelf
-     *
+     * @param bool|false $useSelf
      * @return CategoryEntity[]
      * @throws Exception
      */
@@ -271,7 +267,6 @@ class Category extends Attr
 
     /**
      * @param $category
-     *
      * @return array
      * @throws Exception
      */
@@ -282,7 +277,6 @@ class Category extends Attr
 
     /**
      * @param $categoryId
-     *
      * @return array
      */
     public function getDirectChildrenId($categoryId)
@@ -300,14 +294,13 @@ class Category extends Attr
      * Returns given id + all children id
      *
      * @param $id
-     *
      * @return array
      */
     public function getChildrenIdFor($id)
     {
         $tmp = [];
 
-        foreach ((array)$id as $id2) {
+        foreach ((array) $id as $id2) {
             $tmp[] = $id2;
             $tmp = array_merge($this->getChildrenIdFor($this->getDirectChildrenId($id2)), $tmp);
         }
@@ -319,7 +312,7 @@ class Category extends Attr
     {
         $tmp = [];
 
-        foreach ((array)$id as $id2) {
+        foreach ((array) $id as $id2) {
             $tmp[] = $id2;
             $tmp = array_merge($this->getChildrenIdFor2(array_keys(array_filter($this->getRawParents(), function ($parentId) use ($id2) {
                 return $id2 == $parentId;
@@ -393,7 +386,6 @@ class Category extends Attr
      * Keep types only (in links)
      *
      * @param URI|null $uri - if passed - make open-door tree, if not - admin tree
-     *
      * @return null|string
      */
     public function makeTreeHtml(URI $uri = null)
@@ -424,11 +416,9 @@ class Category extends Attr
 
     /**
      * @todo sort by ratings (aggregated!)...
-     *
      * @param            $activeId
-     * @param array      $params
+     * @param array $params
      * @param array|null $ids
-     *
      * @return string
      */
     protected function makeOpenDoorTreeHtml($activeId, array $params = [], array $ids = null)
@@ -518,7 +508,6 @@ class Category extends Attr
     /**
      * @param            $category
      * @param bool|false $id
-     *
      * @return CategoryEntity|int
      * @throws Exception
      */
@@ -526,7 +515,7 @@ class Category extends Attr
     {
         if (is_numeric($category) || is_int($category)) {
             if ($id) {
-                return (int)$category;
+                return (int) $category;
             }
 
             $category = $this->find($category);
@@ -559,7 +548,6 @@ class Category extends Attr
 
     /**
      * @param CategoryEntity $category
-     *
      * @return Entity|CategoryEntity|null
      */
     public function getParentCategory(CategoryEntity $category)
@@ -570,7 +558,6 @@ class Category extends Attr
 
     /**
      * @param CategoryEntity[] $categories
-     *
      * @return array
      */
     public function sortByUriLength(array &$categories)
@@ -593,7 +580,6 @@ class Category extends Attr
 
     /**
      * @param CategoryEntity[] $categories
-     *
      * @return CategoryEntity[]
      */
     public function sortByRating(array &$categories)
@@ -638,7 +624,6 @@ class Category extends Attr
 
     /**
      * @param $category
-     *
      * @return array|CategoryEntity[]
      * @throws Exception
      */
@@ -662,7 +647,6 @@ class Category extends Attr
 
     /**
      * @param CategoryEntity $category
-     *
      * @return bool
      */
     public function isLeaf($category)
@@ -677,7 +661,6 @@ class Category extends Attr
 
     /**
      * @param $category
-     *
      * @return bool
      * @throws Exception
      */

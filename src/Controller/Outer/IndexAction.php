@@ -92,8 +92,6 @@ class IndexAction
                 ->cacheOutput(true)
                 ->getObjects(),
             'menu' => array_values($app->managers->pages->getMenu()),
-            'vkontakteLike' => $app->views->vkontakteLike($view)->stringify(),
-            'facebookLike' => $app->views->facebookLike($view)->stringify()
         ]);
 
         $app->managers->items->addLinkedObjects($content->items, Brand::class);

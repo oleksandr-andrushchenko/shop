@@ -9,6 +9,10 @@ class DeleteAttrsWithoutItemsAction
 {
     use PrepareServicesTrait;
 
+    /**
+     * @param App $app
+     * @throws \SNOWGIRL_CORE\Http\Exception\NotFoundHttpException
+     */
     public function __invoke(App $app)
     {
         $this->prepareServices($app);
@@ -18,7 +22,11 @@ class DeleteAttrsWithoutItemsAction
         $aff += $this->deleteSvaWithoutItems($app);
         $aff += $this->deleteMvaWithoutItems($app);
 
-        $app->response->setBody("DONE: {$aff}");
+        $app->response->addToBody(implode("\r\n", [
+            '',
+            __CLASS__,
+            "DONE: {$aff}",
+        ]));
     }
 
     private function deleteSvaWithoutItems(App $app): int
@@ -27,7 +35,7 @@ class DeleteAttrsWithoutItemsAction
 
         $db = $app->container->db;
 
-        $itemPk = $app->managers->items->getEntity()->getPk();
+//        $itemPk = $app->managers->items->getEntity()->getPk();
         $itemTable = $app->managers->items->getEntity()->getTable();
 
         foreach ($app->managers->catalog->getSvaPkToTable() as $pk => $table) {

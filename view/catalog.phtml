@@ -34,6 +34,9 @@ $this->getLayout()
     ->addJsConfig('asyncFilters', $this->asyncFilters)
     ->addJs('@shop/catalog.js');
 
+$vkontakteLike = $this->app->views->vkontakteLike($this)->stringify();
+$facebookLike = $this->app->views->facebookLike($this)->stringify();
+
 $typeColors = [
 //    URI::SPORT => 'default',
 //    URI::SIZE_PLUS => 'default',
@@ -302,7 +305,11 @@ $typeColors = [
                     <?php } ?>
 
                     <?php for ($i = 0; $i < $s; $i++) { ?>
-                        <?php $entity = URI::getPageComponentByParam($k, $v[$i]) ?>
+                        <?php
+                            if (!$entity = URI::getPageComponentByParam($k, $v[$i])) {
+                                continue;
+                            }
+                        ?>
                         <a href="<?php echo (new URI($this->uriParams))->_unset(URI::PAGE_NUM)->pop($k, $v[$i])->output() ?>"
                            class="btn btn-sm btn-<?php echo $isColor ? 'default' : 'primary' ?>" rel="nofollow">
                             <?php echo $isColor ? ('<span class="fa fa-circle color' . ('multi' == ($tmp = $entity->getHex()) ? ' color-multi' : '') . '" ' . ('trans' == $tmp ? 'style="background-color:transparent"' : ('multi' == $tmp ? '' : ('style="color:#' . $tmp . '"'))) . '></span> ') : '' ?>
@@ -416,10 +423,10 @@ $typeColors = [
         </div>
     <?php } ?>
 
-    <?php if ($this->vkontakteLike || $this->facebookLike) { ?>
+    <?php if ($vkontakteLike || $facebookLike) { ?>
         <div class="col-md-9 col-lg-10 right subscribe">
-            <?php echo $this->vkontakteLike ?>
-            <?php echo $this->facebookLike ?>
+            <?php echo $vkontakteLike ?>
+            <?php echo $facebookLike ?>
         </div>
     <?php } ?>
 

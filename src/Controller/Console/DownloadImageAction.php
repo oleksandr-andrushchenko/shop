@@ -11,6 +11,10 @@ class DownloadImageAction
 {
     use PrepareServicesTrait;
 
+    /**
+     * @param App $app
+     * @throws \SNOWGIRL_CORE\Http\Exception\NotFoundHttpException
+     */
     public function __invoke(App $app)
     {
         $this->prepareServices($app);
@@ -38,6 +42,10 @@ class DownloadImageAction
 
         $image = $app->images->downloadWithWget($target, $hash, $error);
 
-        $app->response->setBody($image ? ('DONE: ' . $image) : ('FAILED: ' . $error));
+        $app->response->addToBody(implode("\r\n", [
+            '',
+            __CLASS__,
+            $image ? ('DONE: ' . $image) : ('FAILED: ' . $error),
+        ]));
     }
 }

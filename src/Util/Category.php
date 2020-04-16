@@ -2,14 +2,14 @@
 
 namespace SNOWGIRL_SHOP\Util;
 
+use SNOWGIRL_CORE\Db\DbInterface;
 use SNOWGIRL_CORE\Entity\Redirect;
 use SNOWGIRL_CORE\Exception;
 use SNOWGIRL_CORE\Query\Expression;
-use SNOWGIRL_CORE\Service\Db;
 use SNOWGIRL_CORE\Query;
 use SNOWGIRL_CORE\Util;
-use SNOWGIRL_CORE\AbstractApp;
 use SNOWGIRL_SHOP\Catalog\URI;
+use SNOWGIRL_SHOP\Console\ConsoleApp;
 use SNOWGIRL_SHOP\Entity\Category as CategoryEntity;
 use SNOWGIRL_SHOP\Entity\Item;
 use SNOWGIRL_SHOP\Entity\Tag;
@@ -19,38 +19,34 @@ use SNOWGIRL_CORE\Http\Exception\BadRequestHttpException;
 use SNOWGIRL_CORE\Http\Exception\NotFoundHttpException;
 use SNOWGIRL_CORE\Entity;
 use SNOWGIRL_SHOP\Catalog\URI\Manager as CatalogUriManager;
+use SNOWGIRL_SHOP\Http\HttpApp;
+use Throwable;
 
 /**
  * Class Category
  *
- * @property App app
+ * @property HttpApp|ConsoleApp app
  * @package SNOWGIRL_SHOP\Util
  */
 class Category extends Util
 {
     /**
      * @todo fix... duplicates... (ignore param..)
-     *
      * @param string $delimiter
      * @param null $error
-     *
      * @return bool
+     * @throws Entity\EntityException
      */
     public function doBuildTreeByNames($delimiter = '/', &$error = null)
     {
         /**
          *  SELECT category_id, name FROM category where ROUND((LENGTH(name) - LENGTH(REPLACE(name, "/", ""))) / LENGTH("/")) > 0 limit 1;
-         *
-         *
          * update category
-         *
          * set
          * name=replace(name,'Завивка волос/',''),
          * uri=replace(uri,'zavivka-volos-',''),
          * parent_category_id=563
-         *
          * where name like 'Завивка волос/%' and category_id not in(563);
-         *
          */
 
         $pk = $this->app->managers->categories->getEntity()->getPk();
@@ -89,10 +85,10 @@ class Category extends Util
                     new Expression($qName . ' LIKE ?', $likeQuery . '%'),
                     new Expression($qPk . ' <> ?', $parent->getId())
                 ], ['ignore' => true]);
-            } catch (\Exception $ex) {
-                $error = $ex->getMessage();
+            } catch (Throwable $e) {
+                $error = $e->getMessage();
 
-                if (false === strpos($ex->getMessage(), 'Duplicate')) {
+                if (false === strpos($e->getMessage(), 'Duplicate')) {
                     return false;
                 }
             }
@@ -105,8 +101,7 @@ class Category extends Util
     }
 
     /**
-     * @todo test & improve..
-     * @throws Exception
+     * @return bool
      */
     public function doTransferCategoriesToTags()
     {
@@ -211,7 +206,7 @@ class Category extends Util
                     }
 
                     $categories = $makeCategories();
-                } catch (Exception $e) {
+                } catch (Throwable $e) {
                     $this->app->container->logger->error($e);
 
                     if ($e->check(CategoryEntity::getTable())) {
@@ -264,13 +259,13 @@ class Category extends Util
      * 3) target_tag - int[]|string[]|mixed[] - tag name or id (required)
      * 4) rotate_off - 1|0 - rotate ftdbms & mcms (options, default = 1)
      *
-     * @throws BadRequest
-     * @throws Exception
-     * @throws NotFound
+     * @throws BadRequestHttpException
+     * @throws NotFoundHttpException
+     * @throws Throwable
      */
     public function doTransferCategoryToCategoryWithTag()
     {
-        if (!$sourceCategoryId = (int)trim($this->app->request->get('param_1'))) {
+        if (!$sourceCategoryId = (int) trim($this->app->request->get('param_1'))) {
             throw (new BadRequestHttpException)->setInvalidParam('source_category_id');
         }
 
@@ -278,7 +273,7 @@ class Category extends Util
             throw (new NotFoundHttpException)->setNonExisting('source_category');
         }
 
-        if (!$targetCategoryId = (int)trim($this->app->request->get('param_2'))) {
+        if (!$targetCategoryId = (int) trim($this->app->request->get('param_2'))) {
             throw (new BadRequestHttpException)->setInvalidParam('target_category_id');
         }
 
@@ -317,7 +312,7 @@ class Category extends Util
 
         /** @var Tag[] $targetTags */
 
-        $this->app->container->db->makeTransaction(function (Db $db) use ($sourceCategory, $targetCategory, $targetTags) {
+        $this->app->container->db->makeTransaction(function (DbInterface $db) use ($sourceCategory, $targetCategory, $targetTags) {
             foreach ($targetTags as $targetTag) {
                 $query = new Query(['params' => []]);
                 $query->text = implode(' ', [
@@ -402,13 +397,13 @@ class Category extends Util
      * 2) target_category_id - int - category id (required) !should exists
      * 3) rotate_off - 1|0 - rotate ftdbms & mcms (options, default = 1)
      *
-     * @throws BadRequest
-     * @throws NotFound
-     * @throws \Exception
+     * @throws BadRequestHttpException
+     * @throws NotFoundHttpException
+     * @throws Throwable
      */
     public function doTransferCategoryToCategory()
     {
-        if (!$sourceCategoryId = (int)trim($this->app->request->get('param_1'))) {
+        if (!$sourceCategoryId = (int) trim($this->app->request->get('param_1'))) {
             throw (new BadRequestHttpException)->setInvalidParam('source_category_id');
         }
 
@@ -416,7 +411,7 @@ class Category extends Util
             throw (new NotFoundHttpException)->setNonExisting('source_category');
         }
 
-        if (!$targetCategoryId = (int)trim($this->app->request->get('param_2'))) {
+        if (!$targetCategoryId = (int) trim($this->app->request->get('param_2'))) {
             throw (new BadRequestHttpException)->setInvalidParam('target_category_id');
         }
 

@@ -13,7 +13,6 @@ class OutArchiveVendorAction
 
     /**
      * @param App $app
-     *
      * @throws NotFoundHttpException
      */
     public function __invoke(App $app)
@@ -32,11 +31,12 @@ class OutArchiveVendorAction
         $aff2 = $app->managers->sources->updateMany(['is_cron' => 1], ['vendor_id' => $vendor->getId()]);
         $aff3 = $app->utils->items->doOutArchiveTransfer(['vendor_id' => $vendor->getId()]);
 
-        $app->response->setBody(implode("\r\n", [
+        $app->response->addToBody(implode("\r\n", [
+            '',
             __CLASS__,
 //            'Vendor activate on: ' . var_export($aff1, true),
             'Sources cron on: ' . var_export($aff2, true),
-            'Affected: ' . var_export($aff3, true)
+            'Affected: ' . var_export($aff3, true),
         ]));
     }
 }

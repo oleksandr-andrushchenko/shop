@@ -2,12 +2,12 @@
 
 namespace SNOWGIRL_SHOP\Util;
 
-use SNOWGIRL_CORE\Exception;
 use SNOWGIRL_CORE\Helper\WalkChunk;
 use SNOWGIRL_CORE\Util;
-use SNOWGIRL_CORE\AbstractApp;
 use SNOWGIRL_SHOP\Catalog\URI;
+use SNOWGIRL_SHOP\Console\ConsoleApp;
 use SNOWGIRL_SHOP\Entity\Brand as BrandEntity;
+use SNOWGIRL_SHOP\Http\HttpApp;
 use SNOWGIRL_SHOP\Manager\Page\Catalog as PageCatalogManager;
 use SNOWGIRL_SHOP\Entity\Item;
 use SNOWGIRL_CORE\Http\Exception\BadRequestHttpException;
@@ -15,11 +15,12 @@ use SNOWGIRL_CORE\Http\Exception\NotFoundHttpException;
 use SNOWGIRL_SHOP\Catalog\URI\Manager as CatalogUriManager;
 use SNOWGIRL_SHOP\Entity\Brand\Term as BrandTerm;
 use SNOWGIRL_SHOP\Manager\Brand\Term as BrandTermManager;
+use Throwable;
 
 /**
  * Class Brand
  *
- * @property App app
+ * @property HttpApp|ConsoleApp app
  * @package SNOWGIRL_SHOP\Util
  */
 class Brand extends Util
@@ -67,7 +68,7 @@ class Brand extends Util
 
                             $this->app->managers->brands->updateOne($item);
                             $this->output($name . '[' . $uri . '] is changed -> ' . $item->getName() . '[' . $item->getUri() . ']');
-                        } catch (Exception $ex) {
+                        } catch (Throwable $e) {
                             $new = $this->app->managers->brands->clear()
                                 ->setWhere(['uri' => $item->getUri()])
                                 ->getObject();
@@ -141,9 +142,9 @@ class Brand extends Util
      * 2) target_brand_id - int - brand id (required) !should exists
      * 3) rotate_off - 1|0 - rotate ftdbms & mcms (options, default = 1)
      *
-     * @throws BadRequest
-     * @throws Exception
-     * @throws NotFound
+     * @throws BadRequestHttpException
+     * @throws NotFoundHttpException
+     * @throws Throwable
      */
     public function doTransferBrandToBrand()
     {

@@ -12,9 +12,7 @@ use SNOWGIRL_SHOP\Entity\Page\Catalog;
 
 /**
  * Example: php bin/console add-catalog-page category=10,color=10,sport,sales,size-plus
- *
  * Should be synced with Pages::generateCatalogPages
- *
  * Class AddPageCatalogAction
  *
  * @package SNOWGIRL_SHOP\Controller\Console
@@ -25,7 +23,6 @@ class AddCatalogPageAction
 
     /**
      * @param App $app
-     *
      * @throws \SNOWGIRL_CORE\Entity\EntityException
      * @throws \SNOWGIRL_CORE\Http\Exception\NotFoundHttpException
      */
@@ -39,23 +36,22 @@ class AddCatalogPageAction
 
         $where = $this->buildWhere($app, $rawWhere);
 
+        /** @var Catalog $page */
         $page = (new Catalog)
             ->setName($this->buildName($app, $where))
             ->setRawAttr('uri', $this->buildUri($app, $where))
             ->setParams($this->buildParams($app, $where))
             ->setMeta($this->buildMeta($app, $where));
 
-        $aff = $app->managers->catalog->insertOne($page);
-
-        if ($aff) {
-            $app->container->indexer->getManager()->indexOne(
-                $this->buildElasticIndexName($app),
-                $page->getId(),
-                $this->buildElasticDocument($app, $page)
-            );
+        if ($aff = $app->managers->catalog->insertOne($page)) {
+            $app->managers->catalog->indexOne($page);
         }
 
-        $app->response->setBody($aff ? 'DONE' : 'FAILED');
+        $app->response->addToBody(implode("\r\n", [
+            '',
+            __CLASS__,
+            $aff ? 'DONE' : 'FAILED',
+        ]));
     }
 
     protected function buildWhere(App $app, string $rawWhere): array
@@ -70,7 +66,7 @@ class AddCatalogPageAction
                 $output[trim($peaces[0])] = 1;
             } elseif (2 == $cnt) {
                 $manager = $app->managers->getByTable(trim($peaces[0]));
-                $output[$manager->getEntity()->getTable()] = $manager->find((int)trim($peaces[1]));
+                $output[$manager->getEntity()->getTable()] = $manager->find((int) trim($peaces[1]));
             } else {
                 throw (new BadRequestHttpException)->setInvalidParam('expr');
             }
@@ -145,7 +141,7 @@ class AddCatalogPageAction
             }
         }
 
-        $typesTexts = SEO::getTypesToTexts();
+//        $typesTexts = SEO::getTypesToTexts();
 
         foreach (URI::TYPE_PARAMS as $type) {
             foreach ($where as $tableOrType => $entityOrTrue) {
@@ -165,28 +161,5 @@ class AddCatalogPageAction
         $output['count'] = 0;
 
         return json_encode($output);
-    }
-
-    /**
-     * @param App $app
-     *
-     * @return string
-     * @throws \Exception
-     */
-    protected function buildElasticIndexName(App $app): string
-    {
-        $table = $app->managers->items->getEntity()->getTable();
-        $indexes = $app->container->indexer->getManager()->getAliasIndexes($table);
-
-        if (!$indexes) {
-            throw new \Exception('no indexes were found');
-        }
-
-        return $indexes[0];
-    }
-
-    protected function buildElasticDocument(App $app, Catalog $page)
-    {
-        return $app->utils->catalog->getElasticDocument($page);
     }
 }

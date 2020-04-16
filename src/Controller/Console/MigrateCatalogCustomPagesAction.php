@@ -9,13 +9,18 @@ class MigrateCatalogCustomPagesAction
 {
     use PrepareServicesTrait;
 
+    /**
+     * @param App $app
+     * @throws \SNOWGIRL_CORE\Http\Exception\NotFoundHttpException
+     */
     public function __invoke(App $app)
     {
         $this->prepareServices($app);
 
-        $app->response->setBody(implode("\r\n", [
+        $app->response->addToBody(implode("\r\n", [
+            '',
             __CLASS__,
-            $app->utils->catalog->doMigrateCatalogToCustom() ? 'DONE' : 'FAILED'
+            $app->utils->catalog->doMigrateCatalogToCustom() ? 'DONE' : 'FAILED',
         ]));
     }
 }

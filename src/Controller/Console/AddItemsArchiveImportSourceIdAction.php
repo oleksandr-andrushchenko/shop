@@ -18,9 +18,10 @@ class AddItemsArchiveImportSourceIdAction
     {
         $this->prepareServices($app);
 
-        $app->response->setBody(implode("\r\n", [
+        $app->response->addToBody(implode("\r\n", [
+            '',
             __CLASS__,
-            $app->utils->items->doAddArchiveImportSourceId() ? 'DONE' : 'FAILED'
+            $app->utils->items->doAddArchiveImportSourceId() ? 'DONE' : 'FAILED',
         ]));
     }
 }

@@ -9,13 +9,18 @@ class SyncCategoriesTreeAction
 {
     use PrepareServicesTrait;
 
+    /**
+     * @param App $app
+     * @throws \SNOWGIRL_CORE\Http\Exception\NotFoundHttpException
+     */
     public function __invoke(App $app)
     {
         $this->prepareServices($app);
 
-        $app->response->setBody(implode("\r\n", [
+        $app->response->addToBody(implode("\r\n", [
+            '',
             __CLASS__,
-            $app->managers->categories->syncTree() ? 'DONE' : 'FAILED'
+            $app->managers->categories->syncTree() ? 'DONE' : 'FAILED',
         ]));
     }
 }

@@ -14,7 +14,8 @@ $item = $this->entity;
     <div class="inner-table">
         <div class="inner-cell" style="width:40%">
             <?php echo $this->app->views->getImage($item->getImage(), Images::FORMAT_NONE, 0, [
-                'alt' => $item->getName()
+                'alt' => $item->getName(),
+                'height' => false,
             ]) ?>
         </div>
         <div class="inner-cell">

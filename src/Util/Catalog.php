@@ -3,7 +3,6 @@
 namespace SNOWGIRL_SHOP\Util;
 
 use pQuery\DomNode;
-use SNOWGIRL_CORE\Entity;
 use SNOWGIRL_CORE\Helper\Arrays;
 use SNOWGIRL_CORE\Helper\WalkChunk2;
 use SNOWGIRL_CORE\HtmlParser;
@@ -18,6 +17,7 @@ use SNOWGIRL_SHOP\Entity\Page\Catalog\Custom as PageCatalogCustom;
 use Google\Cloud\Translate\TranslateClient;
 use SNOWGIRL_SHOP\Catalog\URI;
 use SNOWGIRL_SHOP\Http\HttpApp;
+use SNOWGIRL_SHOP\Manager\Page\Catalog\IndexerHelper;
 
 /**
  * Class Catalog
@@ -27,6 +27,18 @@ use SNOWGIRL_SHOP\Http\HttpApp;
  */
 class Catalog extends Util
 {
+    /**
+     * @var IndexerHelper
+     */
+    private $indexerHelper;
+
+    protected function initialize()
+    {
+        parent::initialize();
+
+        $this->indexerHelper = new IndexerHelper();
+    }
+
     public function doMigrateCatalogToCustom()
     {
         $tableFrom = PageCatalog::getTable();
@@ -370,28 +382,16 @@ class Catalog extends Util
     protected $elasticColumns;
     protected $elasticColumnsOptions;
 
-    protected function initialize()
-    {
-        $this->searchColumns = $this->app->managers->catalog->findColumns(Entity::SEARCH_IN);
-        $this->elasticColumns = array_merge($this->searchColumns, [
-            $this->app->managers->catalog->getEntity()->getPk(),
-            'uri',
-            'meta'
-        ]);
-        $this->elasticColumnsOptions = Arrays::filterByKeysArray(
-            $this->app->managers->catalog->getEntity()->getColumns(),
-            $this->elasticColumns
-        );
-    }
-
     protected function getIndexerMappings(): array
     {
+        $this->indexerHelper->prepareData($this->app);
+
         $properties = [
             'uri' => 'text',
             'count' => 'integer',
         ];
 
-        foreach ($this->searchColumns as $column) {
+        foreach ($this->indexerHelper->getSearchColumns() as $column) {
             $properties[$column] = 'text';
             $properties[$column . '_length'] = 'short';
         }
@@ -417,88 +417,37 @@ class Catalog extends Util
         return true;
     }
 
-    public function getElasticDocument(PageCatalog $page): array
-    {
-        $document = array_filter($page->getAttrs(), function ($v) {
-            return null !== $v;
-        });
-
-        foreach ($this->elasticColumnsOptions as $column => $options) {
-            if (isset($document[$column])) {
-                switch ($options['type']) {
-                    case Entity::COLUMN_FLOAT:
-                        if ($document[$column]) {
-                            $document[$column] = (float)$document[$column];
-                        } else {
-                            $document[$column] = $options['default'];
-                        }
-                        break;
-                    case Entity::COLUMN_INT:
-                        if ($document[$column]) {
-                            $document[$column] = (int)$document[$column];
-                        } else {
-                            $document[$column] = $options['default'];
-                        }
-                        break;
-                    case Entity::COLUMN_TIME:
-                        if ($document[$column]) {
-                        } else {
-                            $document[$column] = $options['default'];
-                        }
-                        break;
-                    default:
-                        break;
-                }
-            }
-        }
-
-        foreach ($this->searchColumns as $column) {
-            if (isset($document[$column])) {
-                $document[$column . '_length'] = mb_strlen($document[$column]);
-            }
-        }
-
-        if (isset($document['meta'])) {
-            if ($meta = json_decode($document['meta'], true)) {
-                $document['count'] = $meta['count'];
-            }
-
-            unset($document['meta']);
-        }
-
-        return $document;
-    }
-
-    public function doRawIndexElastic(string $index = null, $where = null): int
+    public function doRawIndexElastic(string $index, $where = null): int
     {
         $aff = 0;
 
-        $catalogPk = $this->app->managers->catalog->getEntity()->getPk();
-
-        $index = $index ?: $this->app->managers->catalog->getEntity()->getTable();
+        $this->indexerHelper->prepareData($this->app);
 
         $manager = $this->app->managers->catalog->copy(true)
-            ->setColumns($this->elasticColumns)
-            ->setOrders([$catalogPk => SORT_ASC]);
+            ->setColumns($this->indexerHelper->getColumns())
+            ->setOrders([$this->app->managers->catalog->getEntity()->getPk() => SORT_ASC]);
 
         $where = Arrays::cast($where);
 
-        $indexerManager = $this->app->container->indexer->getManager();
-
         (new WalkChunk2(1000))
-            ->setFnGet(function ($lastId, $size) use ($manager, $catalogPk, $where) {
+            ->setFnGet(function ($lastId, $size) use ($manager, $where) {
                 if ($lastId) {
-                    $where[] = new Expression($this->app->container->db->quote($catalogPk) . ' > ?', $lastId);
+                    $itemPk = $this->app->managers->catalog->getEntity()->getPk();
+                    $where[] = new Expression($this->app->container->db->quote($itemPk) . ' > ?', $lastId);
                 }
 
-                return $manager->setWhere($where)->setLimit($size)->getObjects();
+                return $manager->setWhere($where)->setLimit($size)->getArrays();
             })
-            ->setFnDo(function ($pages) use ($index, $indexerManager, &$aff) {
-                $documents = Arrays::mapByKeyValueMaker($pages, function ($i, $page) {
-                    return [$page->getId(), $this->getElasticDocument($page)];
-                });
+            ->setFnDo(function ($items) use ($index, &$aff) {
+                $itemPk = $this->app->managers->catalog->getEntity()->getPk();
 
-                $aff += $indexerManager->indexMany($index, $documents);
+                $documents = [];
+
+                foreach ($items as $item) {
+                    $documents[$item[$itemPk]] = $this->indexerHelper->getDocumentByArray($item);
+                }
+
+                $aff += $this->app->container->indexer->getManager()->indexMany($index, $documents);
 
                 return end($documents) ? key($documents) : false;
             })

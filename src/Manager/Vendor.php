@@ -92,16 +92,13 @@ class Vendor extends Attr implements GoLinkBuilderInterface
         return $output;
     }
 
-    public function canCheckRealIsInStock(VendorEntity $vendor, $strict = false)
+    public function canCheckRealIsInStock(VendorEntity $vendor, $strict = false): bool
     {
-//        return true;
-//        return false;
         return !!$this->getAdapterClass($vendor, $strict);
     }
 
     /**
      * @param VendorEntity $vendor
-     *
      * @return VendorAdapter|null
      */
     public function getAdapterObject(VendorEntity $vendor)

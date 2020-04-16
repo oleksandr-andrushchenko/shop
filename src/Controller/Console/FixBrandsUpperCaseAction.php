@@ -35,6 +35,10 @@ class FixBrandsUpperCaseAction
             }
         }
 
-        $app->response->setBody("DONE: {$aff}");
+        $app->response->addToBody(implode("\r\n", [
+            '',
+            __CLASS__,
+            "DONE: {$aff}",
+        ]));
     }
 }

@@ -10,15 +10,20 @@ class ItemInArchiveTransferAction
     use PrepareServicesTrait;
     use GetSimpleItemsWhereTrait;
 
+    /**
+     * @param App $app
+     * @throws \SNOWGIRL_CORE\Http\Exception\NotFoundHttpException
+     */
     public function __invoke(App $app)
     {
         $this->prepareServices($app);
 
         $where = $this->getSimpleItemsWhere($app);
 
-        $app->response->setBody(implode("\r\n", [
+        $app->response->addToBody(implode("\r\n", [
+            '',
             __CLASS__,
-            $app->utils->items->doInArchiveTransfer($where) ? 'DONE' : 'FAILED'
+            $app->utils->items->doInArchiveTransfer($where) ? 'DONE' : 'FAILED',
         ]));
     }
 }

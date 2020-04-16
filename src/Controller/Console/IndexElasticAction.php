@@ -22,8 +22,9 @@ class IndexElasticAction
         (new IndexCatalogElasticAction)($app);
 
         $app->response->addToBody(implode("\r\n", [
+            '',
             __CLASS__,
-            'DONE'
+            'DONE',
         ]));
     }
 }

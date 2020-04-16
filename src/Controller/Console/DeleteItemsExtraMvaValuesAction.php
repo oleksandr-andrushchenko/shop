@@ -30,9 +30,9 @@ class DeleteItemsExtraMvaValuesAction
         $aff += $this->processMvaValues($app);
 
         $app->response->addToBody(implode("\r\n", [
-            "\r\n",
+            '',
             __CLASS__,
-            $app->response->setBody(is_int($aff) ? "DONE: {$aff}" : 'FAILED')
+            is_int($aff) ? "DONE: {$aff}" : 'FAILED',
         ]));
     }
 

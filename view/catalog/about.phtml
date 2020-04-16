@@ -2,6 +2,8 @@
 use SNOWGIRL_CORE\View;
 
 /** @var View $this */
+
+$sharer = $this->app->views->sharer($this)->stringify();
 $this->articles = array_values($this->articles);
 ?>
 
@@ -20,7 +22,7 @@ $this->articles = array_values($this->articles);
                     <div class="body" itemprop="articleBody description"><?php echo $this->articles[$i]['body'] ?></div>
 
                     <footer>
-                        <?php echo $this->sharer ?>
+                        <?php echo $sharer ?>
                     </footer>
                 </article>
             <?php } ?>

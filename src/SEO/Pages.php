@@ -2,6 +2,7 @@
 
 namespace SNOWGIRL_SHOP\SEO;
 
+use Monolog\Logger;
 use SNOWGIRL_CORE\Entity;
 use SNOWGIRL_SHOP\Catalog\URI;
 use SNOWGIRL_SHOP\Catalog\SRC;
@@ -44,7 +45,7 @@ class Pages extends \SNOWGIRL_CORE\SEO\Pages
 
     public function update()
     {
-        $this->seo->getApp()->container->db->truncateTable($this->catalogTable);
+        $this->seo->getApp()->container->db->getManager()->truncateTable($this->catalogTable);
 
         $this->generateCatalogPages(false);
 
@@ -220,7 +221,7 @@ class Pages extends \SNOWGIRL_CORE\SEO\Pages
                 } elseif (in_array($componentOrType, $types)) {
                     $queryParamsColumn[] = '\'"' . $componentOrType . '":1\'';
                 } else {
-                    $this->log('undefined component or type[' . $componentOrType . ']', Logger::TYPE_ERROR);
+                    $this->log('undefined component or type[' . $componentOrType . ']', Logger::ERROR);
                     return false;
                 }
             }
@@ -239,7 +240,7 @@ class Pages extends \SNOWGIRL_CORE\SEO\Pages
                 } elseif (in_array($componentOrType, $types)) {
                     return '\'' . $typesTexts[$componentOrType] . '\'';
                 } else {
-                    $this->log('undefined component or type[' . $componentOrType . ']', Logger::TYPE_ERROR);
+                    $this->log('undefined component or type[' . $componentOrType . ']', Logger::ERROR);
                     throw new \Exception;
                 }
             };
@@ -252,7 +253,7 @@ class Pages extends \SNOWGIRL_CORE\SEO\Pages
                 } elseif (in_array($componentOrType, $types)) {
                     return '\'' . $componentOrType . '\'';
                 } else {
-                    $this->log('undefined component or type[' . $componentOrType . ']', Logger::TYPE_ERROR);
+                    $this->log('undefined component or type[' . $componentOrType . ']', Logger::ERROR);
                     throw new \Exception;
                 }
             };
@@ -273,7 +274,7 @@ class Pages extends \SNOWGIRL_CORE\SEO\Pages
                 if (isset($expr[$column])) {
                     $baseColumnsToSelect[] = $expr[$column] . ' AS ' . $db->quote($column);
                 } else {
-                    $this->log('undefined column expr[' . $column . ']', Logger::TYPE_ERROR);
+                    $this->log('undefined column expr[' . $column . ']', Logger::ERROR);
                     return false;
                 }
             }

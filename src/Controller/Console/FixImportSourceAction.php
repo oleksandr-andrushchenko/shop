@@ -11,6 +11,10 @@ class FixImportSourceAction
 {
     use PrepareServicesTrait;
 
+    /**
+     * @param App $app
+     * @throws NotFoundHttpException
+     */
     public function __invoke(App $app)
     {
         $this->prepareServices($app);
@@ -25,6 +29,10 @@ class FixImportSourceAction
 
         $aff = $app->utils->sources->doFixSource($source);
 
-        $app->response->setBody(false === $aff ? 'FAILED' : 'DONE');
+        $app->response->addToBody(implode("\r\n", [
+            '',
+            __CLASS__,
+            false === $aff ? 'FAILED' : 'DONE',
+        ]));
     }
 }

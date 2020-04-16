@@ -18,9 +18,10 @@ class AddItemsImportSourceIdAction
     {
         $this->prepareServices($app);
 
-        $app->response->setBody(implode("\r\n", [
+        $app->response->addToBody(implode("\r\n", [
+            '',
             __CLASS__,
-            $app->utils->items->doAddImportSourceId() ? 'DONE' : 'FAILED'
+            $app->utils->items->doAddImportSourceId() ? 'DONE' : 'FAILED',
         ]));
     }
 }

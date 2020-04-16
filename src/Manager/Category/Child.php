@@ -2,7 +2,7 @@
 
 namespace SNOWGIRL_SHOP\Manager\Category;
 
-use SNOWGIRL_CORE\AbstractApp;
+use SNOWGIRL_CORE\AbstractApp as App;
 use SNOWGIRL_CORE\Manager;
 use SNOWGIRL_SHOP\Entity\Category as CategoryEntity;
 
@@ -26,7 +26,7 @@ class Child extends Manager
         $db = $this->app->container->db;
         $table = $this->entity->getTable();
 
-        $db->dropTable($table);
+        $db->getManager()->dropTable($table);
 
         $db->req(implode(' ', [
             'CREATE ' . 'TABLE ' . $db->quote($table) . ' (',

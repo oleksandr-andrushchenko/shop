@@ -174,8 +174,6 @@ class CatalogAction
             'category' => $category,
             'hasApplied' => $categoryId || $hasAppliedFilters || $hasAppliedSorting,
             'showTags' => $categoryId && $app->managers->categories->isLeaf($category),
-            'vkontakteLike' => $app->views->vkontakteLike($view)->stringify(),
-            'facebookLike' => $app->views->facebookLike($view)->stringify(),
             'asyncFilters' => $app->config('catalog.async_filters', false)
         ]);
 

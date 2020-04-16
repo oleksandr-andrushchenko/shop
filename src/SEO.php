@@ -16,7 +16,7 @@ use SNOWGIRL_SHOP\SEO\Sitemap;
  * Class SEO
  *
  * @property HttpApp|ConsoleApp app
- * @method Web|Console getApp()
+ * @method HttpApp|ConsoleApp getApp()
  * @method Pages getPages()
  * @method RobotsTxt getRobotsTxt()
  * @method Sitemap getSitemap()

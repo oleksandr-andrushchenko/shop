@@ -11,6 +11,10 @@ class DropImportSourceCacheAction
 {
     use PrepareServicesTrait;
 
+    /**
+     * @param App $app
+     * @throws NotFoundHttpException
+     */
     public function __invoke(App $app)
     {
         $this->prepareServices($app);
@@ -25,6 +29,10 @@ class DropImportSourceCacheAction
 
         $aff = $app->managers->sources->getImport($source)->dropCache(true);
 
-        $app->response->setBody('AFF: ' . var_export($aff, true));
+        $app->response->addToBody(implode("\r\n", [
+            '',
+            __CLASS__,
+            'AFF: ' . var_export($aff, true),
+        ]));
     }
 }

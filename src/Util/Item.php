@@ -20,6 +20,7 @@ use SNOWGIRL_SHOP\Entity\Brand;
 use SNOWGIRL_CORE\Helper\Arrays;
 use SNOWGIRL_SHOP\Manager\Item\Attr as ItemAttrManager;
 use SNOWGIRL_SHOP\Entity\Item\Archive as ItemArchive;
+use SNOWGIRL_SHOP\Manager\Item\IndexerHelper;
 use Throwable;
 
 /**
@@ -30,6 +31,18 @@ use Throwable;
  */
 class Item extends Util
 {
+    /**
+     * @var IndexerHelper
+     */
+    private $indexerHelper;
+
+    protected function initialize()
+    {
+        parent::initialize();
+
+        $this->indexerHelper = new IndexerHelper();
+    }
+
     public function doFixSeoNames()
     {
         $db = $this->app->container->db;
@@ -285,7 +298,7 @@ class Item extends Util
         $db = $this->app->container->db;
 
         $itemTable = $this->app->managers->items->getEntity()->getTable();
-        $showCreate = $db->getManager()->showCreateTable($itemTable);
+        $showCreate = $db->getManager()->showCreateTable($itemTable, true);
 
         foreach ($this->archiveIgnore as $column) {
             $showCreate = preg_replace('/' . $db->quote($column) . ' [^\,]+\,/', '', $showCreate);
@@ -452,7 +465,7 @@ class Item extends Util
             $aff += $affTmp;
         }
 
-        $this->app->managers->archiveItems->deleteMany($where);
+        $affTmp = $this->app->managers->archiveItems->deleteMany($where);
         $this->output('Deleted from item_archive: ' . $affTmp);
 
         $aff += $affTmp;
@@ -661,10 +674,8 @@ class Item extends Util
      * @todo already created:
      * [category_id,    vendor_id, created_at, updated_at]
      * [                vendor_id, created_at, updated_at]
-     *
      * @param FixWhere|null $fixWhere
      * @param array $params
-     *
      * @return bool
      */
     public function doFixItemsCategories(FixWhere $fixWhere = null, array $params = [])
@@ -761,7 +772,7 @@ class Item extends Util
                         $linkAttrEntity = ItemAttrManager::makeLinkEntityClassByAttrEntityClass($mva[$attrPk]);
 
                         foreach (is_array($attrId) ? $attrId : [$attrId] as $attrId2) {
-                            $attrId2 = (int)$attrId2;
+                            $attrId2 = (int) $attrId2;
 
                             $aff = $this->app->managers->getByEntityClass($linkAttrEntity)->insertMany(array_map(function ($item) use ($attrPk, $attrId2) {
                                 return [
@@ -803,15 +814,6 @@ class Item extends Util
         return $this->app->managers->items->findColumns(Entity::SEARCH_IN);
     }
 
-    protected function getAjaxSuggestionsAttrPkToTable(): array
-    {
-        return [
-            ($entity = $this->app->managers->brands->getEntity())->getPk() => $entity->getTable(),
-            ($entity = $this->app->managers->colors->getEntity())->getPk() => $entity->getTable(),
-            ($entity = $this->app->managers->materials->getEntity())->getPk() => $entity->getTable(),
-        ];
-    }
-
     protected function getElasticMappings(): array
     {
         $properties = [
@@ -838,7 +840,7 @@ class Item extends Util
         $sva = $this->app->managers->catalog->getSvaPkToTable();
         $mva = $this->app->managers->catalog->getMvaPkToTable();
 
-        foreach ($this->getAjaxSuggestionsAttrPkToTable() as $pk => $table) {
+        foreach ($this->indexerHelper->getAjaxSuggestionsAttrPkToTable($this->app) as $pk => $table) {
             if (isset($sva[$pk])) {
                 $properties[$table] = ['type' => 'object'];
                 unset($sva[$pk]);
@@ -878,76 +880,21 @@ class Item extends Util
         return true;
     }
 
-    public function doRawIndexElastic(string $index = null, $where = null): int
+    public function doRawIndexElastic(string $index, $where = null): int
     {
         $aff = 0;
 
-        $indexerManager = $this->app->container->indexer;
+        $this->indexerHelper->prepareData($this->app);
 
-        /** @var string|Entity $entity */
-        $entity = $this->app->managers->items->getEntity();
-
-        $itemTable = $entity->getTable();
-        $itemPk = $entity->getPk();
-
-        $index = $index ?: $itemTable;
         $where = Arrays::cast($where);
 
-        $columns = [
-            $itemPk,
-            'is_sport',
-            'is_size_plus',
-            'old_price',
-            'price',
-
-            'order_desc_relevance',
-            'order_desc_rating',
-            'order_asc_price',
-            'order_desc_price'
-        ];
-
-        $searchColumns = $this->getSearchColumns();
-
-        foreach ($searchColumns as $column) {
-            $columns[] = $column;
-        }
-
-        $sva = $this->app->managers->catalog->getSvaPkToTable();
-
-        foreach (array_keys($sva) as $pk) {
-            $columns[] = $pk;
-        }
-
-        $mva = $this->app->managers->catalog->getMvaPkToTable();
-
-        foreach (array_keys($mva) as $pk) {
-            $columns[] = $pk;
-        }
-
-        $columnsOptions = Arrays::filterByKeysArray($entity->getColumns(), $columns);
-
-        $categoryManager = $this->app->managers->categories;
-
-        /** @var Manager[] $managers */
-        $managers = [];
-
-        //which attrs name to inject into index
-        $injectAttrIdToName = [];
-
-        foreach ($this->getAjaxSuggestionsAttrPkToTable() as $attrPk => $attrTable) {
-            /** @var Manager $attrManager */
-            $attrManager = $this->app->managers->getByTable($attrTable);
-            $entity = $attrManager->getEntity();
-            $injectAttrIdToName[$attrPk] = $this->app->utils->attrs->getIdToName($entity->getClass(), true);
-            $managers[$attrPk] = $attrManager;
-        }
-
-        $mappingKeys = array_keys($this->getElasticMappings()['properties']);
-
-        $mysql = $this->app->container->db;
-
         (new WalkChunk2(1000))
-            ->setFnGet(function ($lastId, $size) use ($mysql, $itemPk, $itemTable, $mva, $columns, $where) {
+            ->setFnGet(function ($lastId, $size) use ($where) {
+                $itemPk = $this->app->managers->items->getEntity()->getPk();
+                $itemTable = $this->app->managers->items->getEntity()->getTable();
+                $mva = $this->indexerHelper->getMva();
+                $mysql = $this->app->container->db;
+
                 $query = new Query(['params' => []]);
 
                 if ($lastId) {
@@ -961,7 +908,7 @@ class Item extends Util
                         }
 
                         return $mysql->quote($column, $itemTable);
-                    }, $columns)),
+                    }, $this->indexerHelper->getColumns())),
                     'FROM ' . $mysql->quote($itemTable) . ' ' . implode(' ', array_map(function ($attrTable)
                     use ($mysql, $itemTable, $itemPk) {
                         $linkTable = 'item_' . $attrTable;
@@ -976,134 +923,18 @@ class Item extends Util
 
                 return $mysql->reqToArrays($query);
             })
-            ->setFnDo(function ($items) use (
-                $indexerManager, $entity, $itemPk, $index, $sva, $mva, $columnsOptions, $mappingKeys, $categoryManager,
-                $injectAttrIdToName, $managers, $searchColumns, &$aff
-            ) {
-                $items = Arrays::mapByKeyValueMaker($items, function ($i, $item) use (
-                    $itemPk, $sva, $mva, $columnsOptions, $categoryManager, $injectAttrIdToName, $managers, $mappingKeys,
-                    $searchColumns
-                ) {
-                    $item = array_filter($item, function ($v) {
-                        return null !== $v;
-                    });
+            ->setFnDo(function ($items) use ($index, &$aff) {
+                $itemPk = $this->app->managers->items->getEntity()->getPk();
 
-                    foreach ($columnsOptions as $column => $options) {
-                        if (isset($item[$column])) {
-                            switch ($options['type']) {
-                                case Entity::COLUMN_FLOAT:
-                                    if ($item[$column]) {
-                                        $item[$column] = (float)$item[$column];
-                                    } else {
-                                        $item[$column] = $options['default'];
-                                    }
-                                    break;
-                                case Entity::COLUMN_INT:
-                                    if ($item[$column]) {
-                                        $item[$column] = (int)$item[$column];
-                                    } else {
-                                        $item[$column] = $options['default'];
-                                    }
-                                    break;
-                                case Entity::COLUMN_TIME:
-                                    if ($item[$column]) {
-                                    } else {
-                                        $item[$column] = $options['default'];
-                                    }
-                                    break;
-                                default:
-                                    break;
-                            }
-                        }
-                    }
+                $documents = [];
 
-                    if (isset($item['old_price'])) {
-                        $item['is_sales'] = $item['old_price'] > 0 ? 1 : 0;
-                        unset($item['old_price']);
-                    } else {
-                        $item['is_sales'] = 0;
-                    }
+                foreach ($items as $item) {
+                    $documents[$item[$itemPk]] = $this->indexerHelper->getDocumentByArray($item);
+                }
 
-                    foreach ([
-                                 'is_sport',
-                                 'is_size_plus',
-                                 'is_sales',
-                             ] as $column) {
-                        if (isset($item[$column])) {
-                            $item[$column] = 1 == $item[$column];
-                        }
-                    }
+                $aff += $this->app->container->indexer->getManager()->indexMany($index, $documents);
 
-                    foreach ($sva as $pk => $table) {
-                        if (isset($item[$pk])) {
-                            if ($item[$pk]) {
-                                $item[$pk] = (int)$item[$pk];
-
-//                                if ('category_id' == $pk) {
-//                                    $item[$pk] = $categoryManager->getChildrenIdFor($item[$pk]);
-//                                    $item['category_ids'] = $categoryManager->getChildrenIdFor($item[$pk]);
-//                                }
-                            } else {
-                                unset($item[$pk]);
-//                            $item[$pk] = null;
-                            }
-                        }
-                    }
-
-                    foreach ($mva as $pk => $table) {
-                        if (isset($item[$pk])) {
-                            if ($item[$pk]) {
-                                $item[$pk] = array_map('intval', explode(',', $item[$pk]));
-                            } else {
-                                unset($item[$pk]);
-                            }
-                        }
-                    }
-
-                    foreach (array_keys($injectAttrIdToName) as $attrIdToInject) {
-                        if (isset($item[$attrIdToInject])) {
-                            $manager = $managers[$attrIdToInject];
-                            $table = $manager->getEntity()->getTable();
-
-                            if (is_array($item[$attrIdToInject])) {
-                                $item[$table] = array_map(function ($id) use ($attrIdToInject, $injectAttrIdToName) {
-                                    return [
-                                        'id' => $id,
-                                        'name' => $injectAttrIdToName[$attrIdToInject][$id]
-                                    ];
-                                }, $item[$attrIdToInject]);
-                            } else {
-                                $item[$table] = [
-                                    'id' => $item[$attrIdToInject],
-                                    'name' => $injectAttrIdToName[$attrIdToInject][$item[$attrIdToInject]]
-                                ];
-                            }
-
-                            unset($item[$attrIdToInject]);
-                        }
-                    }
-
-                    foreach ($searchColumns as $column) {
-                        if (isset($item[$column])) {
-                            $item[$column . '_length'] = mb_strlen($item[$column]);
-                        }
-                    }
-
-                    $id = $item[$itemPk];
-                    unset($item[$itemPk]);
-
-//                    $item2 = Arrays::filterByKeysArray($item, $mappingKeys);
-//
-//                    if ($item !=$item2) {
-//                        var_dump($item,$item2);die;
-//                    }
-
-                    return [$id, $item];
-                });
-
-                $aff += $indexerManager->getManager()->indexMany($index, $items);
-
-                return end($items) ? key($items) : false;
+                return end($documents) ? key($documents) : false;
             })
             ->run();
 

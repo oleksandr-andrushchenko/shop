@@ -37,6 +37,10 @@ class DeleteItemsWithInvalidCategoriesAction
                 ->setOrBetweenCreatedAndUpdated($app->request->get('param_6'))
         );
 
-        $app->response->setBody($output ? 'DONE' : 'FAILED');
+        $app->response->addToBody(implode("\r\n", [
+            '',
+            __CLASS__,
+            $output ? 'DONE' : 'FAILED',
+        ]));
     }
 }

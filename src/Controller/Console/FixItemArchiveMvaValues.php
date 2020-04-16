@@ -9,11 +9,20 @@ class FixItemArchiveMvaValues
 {
     use PrepareServicesTrait;
 
+    /**
+     * @param App $app
+     * @throws \SNOWGIRL_CORE\Http\Exception\NotFoundHttpException
+     */
     public function __invoke(App $app)
     {
         $this->prepareServices($app);
 
         $aff = $app->utils->items->doFixArchiveMvaValues();
-        $app->response->setBody($aff ? "DONE: {$aff}" : 'FAILED');
+
+        $app->response->addToBody(implode("\r\n", [
+            '',
+            __CLASS__,
+            $aff ? "DONE: {$aff}" : 'FAILED',
+        ]));
     }
 }

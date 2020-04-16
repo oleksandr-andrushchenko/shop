@@ -14,6 +14,9 @@ $itemsBlocks = array_chunk($this->items, $this->itemsPerBlock);
 
 $this->getLayout()
     ->addHeadCss('@shop/index.css');
+
+$vkontakteLike = $this->app->views->vkontakteLike($this)->stringify();
+$facebookLike = $this->app->views->facebookLike($this)->stringify();
 ?>
 
 <div class="index vs">
@@ -69,10 +72,10 @@ $this->getLayout()
         </div>
     <?php } ?>
 
-    <?php if ($this->vkontakteLike || $this->facebookLike) { ?>
+    <?php if ($vkontakteLike || $facebookLike) { ?>
         <div class="section subscribe">
-            <?php echo $this->vkontakteLike ?>
-            <?php echo $this->facebookLike ?>
+            <?php echo $vkontakteLike ?>
+            <?php echo $facebookLike ?>
         </div>
     <?php } ?>
 

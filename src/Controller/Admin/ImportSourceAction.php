@@ -6,13 +6,17 @@ use SNOWGIRL_CORE\Http\Exception\BadRequestHttpException;
 use SNOWGIRL_CORE\Http\Exception\NotFoundHttpException;
 use SNOWGIRL_SHOP\Http\HttpApp as App;
 use SNOWGIRL_CORE\Controller\Admin\PrepareServicesTrait;
-use SNOWGIRL_SHOP\Entity\Item\Attr as ItemAttr;
 use SNOWGIRL_SHOP\RBAC;
 
 class ImportSourceAction
 {
     use PrepareServicesTrait;
 
+    /**
+     * @param App $app
+     * @throws \SNOWGIRL_CORE\Exception
+     * @throws \SNOWGIRL_CORE\Http\Exception\ForbiddenHttpException
+     */
     public function __invoke(App $app)
     {
         $this->prepareServices($app);
@@ -79,7 +83,8 @@ class ImportSourceAction
         }
 
         $content->addParams([
-            'fileColumns' => $columns
+            'fileColumns' => $columns,
+            'total' => $total,
         ]);
 
         $app->response->setHTML(200, $view);

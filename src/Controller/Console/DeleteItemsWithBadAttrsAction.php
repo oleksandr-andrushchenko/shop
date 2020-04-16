@@ -9,16 +9,28 @@ class DeleteItemsWithBadAttrsAction
 {
     use PrepareServicesTrait;
 
+    /**
+     * @param App $app
+     * @throws \SNOWGIRL_CORE\Http\Exception\NotFoundHttpException
+     */
     public function __invoke(App $app)
     {
         $this->prepareServices($app);
 
         $aff = $app->utils->items->doDeleteWithNonExistingCategories();
-        $app->response->addToBody(is_int($aff) ? "DONE[non-existing-categories]={$aff}" : 'FAILED');
 
-        $app->response->addToBody("\n");
+        $app->response->addToBody(implode("\r\n", [
+            '',
+            __CLASS__,
+            is_int($aff) ? "DONE[non-existing-categories]={$aff}" : 'FAILED',
+        ]));
 
         $aff = $app->utils->items->doDeleteWithNonExistingBrands();
-        $app->response->addToBody(is_int($aff) ? "DONE[non-existing-brands]={$aff}" : 'FAILED');
+
+        $app->response->addToBody(implode("\r\n", [
+            '',
+            __CLASS__,
+            is_int($aff) ? "DONE[non-existing-brands]={$aff}" : 'FAILED',
+        ]));
     }
 }

@@ -21,7 +21,6 @@ class ItemAction
 
     /**
      * @param App $app
-     *
      * @return bool
      * @throws Throwable
      */
@@ -80,7 +79,6 @@ class ItemAction
             'deviceDesktop' => $app->request->getDevice()->isDesktop(),
             'archive' => $archive = $item->get('archive'),
             'typeOwn' => (!$archive) && ($source = $app->managers->items->getImportSource($item)) && (ImportSource::TYPE_OWN == $source->getType()),
-            'sharer' => $app->views->sharer($view)->stringify()
         ]);
 
         $relatedUri = $app->managers->items->getRelatedCatalogURI($item)

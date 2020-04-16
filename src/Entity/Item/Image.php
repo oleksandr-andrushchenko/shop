@@ -3,7 +3,6 @@
 namespace SNOWGIRL_SHOP\Entity\Item;
 
 use SNOWGIRL_CORE\Entity;
-//use SNOWGIRL_SHOP\Entity\Item\Attr;
 
 class Image extends Entity
 {
