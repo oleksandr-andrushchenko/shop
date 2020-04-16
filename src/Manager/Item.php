@@ -8,11 +8,14 @@ use SNOWGIRL_CORE\Query\Expression;
 use SNOWGIRL_CORE\Entity;
 use SNOWGIRL_SHOP\Catalog\SRC;
 use SNOWGIRL_SHOP\Catalog\URI;
+use SNOWGIRL_SHOP\Console\ConsoleApp;
 use SNOWGIRL_SHOP\Entity\Import\Source;
+use SNOWGIRL_SHOP\Http\HttpApp;
 use SNOWGIRL_SHOP\Item\URI as ItemURI;
 use SNOWGIRL_CORE\Manager;
 use SNOWGIRL_SHOP\Entity\Item\Attr as ItemAttr;
 use SNOWGIRL_SHOP\Manager\Item\DataProvider;
+use SNOWGIRL_SHOP\Manager\Item\IndexerHelper;
 use SNOWGIRL_SHOP\Manager\Page\Catalog as PageCatalogManager;
 
 use SNOWGIRL_SHOP\Entity\Item as ItemEntity;
@@ -29,7 +32,7 @@ use SNOWGIRL_CORE\Query;
 /**
  * @todo    split into Item\SRC and Item\URI (add alias URIs then after...)
  * Class Item
- * @property App app
+ * @property AbstractApp|HttpApp|ConsoleApp app
  * @property ItemEntity $entity
  * @method Item clear()
  * @method ItemEntity find($id)
@@ -45,7 +48,7 @@ class Item extends Manager implements GoLinkBuilderInterface
         /** @var ItemEntity $entity */
 
         $output = parent::onDeleted($entity);
-        $output = $output && $this->app->images->get($entity->getImage())->delete();
+        $output = $output && $this->app->images->deleteByFile($entity->getImage());
 
         return $output;
     }
@@ -681,7 +684,7 @@ class Item extends Manager implements GoLinkBuilderInterface
         return $this->app->managers->vendors->canCheckRealIsInStock($vendor, $strict);
     }
 
-    public function checkRealIsInStock(ItemEntity $item, $strict = false)
+    public function checkRealIsInStock(ItemEntity $item, $strict = false): ?bool
     {
         if ($this->canCheckRealIsInStock($item, $strict)) {
             $vendor = $this->getVendor($item);
@@ -715,5 +718,16 @@ class Item extends Manager implements GoLinkBuilderInterface
         $source = $this->getSource($item);
         $import = $this->app->managers->sources->getImport($source);
         return $import->getItemTargetLink($item);
+    }
+
+    /**
+     * @param Entity|ItemEntity $entity
+     * @return array|null
+     */
+    public function getIndexerDocument(Entity $entity): ?array
+    {
+        $helper = new IndexerHelper();
+        $helper->prepareData($this->app);
+        return $helper->getDocumentByEntity($entity);
     }
 }

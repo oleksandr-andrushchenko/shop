@@ -21,6 +21,7 @@ use SNOWGIRL_SHOP\Entity\Vendor;
 use SNOWGIRL_SHOP\Entity\Material;
 use SNOWGIRL_SHOP\Entity\Size;
 use SNOWGIRL_SHOP\Entity\Season;
+use SNOWGIRL_SHOP\Manager\Page\Catalog\IndexerHelper;
 
 /**
  * Class Catalog
@@ -90,7 +91,6 @@ class Catalog extends Manager
 
     /**
      * @param array $params
-     *
      * @return array|PageCatalogEntity[]
      * @throws \Exception
      */
@@ -119,7 +119,6 @@ class Catalog extends Manager
 
     /**
      * @param array $params
-     *
      * @return mixed|null|PageCatalogEntity
      * @throws \Exception
      */
@@ -131,7 +130,6 @@ class Catalog extends Manager
 
     /**
      * @param array $params
-     *
      * @return bool|mixed|null|Entity|PageCatalogEntity
      * @throws \Exception
      */
@@ -172,7 +170,6 @@ class Catalog extends Manager
 
     /**
      * @param $uri
-     *
      * @return null|PageCatalogEntity
      */
     public function getObjectByUri($uri)
@@ -183,7 +180,6 @@ class Catalog extends Manager
 
     /**
      * @param $uri
-     *
      * @return Entity|PageCatalogEntity
      */
     public function findByUri($uri)
@@ -214,9 +210,7 @@ class Catalog extends Manager
 
     /**
      * @todo... optimize
-     *
      * @param PageCatalogEntity $pageCatalog
-     *
      * @return URI
      */
     public static function getCatalogUri(PageCatalogEntity $pageCatalog)
@@ -335,7 +329,6 @@ class Catalog extends Manager
 
     /**
      * @param PageCatalogEntity $pageCatalog
-     *
      * @return PageCatalogCustomEntity
      */
     public function getPageCatalogCustom(PageCatalogEntity $pageCatalog)
@@ -350,7 +343,6 @@ class Catalog extends Manager
 
     /**
      * @param PageCatalogEntity $pageCatalog
-     *
      * @return PageCatalogCustomEntity
      */
     public function makeCustom(PageCatalogEntity $pageCatalog)
@@ -358,5 +350,16 @@ class Catalog extends Manager
         return new PageCatalogCustomEntity([
             'params_hash' => $pageCatalog->getParamsHash()
         ]);
+    }
+
+    /**
+     * @param Entity|PageCatalogEntity $entity
+     * @return array|null
+     */
+    public function getIndexerDocument(Entity $entity): ?array
+    {
+        $handler = new IndexerHelper();
+        $handler->prepareData($this->app);
+        return $handler->getDocumentByEntity($entity);
     }
 }
