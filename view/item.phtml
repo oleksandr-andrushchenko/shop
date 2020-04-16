@@ -6,11 +6,11 @@ use SNOWGIRL_CORE\Images;
 use SNOWGIRL_CORE\Helper;
 use SNOWGIRL_SHOP\Catalog\URI;
 use SNOWGIRL_SHOP\Catalog\SEO;
-use SNOWGIRL_CORE\Entity;
 use SNOWGIRL_SHOP\Entity\Vendor;
 use SNOWGIRL_SHOP\Entity\Category;
 use SNOWGIRL_SHOP\Entity\Brand;
 use SNOWGIRL_SHOP\Entity\Size;
+use SNOWGIRL_CORE\Image;
 
 /** @var View $this */
 /** @var Item $item */
@@ -38,7 +38,12 @@ $this->getLayout()
     ->addJsConfig('vendorName', $vendorName)
     ->addJsConfig('deviceDesktop', $this->deviceDesktop)
     ->addJsConfig('typeOwn', $this->typeOwn)
+    ->addJsConfig('isArchive', !!$item->get('archive'))
+    ->addJsConfig('isInStockCheck', $vendor->isInStockCheck())
+    ->addJsConfig('isInStock', $item->isInStock())
     ->addJs('@shop/item.js');
+
+$sharer = $this->app->views->sharer($this)->stringify();
 
 $attrToName = [
     'category_id' => 'Категория',
@@ -78,7 +83,8 @@ if ((!$item->get('archive')) && $item->isInStock()) {
                             <?php echo $this->app->views->image($image, Images::FORMAT_NONE, 0, [
                                 'alt' => 'Фото ' . $item->getName(),
 //                                'title' => 'Купить ' . $item->getName(),
-                                'itemprop' => 'image'
+                                'itemprop' => 'image',
+                                'height' => false,
                             ]) ?>
                         </a>
                     </li>
@@ -102,7 +108,8 @@ if ((!$item->get('archive')) && $item->isInStock()) {
                     <?php echo $this->app->views->image($item->getImage(), Images::FORMAT_NONE, 0, [
                         'alt' => 'Фото ' . $item->getName(),
 //                        'title' => 'Купить ' . $item->getName(),
-                        'class' => 'item-image'
+                        'class' => 'item-image',
+                        'height' => false,
                     ]) ?>
                 </a>
             </div>
@@ -127,9 +134,6 @@ if ((!$item->get('archive')) && $item->isInStock()) {
             <div class="item-buttons">
                 <?php if ($item->get('archive')) { ?>
                     <span class="btn btn-lg btn-inactive"></span>
-                    <button type="button" class="btn btn-lg btn-primary btn-related">
-                        <span class="fa fa-random"></span> Похожие
-                    </button>
                 <?php } else { ?>
                     <?php if ($this->typeOwn) { ?>
                         <?php if (isset($this->attrs['size_id']) && $this->attrs['size_id']) { ?>
@@ -158,17 +162,27 @@ if ((!$item->get('archive')) && $item->isInStock()) {
                                     В корзину
                                 </button>
                             </span>
-                    <?php } else { ?>
+                    <?php } elseif ($item->isInStock()) { ?>
                         <a href="<?php echo $tmp = $this->app->managers->items->getGoLink($item) ?>"
                            class="btn btn-lg btn-info btn-details" target="_blank" rel="nofollow">
                             Еще детали
                         </a>
                         <a href="<?php echo $tmp ?>" class="btn btn-lg btn-primary btn-buy" target="_blank"
                            rel="nofollow">
-                            Купить товар
+                            <span class="fa fa-shopping-cart"></span>
+                            Купить
+                            <?php echo $this->noIndexOpen() ?>
+                            на <?php echo $vendor->getName() ?>
+                            <?php echo $this->noIndexClose() ?>
                         </a>
+                    <?php } else { ?>
+                        <span class="btn btn-lg btn-out-of-stock"></span>
                     <?php } ?>
                 <?php } ?>
+
+                <button type="button" class="btn btn-lg btn-default btn-related">
+                    Похожие
+                </button>
             </div>
 
             <?php if ($vendor->isActive() && !$this->typeOwn) { ?>
@@ -267,9 +281,9 @@ if ((!$item->get('archive')) && $item->isInStock()) {
         <?php } ?>
     </div>
 
-    <?php if ($this->sharer) { ?>
+    <?php if ($sharer) { ?>
         <div class="col-md-6 sharer">
-            <?php echo $this->sharer ?>
+            <?php echo $sharer ?>
         </div>
     <?php } ?>
 
