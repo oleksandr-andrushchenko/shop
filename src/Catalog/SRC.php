@@ -55,6 +55,7 @@ class SRC
 
         if ((null === $forceProvider) || ($forceProvider == $provider)) {
             if (null == $this->dataProvider) {
+
                 $class = __CLASS__ . '\\DataProvider\\' . ucfirst($provider);
 
 //                var_dump($class);die;
