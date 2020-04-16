@@ -9,6 +9,7 @@ use SNOWGIRL_CORE\Helper\Strings;
 use SNOWGIRL_CORE\Helper\FileSystem;
 use SNOWGIRL_CORE\Query;
 use SNOWGIRL_CORE\AbstractApp as App;
+use SNOWGIRL_CORE\Query\Expression;
 use SNOWGIRL_SHOP\Console\ConsoleApp;
 use SNOWGIRL_SHOP\Entity\Category;
 use SNOWGIRL_SHOP\Entity\Item;
@@ -28,13 +29,12 @@ use Throwable;
  *
  * @todo    for ImportSource::TYPE_OWN create separate class
  * @todo    use compose instead of extend
- *
  * @package SNOWGIRL_SHOP
  */
 class Import
 {
     protected const LIMIT = 500;
-    protected const FILE_CACHE_MINUTES = 10;
+    protected const FILE_CACHE_HOURS = 3;
 
     /**
      * @var HttpApp|ConsoleApp
@@ -85,6 +85,12 @@ class Import
     protected $aff;
     protected $error;
     protected $sva;
+
+    /**
+     * Partner_item_id => image_with_dimensions[]
+     *
+     * @var array
+     */
     protected $images;
     protected $mva;
     /**
@@ -95,7 +101,7 @@ class Import
 
     protected $skippedAsDuplicate;
     protected $skippedAsGarbage;
-//    protected $existingPartnerItemId;
+    protected $existingPartnerItemId;
     protected $existingImages;
 
     protected $linkGroups;
@@ -111,7 +117,6 @@ class Import
      * @param App $app
      * @param ImportSource $source
      * @param bool|null $debug
-     *
      * @throws Exception
      */
     public function __construct(App $app, ImportSource $source, bool $debug = null)
@@ -153,14 +158,18 @@ class Import
         return $output;
     }
 
-    public function dropCache($history = false): ?bool
+    /**
+     * @param bool $history
+     * @return bool
+     * @throws Exception
+     */
+    public function dropCache($history = false): bool
     {
         if (!$this->cacheDropped) {
             $this->log('dropping cache...');
 
             if ($this->checkPid()) {
-                $this->log('previous running...');
-                return null;
+                throw new Exception('previous running...');
             }
 
             try {
@@ -174,7 +183,7 @@ class Import
                 $this->initMeta();
 
                 $this->cacheDropped = true;
-            } catch (Throwable $exception) {
+            } catch (Throwable $e) {
                 return false;
             }
         }
@@ -224,7 +233,6 @@ class Import
      * @param callable $fn
      * @param bool|null $allowModifyOnlyCheck
      * @param array $allowModifyOnlyExclude
-     *
      * @return bool
      * @throws Exception
      */
@@ -336,7 +344,6 @@ class Import
     /**
      * @param int $page
      * @param int $size
-     *
      * @return \stdClass
      * @throws Exception
      */
@@ -352,8 +359,12 @@ class Import
         $endIndex = $page * $size - 1;
 
         $this->walkFilteredFile(function ($row, $i) use ($startIndex, $endIndex, &$rows) {
-            if ($i < $startIndex || $i > $endIndex) {
+            if ($i < $startIndex) {
                 return true;
+            }
+
+            if ($i > $endIndex) {
+                return false;
             }
 
             $rows[] = $row;
@@ -372,7 +383,6 @@ class Import
      * @param array $columns
      * @param bool $allowModifyOnly
      * @param array $allowModifyOnlyExclude
-     *
      * @return array
      * @throws Exception
      */
@@ -439,7 +449,6 @@ class Import
 
     /**
      * @param $counts
-     *
      * @return array
      * @throws Exception
      */
@@ -468,7 +477,6 @@ class Import
 
     /**
      * @param $column
-     *
      * @return mixed
      * @throws Exception
      */
@@ -565,32 +573,28 @@ class Import
      * be resolved if
      * // 1) take into account existing items
      * // 2) load whole file (no updated_at)
-     *
      * @todo check & fix:
      *       1) source + id - one single unique pair
      *       2) if item exists - do not check image existence - compare hashes only, and if not equal -
      *       update hash & download
-     *
      * @todo big improvements:
      *       main components:
      *          partner_item_id
      *          partner_link
      *          image
-     *
      * @param bool $downloadImages
-     * @param \Closure $onAdd
-     * @param \Closure|null $onEnd
-     *
+     * @param callable $onAdd
+     * @param callable|null $onEnd
      * @return bool
      */
-    public function walkImport(bool $downloadImages, \Closure $onAdd, \Closure $onEnd = null)
+    public function walkImport(bool $downloadImages, callable $onAdd, callable $onEnd = null)
     {
         try {
             $this->downloadImages = $downloadImages;
 
             $this->before();
 
-            $this->microtime = (int)microtime(true);
+            $this->microtime = (int) microtime(true);
 
             $this->isRuLang = in_array('ru', $this->langs);
 
@@ -598,6 +602,9 @@ class Import
 
             $this->prepareSva();
             $this->prepareMva();
+
+            $this->sport = [];
+            $this->sizePlus = [];
 
             $this->skippedByUnique = 0;
             $this->skippedByUpdated = 0;
@@ -870,11 +877,10 @@ class Import
             return null;
         }
 
+        $this->dropCache();
         $this->createPid();
 
         try {
-            $this->dropCache();
-
             $hash = $this->getHash();
 
 //            $history = $this->getLastOkImport();
@@ -1036,7 +1042,7 @@ class Import
                 ($dynamicPart ?: implode('-', [
                     md5($this->getFilename()),
                     $today->format('Y_m_d'),
-                    floor(($diff->h * 60 + $diff->i) / self::FILE_CACHE_MINUTES)
+                    floor($diff->h / self::FILE_CACHE_HOURS)
                 ])) . '.csv'
             ])
         ]);
@@ -1144,35 +1150,20 @@ class Import
         return $this;
     }
 
-    protected function getDbItems()
+    protected function getDbItems(): iterable
     {
+        $imageQuoted = $this->app->container->db->quote('image');
+
         return $this->app->managers->items->clear()
             ->setColumns([
                 $this->app->managers->items->getEntity()->getPk(),
                 'partner_item_id',
                 'category_id',
                 'partner_link_hash',
-                'image'
+                new Expression('SUBSTR(' . $imageQuoted . ', 1, ' . $this->app->images->getHashLength() . ') AS ' . $imageQuoted),
             ])
             ->setWhere(['import_source_id' => $this->source->getId()])
             ->getItems();
-    }
-
-    protected function getPartnerItemIdByImage(array $image)
-    {
-        $output = [];
-
-        $tmp = $this->app->managers->items->clear()
-            ->setColumns(['partner_item_id', 'image'])
-            ->setWhere(['import_source_id' => $this->source->getId(), 'image' => $image])
-            ->setQueryParam('log', $this->debug)
-            ->getArrays();
-
-        foreach ($tmp as $v) {
-            $output[$v['image']] = $v['partner_item_id'];
-        }
-
-        return $output;
     }
 
     protected function getPartnerUpdatedAtByPartnerItemId(array $partnerItemId)
@@ -1326,7 +1317,7 @@ class Import
                     }
                 }
 
-                $output[$entityPk] = (int)$id;
+                $output[$entityPk] = (int) $id;
             } else {
                 $output[$entityPk] = null;
             }
@@ -1340,7 +1331,6 @@ class Import
      *
      * @param $pk
      * @param $row
-     *
      * @return int
      */
     protected function getSvaByRow($pk, $row)
@@ -1349,7 +1339,7 @@ class Import
             $m = $this->mappings[$pk];
 
             if (isset($m['value']) && $m['value']) {
-                return (int)$m['value'];
+                return (int) $m['value'];
             } elseif (isset($m['column'])) {
                 $c = $m['column'];
 
@@ -1357,7 +1347,7 @@ class Import
                     $from = trim($row[$this->indexes[$c]]);
 
                     if (array_key_exists('modify', $m) && array_key_exists($from, $modifies = $m['modify']) && $modifies[$from]['value']) {
-                        return (int)$modifies[$from]['value'];
+                        return (int) $modifies[$from]['value'];
                     }
 
                     if ($this->sva[$pk]['processNew']) {
@@ -1368,7 +1358,7 @@ class Import
         }
 
         if (isset($this->sources[$pk])) {
-            foreach ((array)$this->sources[$pk] as $c) {
+            foreach ((array) $this->sources[$pk] as $c) {
                 if (isset($this->indexes[$c])) {
                     $i = $this->indexes[$c];
 
@@ -1376,14 +1366,14 @@ class Import
                         if ($this->isRuLang) {
                             foreach ($this->sva[$pk]['nameToId'] as $value => $id) {
                                 if (false !== mb_stripos($source, $value)) {
-                                    return (int)$id;
+                                    return (int) $id;
                                 }
                             }
                         }
 
                         foreach ($this->sva[$pk]['termNameToId'] as $term => $id) {
                             if (false !== mb_stripos($source, $term)) {
-                                return (int)$id;
+                                return (int) $id;
                             }
                         }
                     }
@@ -1413,15 +1403,15 @@ class Import
             $value = trim($row[$this->indexes[$map['column']]]);
 
             if (array_key_exists('modify', $map) && array_key_exists($value, $modifies = $map['modify']) && $modifies[$value]['value']) {
-                $this->rememberMva($this->getPartnerItemIdByRow($row), 'tag_id', $modifies[$value]['tags']);
-                $this->sport = $this->sport || in_array('is_sport', $modifies[$value]);
-                $this->sizePlus = $this->sizePlus || in_array('is_size_plus', $modifies[$value]);
-                return (int)$modifies[$value]['value'];
+                $this->rememberMva($partnerItemId, 'tag_id', $modifies[$value]['tags']);
+                $this->sport[$partnerItemId] = in_array('is_sport', $modifies[$value]);
+                $this->sizePlus[$partnerItemId] = in_array('is_size_plus', $modifies[$value]);
+                return (int) $modifies[$value]['value'];
             }
 
             return $this->getSvaByRow('category_id', $row);
         } elseif ($map['value']) {
-            return (int)$map['value'];
+            return (int) $map['value'];
         }
 
         return null;
@@ -1447,7 +1437,11 @@ class Import
         return $this->source->getId();
     }
 
-    protected function rememberImages($partnerItemId, $value)
+    /**
+     * @param $partnerItemId
+     * @param array $value - image_with_dimensions[]
+     */
+    protected function rememberImages($partnerItemId, array $value)
     {
         if (isset($this->images[$partnerItemId])) {
             $this->images[$partnerItemId] = array_merge($this->images[$partnerItemId], $value);
@@ -1531,6 +1525,10 @@ class Import
         }
     }
 
+    /**
+     * @param $row
+     * @return array - image_with_dimensions[]
+     */
     protected function getDownloadedImagesByRow($row)
     {
         $images = $this->getImagesByRow($row);
@@ -1543,14 +1541,18 @@ class Import
                     if ($url = trim($url)) {
                         $error = null;
 
-                        if (!$this->app->images->downloadWithWget($url, $images[$k], $error)) {
-                            $this->log($url . ': ' . $error, Logger::ERROR);
+                        if (!$hashWithDimensions = $this->app->images->downloadWithWget($url, $images[$k], $error)) {
+                            // @todo check if ok
+                            unset($images[$k]);
+
+                            $this->log($url . ': ' . $error, Logger::WARNING);
                             continue;
                         }
+
+//                        $output[] = $images[$k];
+                        $output[] = $hashWithDimensions;
                     }
                 }
-
-                $output[] = $images[$k];
             }
 
             return $output;
@@ -1566,6 +1568,10 @@ class Import
         $this->rememberImages($partnerItemId, $this->getDownloadedImagesByRow($row));
     }
 
+    /**
+     * @@todo process dimensions...
+     *
+     */
     protected function insertImages()
     {
         try {
@@ -1591,7 +1597,7 @@ class Import
                 foreach ($images as $image) {
                     if ($mainImage != $image) {
                         $insert[] = [
-                            'item_id' => (int)$partnerItemIdToItemId[$partnerItemId],
+                            'item_id' => (int) $partnerItemIdToItemId[$partnerItemId],
                             'image_id' => $image
                         ];
                     }
@@ -1701,8 +1707,8 @@ class Import
 
                         if ($id) {
                             $insert[] = [
-                                $itemPk => (int)$partnerItemIdToItemId[$partnerItemId],
-                                $entityPk => (int)$id
+                                $itemPk => (int) $partnerItemIdToItemId[$partnerItemId],
+                                $entityPk => (int) $id
                             ];
                         }
                     }
@@ -1725,7 +1731,6 @@ class Import
      *
      * @param $pk
      * @param $row
-     *
      * @return array
      */
     protected function getMvaByRow($pk, $row)
@@ -1733,7 +1738,7 @@ class Import
         $output = [];
 
         if (isset($this->sources[$pk])) {
-            foreach ((array)$this->sources[$pk] as $c) {
+            foreach ((array) $this->sources[$pk] as $c) {
                 if (isset($this->indexes[$c])) {
                     if ($source = trim($row[$this->indexes[$c]])) {
                         if ($this->isRuLang) {
@@ -1807,7 +1812,11 @@ class Import
         return null;
     }
 
-    protected function getImagesByRow($row)
+    /**
+     * @param $row
+     * @return array - image_without_dimensions[]
+     */
+    protected function getImagesByRow($row): array
     {
         if (array_key_exists('_images', $row)) {
             return $row['_images'];
@@ -1817,7 +1826,7 @@ class Import
 
         foreach (explode(',', $row[$this->indexes[$this->mappings['image']['column']]]) as $k => $url) {
             if ($url = trim($url)) {
-                # @todo pass categoryId salt in case of unique accross categories (take into account: cats could changed, maps could chaned)
+                # @todo pass categoryId salt in case of unique across categories (take into account: cats could changed, maps could chaned)
                 $output[$k] = $this->app->images->getHash($url);
             }
         }
@@ -1825,6 +1834,10 @@ class Import
         return $output;
     }
 
+    /**
+     * @param $row
+     * @return mixed - Image_with_dimensions
+     */
     protected function getDownloadedImageByRow($row)
     {
         $downloaded = $this->getDownloadedImagesByRow($row);
@@ -1842,7 +1855,7 @@ class Import
             return $row['_price'];
         }
 
-        $v = (float)trim($row[$this->indexes[$this->mappings['price']['column']]]);
+        $v = (float) trim($row[$this->indexes[$this->mappings['price']['column']]]);
 
         if ($v > 999999.99) {
             return false;
@@ -1853,14 +1866,12 @@ class Import
 
     /**
      * @todo use Item Entity's Columns info...
-     *
      * @param $row
-     *
      * @return float|null
      */
     protected function getOldPriceByRow($row)
     {
-        if (isset($this->mappings['old_price']) && $v = (float)trim($row[$this->indexes[$this->mappings['old_price']['column']]])) {
+        if (isset($this->mappings['old_price']) && $v = (float) trim($row[$this->indexes[$this->mappings['old_price']['column']]])) {
             if ($v > 999999.99) {
                 return null;
             }
@@ -1886,7 +1897,7 @@ class Import
             $map = $this->mappings['is_in_stock'];
 
             if (array_key_exists('modify', $map) && array_key_exists($value = trim($row[$this->indexes[$map['column']]]), $modifies = $map['modify'])) {
-                return (int)$modifies[$value]['value'];
+                return (int) $modifies[$value]['value'];
             }
         }
 
@@ -1939,7 +1950,7 @@ class Import
         }
 
         return isset($row[$this->indexes[$this->mappings['partner_updated_at']['column']]])
-            ? (int)trim($row[$this->indexes[$this->mappings['partner_updated_at']['column']]])
+            ? (int) trim($row[$this->indexes[$this->mappings['partner_updated_at']['column']]])
             : $this->microtime;
     }
 
@@ -2024,7 +2035,7 @@ class Import
 
             $aff = $db->req($query)->affectedRows();
 
-            $this->log('AFF item: ' . (int)$aff);
+            $this->log('AFF item: ' . (int) $aff);
             return $aff;
         } catch (Throwable $e) {
             $this->app->container->logger->error($e);
@@ -2121,7 +2132,6 @@ class Import
 
     /**
      * @param $row
-     *
      * @return array
      */
     protected function getRowDuplicates($row)
@@ -2168,7 +2178,6 @@ class Import
      * Collects existing (in db; already imported) rows patner item ids and theirs duplicates (if has) patner item ids
      *
      * @param array $rows
-     *
      * @return array
      */
     protected function collectExistingPartnerItemId(array $rows): array
@@ -2192,8 +2201,7 @@ class Import
      * Collects existing (in db; already imported) rows images and theirs duplicates (if has) images
      *
      * @param array $rows
-     *
-     * @return array
+     * @return array - image_without_image[]
      */
     protected function collectExistingImages(array $rows): array
     {
@@ -2217,29 +2225,52 @@ class Import
             }
         }
 
+        $db = $this->app->container->db;
+
         foreach ($this->app->managers->items->clear()
-                     ->setColumns(['partner_item_id', 'image'])
-                     ->setWhere(['import_source_id' => $this->source->getId(), 'image' => $images])
+                     ->setColumns([
+                         'partner_item_id',
+                         new Expression('SUBSTR(' . $db->quote('image') . ', 1, ' . $this->app->images->getHashLength() . ') AS ' . $db->quote('image')),
+                     ])
+                     ->setWhere([
+                         'import_source_id' => $this->source->getId(),
+                     ])
+                     ->setHavings([
+                         'image' => $images,
+                     ])
+                     ->setQueryParam('placeholders', false)
                      ->setQueryParam('log', $this->debug)
                      ->getItems() as $v) {
             $output[] = $v['image'];
         }
 
-        $images = array_diff($images, $output);
+        // non existing images
+//        $images = array_diff($images, $output);
 
-        $db = $this->app->container->db;
+        // existing images
+        $images = $output;
+        $output = [];
 
         $query = new Query(['params' => []]);
         $query->text = implode(' ', [
-            $db->makeSelectSQL(['partner_item_id', 'image_id'], false, $query->params),
+            $db->makeSelectSQL([
+                'partner_item_id',
+                new Expression('SUBSTR(' . $db->quote('image_id') . ', 1, ' . $this->app->images->getHashLength() . ') AS ' . $db->quote('image_id'))
+            ], false, $query->params),
             $db->makeFromSQL($this->app->managers->items->getEntity()->getTable()),
             $db->makeJoinSQL([[
                 $this->app->managers->items->getEntity()->getTable(),
                 $this->app->managers->itemImages->getEntity()->getTable(),
                 $this->app->managers->items->getEntity()->getPk()
             ]], $query->params),
-            $db->makeWhereSQL(['import_source_id' => $this->source->getId(), 'image_id' => $images], $query->params)
+            $db->makeWhereSQL([
+                'import_source_id' => $this->source->getId(),
+            ], $query->params),
+            $db->makeHavingSQL([
+                'image_id' => $images,
+            ], $query->params)
         ]);
+        $query->placeholders = false;
         $query->log = $this->debug;
 
         foreach ($db->reqToArrays($query) as $row) {
@@ -2256,9 +2287,6 @@ class Import
 
     protected function rememberRow($row)
     {
-        $this->sport = null;
-        $this->sizePlus = null;
-
         $ok = false;
 
         $values = [];
@@ -2305,14 +2333,13 @@ class Import
             $values['is_in_stock'] = $this->getIsInStockByRow($row);
             $values['entity'] = $this->getEntityByRow($row);
             $values['description'] = $this->getDescriptionByRow($row);
-            $values['is_sport'] = $this->sport ? 1 : 0;
-            $values['is_size_plus'] = $this->sizePlus ? 1 : 0;
+            $values['is_sport'] = empty($this->sport[$values['partner_item_id']]) ? 0 : 1;
+            $values['is_size_plus'] = empty($this->sizePlus[$values['partner_item_id']]) ? 0 : 1;
             $values['partner_updated_at'] = $this->getPartnerUpdatedAtByRow($row);
 
             foreach ($this->requiredColumns as $dbColumn) {
                 if (isset($values[$dbColumn]) && !mb_strlen($values[$dbColumn])) {
-                    $this->log($dbColumn . '\' value is empty[' . var_export($values[$dbColumn], true) . '] ...ignoring record');
-                    $this->log('[SKIPPED required ' . $dbColumn . '] partner_id=' . $values['partner_item_id']);
+                    $this->log('[SKIPPED required ' . $dbColumn . ']=' . var_export($values[$dbColumn], true) . ' partner_id=' . $values['partner_item_id']);
                     break;
                 }
             }
