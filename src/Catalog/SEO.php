@@ -232,14 +232,16 @@ class SEO
         $id = array_map(function ($brand) {
             /** @var Brand $brand */
             return $brand->getName();
-        }, array_filter($id, function ($brand) {
+        }, array_filter($id, function ($brand, $id) {
             if ($brand instanceof Brand) {
                 return true;
             }
 
-            $this->uri->getApp()->container->logger->warning('invalid brand');
+            $this->uri->getApp()->container->logger->warning('invalid brand', [
+                'brand_id' => $id,
+            ]);
             return false;
-        }));
+        }, ARRAY_FILTER_USE_BOTH));
 
         if (!$s = count($id)) {
             return $this;
@@ -277,14 +279,16 @@ class SEO
         $id = array_map(function ($color) {
             /** @var Color $color */
             return mb_strtolower($color->getNameMultiply() ?: $color->getName());
-        }, array_filter($id, function ($color) {
+        }, array_filter($id, function ($color, $id) {
             if ($color instanceof Color) {
                 return true;
             }
 
-            $this->uri->getApp()->container->logger->error('invalid color');
+            $this->uri->getApp()->container->logger->error('invalid color', [
+                'color_id' => $id,
+            ]);
             return false;
-        }));
+        }, ARRAY_FILTER_USE_BOTH));
 
         if (!$s = count($id)) {
             return $this;
@@ -316,14 +320,16 @@ class SEO
         $id = array_map(function ($season) {
             /** @var Season $season */
             return mb_strtolower($season->getName());
-        }, array_filter($id, function ($season) {
+        }, array_filter($id, function ($season, $id) {
             if ($season instanceof Season) {
                 return true;
             }
 
-            $this->uri->getApp()->container->logger->error('invalid season');
+            $this->uri->getApp()->container->logger->error('invalid season', [
+                'season_id' => $id,
+            ]);
             return false;
-        }));
+        }, ARRAY_FILTER_USE_BOTH));
 
         if (!$s = count($id)) {
             return $this;
@@ -358,14 +364,16 @@ class SEO
         $id = array_map(function ($material) {
             /** @var Material $material */
             return mb_strtolower($material->getName());
-        }, array_filter($id, function ($material) {
+        }, array_filter($id, function ($material, $id) {
             if ($material instanceof Material) {
                 return true;
             }
 
-            $this->uri->getApp()->container->logger->error('invalid material');
+            $this->uri->getApp()->container->logger->error('invalid material', [
+                'material_id' => $id,
+            ]);
             return false;
-        }));
+        }, ARRAY_FILTER_USE_BOTH));
 
         if (!$s = count($id)) {
             return $this;
@@ -397,14 +405,16 @@ class SEO
         $id = array_map(function ($size) {
             /** @var Size $size */
             return mb_strtolower($size->getName());
-        }, array_filter($id, function ($size) {
+        }, array_filter($id, function ($size, $id) {
             if ($size instanceof Size) {
                 return true;
             }
 
-            $this->uri->getApp()->container->logger->error('invalid size');
+            $this->uri->getApp()->container->logger->error('invalid size', [
+                'size_id' => $id,
+            ]);
             return false;
-        }));
+        }, ARRAY_FILTER_USE_BOTH));
 
         if (!$s = count($id)) {
             return $this;
@@ -436,14 +446,16 @@ class SEO
         $id = array_map(function ($tag) {
             /** @var Tag $tag */
             return mb_strtolower($tag->getName());
-        }, array_filter($id, function ($tag) {
+        }, array_filter($id, function ($tag, $id) {
             if ($tag instanceof Tag) {
                 return true;
             }
 
-            $this->uri->getApp()->container->logger->error('invalid tag');
+            $this->uri->getApp()->container->logger->error('invalid tag', [
+                'tag_id' => $id,
+            ]);
             return false;
-        }));
+        }, ARRAY_FILTER_USE_BOTH));
 
         if (!$s = count($id)) {
             return $this;
@@ -475,14 +487,16 @@ class SEO
         $id = array_map(function ($country) {
             /** @var Country $country */
             return $country->getName();
-        }, array_filter($id, function ($country) {
+        }, array_filter($id, function ($country, $id) {
             if ($country instanceof Country) {
                 return true;
             }
 
-            $this->uri->getApp()->container->logger->error('invalid country');
+            $this->uri->getApp()->container->logger->error('invalid country', [
+                'country_id' => $id,
+            ]);
             return false;
-        }));
+        }, ARRAY_FILTER_USE_BOTH));
 
         if (!$s = count($id)) {
             return $this;
@@ -514,14 +528,16 @@ class SEO
         $id = array_map(function ($vendor) {
             /** @var Vendor $vendor */
             return DataHelper::ucFirst($vendor->getName());
-        }, array_filter($id, function ($vendor) {
+        }, array_filter($id, function ($vendor, $id) {
             if ($vendor instanceof Vendor) {
                 return true;
             }
 
-            $this->uri->getApp()->container->logger->error('invalid vendor');
+            $this->uri->getApp()->container->logger->error('invalid vendor', [
+                'vendor_id' => $id,
+            ]);
             return false;
-        }));
+        }, ARRAY_FILTER_USE_BOTH));
 
         if (!$s = count($id)) {
             return $this;
@@ -735,9 +751,9 @@ class SEO
         if (($item = $this->uri->getSRC()->getFirstItem(true)) && ($image = $this->uri->getApp()->images->get($item->getImage()))) {
             $view->addMetaProperty('og:image', $imageLink = $this->uri->getApp()->images->getLink($image))
                 ->addMetaProperty('og:image:secure_url', $imageLink)
-                ->addMetaProperty('og:image:type', $this->uri->getApp()->images->getMime($image))
-                ->addMetaProperty('og:image:width', $this->uri->getApp()->images->getWidth($image))
-                ->addMetaProperty('og:image:height', $this->uri->getApp()->images->getHeight($image))
+                ->addMetaProperty('og:image:type', $image->getMime())
+                ->addMetaProperty('og:image:width', $image->getWidth())
+                ->addMetaProperty('og:image:height', $image->getHeight())
                 ->addMetaProperty('og:image:alt', 'Фото ' . $this->uri->getApp()->managers->items->getCategory($item)->getName())
                 ->addMetaProperty('og:image:user_generated', 'false')
                 ->addHeadLink('image', $imageLink);
@@ -757,7 +773,6 @@ class SEO
                     'articles' => $articles,
                     'site' => $this->uri->getApp()->getSite(),
                     'uri' => isset($canUri) ? $canUri : $this->uri->output(URI::OUTPUT_DEFINED, true),
-                    'sharer' => $this->uri->getApp()->views->sharer($view)->stringify()
                 ]);
             }
         }
