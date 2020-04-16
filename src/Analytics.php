@@ -88,6 +88,10 @@ class Analytics extends \SNOWGIRL_CORE\Analytics
 
     public function updateRatings(): bool
     {
+        if (!$this->enabled) {
+            return true;
+        }
+
         $output = parent::updateRatings();
 
         $output = $output && $this->updateAttributesRatings();
@@ -109,6 +113,10 @@ class Analytics extends \SNOWGIRL_CORE\Analytics
 
     public function dropRatings(): bool
     {
+        if (!$this->enabled) {
+            return true;
+        }
+
         $output = parent::dropRatings();
 
         $output = $output && $this->dropItemsRatings();
