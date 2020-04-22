@@ -18,6 +18,8 @@ class IndexItemElasticAction
     {
         $this->prepareServices($app);
 
+        $app->container->updateDefinition('indexer', ['enabled' => true]);
+
         $debug = 1 == $app->request->get('param_1', 1);
 
         $app->response->addToBody(implode("\r\n", [
