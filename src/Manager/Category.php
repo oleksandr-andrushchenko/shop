@@ -234,8 +234,7 @@ class Category extends Attr
             if ($category = $this->find($id)) {
                 $output[$id] = $category;
             } else {
-                $this->app->container->logger->makeForce('Категория[' . $id . '] не была найдена', Logger::TYPE_ERROR);
-                $this->app->container->logger->makeForce(debug_backtrace(), Logger::TYPE_ERROR);
+                $this->app->container->logger->error('Категория[' . $id . '] не была найдена');
 //                $this->getCache()->flush();
             }
         }
