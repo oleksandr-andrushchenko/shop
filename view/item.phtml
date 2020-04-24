@@ -164,17 +164,11 @@ if ((!$item->get('archive')) && $item->isInStock()) {
                             </span>
                     <?php } elseif ($item->isInStock()) { ?>
                         <a href="<?php echo $tmp = $this->app->managers->items->getGoLink($item) ?>"
-                           class="btn btn-lg btn-info btn-details" target="_blank" rel="nofollow">
+                           class="btn btn-lg btn-default btn-details" target="_blank" rel="nofollow">
                             Еще детали
                         </a>
                         <a href="<?php echo $tmp ?>" class="btn btn-lg btn-primary btn-buy" target="_blank"
-                           rel="nofollow">
-                            <span class="fa fa-shopping-cart"></span>
-                            Купить
-                            <?php echo $this->noIndexOpen() ?>
-                            на <?php echo $vendor->getName() ?>
-                            <?php echo $this->noIndexClose() ?>
-                        </a>
+                           rel="nofollow">Купить</a>
                     <?php } else { ?>
                         <span class="btn btn-lg btn-out-of-stock"></span>
                     <?php } ?>
