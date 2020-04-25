@@ -482,13 +482,12 @@ class Manager
     /**
      * @param array $unknownUriArray
      * @param array $params
-     * @param $sayIfCanOnly
+     * @param bool $sayIfCanOnly
      * @param HttpRequest $request
-     *
      * @return bool
-     * @throws Throwable
+     * @throws \SNOWGIRL_CORE\Exception
      */
-    private function checkRedirectWithPartials(array $unknownUriArray, array $params, $sayIfCanOnly, HttpRequest $request): bool
+    private function checkRedirectWithPartials(array $unknownUriArray, array $params, bool $sayIfCanOnly, HttpRequest $request): bool
     {
         $rawParams = $params;
 
