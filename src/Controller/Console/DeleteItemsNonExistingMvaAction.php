@@ -17,10 +17,12 @@ class DeleteItemsNonExistingMvaAction
     {
         $this->prepareServices($app);
 
+        $aff = $app->utils->attrs->doDeleteNonExistingItemsMva();
+
         $app->response->addToBody(implode("\r\n", [
             '',
             __CLASS__,
-            $app->utils->attrs->doDeleteNonExistingItemsMva() ? 'DONE' : 'FAILED',
+            $aff ? "DONE: {$aff}" : 'FAILED',
         ]));
     }
 }
