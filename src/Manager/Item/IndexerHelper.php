@@ -111,17 +111,23 @@ class IndexerHelper
                 $table = $manager->getEntity()->getTable();
 
                 if (is_array($document[$attrIdToInject])) {
-                    $document[$table] = array_map(function ($id) use ($attrIdToInject) {
-                        return [
-                            'id' => $id,
-                            'name' => $this->injectAttrIdToName[$attrIdToInject][$id]
-                        ];
-                    }, $document[$attrIdToInject]);
+                    $document[$table] = [];
+
+                    foreach ($document[$attrIdToInject] as $id) {
+                        if (isset($this->injectAttrIdToName[$attrIdToInject][$id])) {
+                            $document[$table][] = [
+                                'id' => $id,
+                                'name' => $this->injectAttrIdToName[$attrIdToInject][$id]
+                            ];
+                        }
+                    }
                 } else {
-                    $document[$table] = [
-                        'id' => $document[$attrIdToInject],
-                        'name' => $this->injectAttrIdToName[$attrIdToInject][$document[$attrIdToInject]]
-                    ];
+                    if (isset($this->injectAttrIdToName[$attrIdToInject][$document[$attrIdToInject]])) {
+                        $document[$table] = [
+                            'id' => $document[$attrIdToInject],
+                            'name' => $this->injectAttrIdToName[$attrIdToInject][$document[$attrIdToInject]]
+                        ];
+                    }
                 }
 
                 unset($document[$attrIdToInject]);
