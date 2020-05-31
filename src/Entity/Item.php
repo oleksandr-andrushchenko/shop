@@ -7,7 +7,6 @@ use SNOWGIRL_CORE\Entity;
 /**
  * @todo    !! add UK on partner_link (partner_link_hash)
  * Class Item
- *
  * @package SNOWGIRL_SHOP\Entity
  * @method \SNOWGIRL_SHOP\Manager\Item getManager()
  */
@@ -66,12 +65,12 @@ class Item extends Entity
 
     public function setItemId($v)
     {
-        return $this->setRequiredAttr('item_id', (int)$v);
+        return $this->setRequiredAttr('item_id', (int) $v);
     }
 
     public function getItemId()
     {
-        return (int)$this->getRawAttr('item_id');
+        return (int) $this->getRawAttr('item_id');
     }
 
     public function setName($v)
@@ -106,12 +105,12 @@ class Item extends Entity
 
     public function setPrice($v)
     {
-        return $this->setRawAttr('price', (float)$v);
+        return $this->setRawAttr('price', (float) $v);
     }
 
     public function getPrice($format = false)
     {
-        $output = (float)$this->getRawAttr('price');
+        $output = (float) $this->getRawAttr('price');
 
         if ($format) {
             $output = sprintf('%01.2f', $output);
@@ -122,13 +121,13 @@ class Item extends Entity
 
     public function setOldPrice($v)
     {
-        return $this->setRawAttr('old_price', ($v = (float)$v) ? $v : null);
+        return $this->setRawAttr('old_price', ($v = (float) $v) ? $v : null);
     }
 
     public function getOldPrice($format = false)
     {
         if ($output = $this->getRawAttr('old_price')) {
-            $output = (float)$output;
+            $output = (float) $output;
 
             if ($format) {
                 $output = sprintf('%01.2f', $output);
@@ -166,52 +165,52 @@ class Item extends Entity
 
     public function setRating($v)
     {
-        return $this->setRawAttr('rating', (int)$v);
+        return $this->setRawAttr('rating', (int) $v);
     }
 
     public function getRating()
     {
-        return (int)$this->getRawAttr('rating');
+        return (int) $this->getRawAttr('rating');
     }
 
     public function setCategoryId($v)
     {
-        return $this->setRawAttr('category_id', $v ? (int)$v : null);
+        return $this->setRawAttr('category_id', $v ? (int) $v : null);
     }
 
     public function getCategoryId()
     {
-        return ($v = $this->getRawAttr('category_id')) ? (int)$v : null;
+        return ($v = $this->getRawAttr('category_id')) ? (int) $v : null;
     }
 
     public function setBrandId($v)
     {
-        return $this->setRawAttr('brand_id', $v ? (int)$v : null);
+        return $this->setRawAttr('brand_id', $v ? (int) $v : null);
     }
 
     public function getBrandId()
     {
-        return ($v = $this->getRawAttr('brand_id')) ? (int)$v : null;
+        return ($v = $this->getRawAttr('brand_id')) ? (int) $v : null;
     }
 
     public function setCountryId($v)
     {
-        return $this->setRawAttr('country_id', $v ? (int)$v : null);
+        return $this->setRawAttr('country_id', $v ? (int) $v : null);
     }
 
     public function getCountryId()
     {
-        return ($v = $this->getRawAttr('country_id')) ? (int)$v : null;
+        return ($v = $this->getRawAttr('country_id')) ? (int) $v : null;
     }
 
     public function setVendorId($v)
     {
-        return $this->setRawAttr('vendor_id', $v ? (int)$v : null);
+        return $this->setRawAttr('vendor_id', $v ? (int) $v : null);
     }
 
     public function getVendorId()
     {
-        return ($v = $this->getRawAttr('vendor_id')) ? (int)$v : null;
+        return ($v = $this->getRawAttr('vendor_id')) ? (int) $v : null;
     }
 
     public function setIsSport($v)
@@ -221,7 +220,7 @@ class Item extends Entity
 
     public function getIsSport()
     {
-        return (int)$this->getRawAttr('is_sport');
+        return (int) $this->getRawAttr('is_sport');
     }
 
     public function isSport()
@@ -236,7 +235,7 @@ class Item extends Entity
 
     public function getIsSizePlus()
     {
-        return (int)$this->getRawAttr('is_size_plus');
+        return (int) $this->getRawAttr('is_size_plus');
     }
 
     public function isSizePlus()
@@ -261,7 +260,7 @@ class Item extends Entity
 
     public function getIsInStock()
     {
-        return (int)$this->getRawAttr('is_in_stock');
+        return (int) $this->getRawAttr('is_in_stock');
     }
 
     public function isInStock()
@@ -300,17 +299,25 @@ class Item extends Entity
 
     public function getImportSourceId()
     {
-        return (int)$this->getRawAttr('import_source_id');
+        return (int) $this->getRawAttr('import_source_id');
     }
 
     public function setPartnerUpdatedAt($v)
     {
-        return $this->setRequiredAttr('partner_updated_at', (int)$v);
+        return $this->setRequiredAttr('partner_updated_at', (int) $v);
     }
 
     public function getPartnerUpdatedAt()
     {
-        return (int)$this->getRawAttr('partner_updated_at');
+        return (int) $this->getRawAttr('partner_updated_at');
+    }
+
+    public function setOrders(int $v)
+    {
+        return $this->setAttr('order_desc_relevance', $v)
+            ->setAttr('order_desc_rating', $v)
+            ->setAttr('order_asc_price', $v)
+            ->setAttr('order_desc_price', $v);
     }
 
     public function setCreatedAt($v)
