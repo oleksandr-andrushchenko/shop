@@ -2,7 +2,7 @@
 
 namespace SNOWGIRL_SHOP\SEO;
 
-use Monolog\Logger;
+use Exception;
 use SNOWGIRL_CORE\Entity;
 use SNOWGIRL_SHOP\Catalog\URI;
 use SNOWGIRL_SHOP\Catalog\SRC;
@@ -26,11 +26,13 @@ use Throwable;
  */
 class Pages extends \SNOWGIRL_CORE\SEO\Pages
 {
-    protected $components;
-    protected $mvaComponents;
-    protected $types;
-    protected $itemTable;
-    protected $catalogTable;
+    private $components;
+    private $mvaComponents;
+    private $types;
+    private $itemTable;
+    private $catalogTable;
+    private $andAliases;
+    private $inStockOnly;
 
     protected function initialize()
     {
@@ -39,32 +41,34 @@ class Pages extends \SNOWGIRL_CORE\SEO\Pages
         $this->types = URI::TYPE_PARAMS;
         $this->itemTable = $this->seo->getApp()->managers->items->getEntity()->getTable();
         $this->catalogTable = $this->seo->getApp()->managers->catalog->getEntity()->getTable();
+        $this->andAliases = !empty($this->seo->getApp()->config('catalog.aliases', false));
+        $this->inStockOnly = !empty($this->seo->getApp()->config('catalog.in_stock_only', false));
 
         return $this;
     }
 
-    public function update()
+    public function update(): ?int
     {
+        $aff = 0;
+
         $this->seo->getApp()->container->db->getManager()->truncateTable($this->catalogTable);
 
-        $this->generateCatalogPages(false);
+        $aff += $this->generateCatalogPages(false);
 
-        if ($this->seo->getApp()->config('catalog.aliases', false)) {
-            $this->generateCatalogPages(true);
+        if ($this->andAliases) {
+            $aff += $this->generateCatalogPages(true);
         }
 
         $this->seo->getApp()->utils->catalog->doIndexIndexer();
 
-        return true;
+        return $aff;
     }
 
     /**
      * @param bool $aliases
-     * @param bool $ftdbms
-     *
-     * @return bool
+     * @return int|null
      */
-    protected function generateCatalogPages($aliases = false)
+    protected function generateCatalogPages(bool $aliases = false): ?int
     {
         $aff = 0;
 
@@ -87,7 +91,7 @@ class Pages extends \SNOWGIRL_CORE\SEO\Pages
             });
 
             if (0 == count($tmp)) {
-                return true;
+                return null;
             }
 
             $mvaComponents = $this->replaceWithAliases($mvaComponents);
@@ -221,8 +225,7 @@ class Pages extends \SNOWGIRL_CORE\SEO\Pages
                 } elseif (in_array($componentOrType, $types)) {
                     $queryParamsColumn[] = '\'"' . $componentOrType . '":1\'';
                 } else {
-                    $this->log('undefined component or type[' . $componentOrType . ']', Logger::ERROR);
-                    return false;
+                    new Exception('undefined component or type[' . $componentOrType . ']');
                 }
             }
 
@@ -240,8 +243,7 @@ class Pages extends \SNOWGIRL_CORE\SEO\Pages
                 } elseif (in_array($componentOrType, $types)) {
                     return '\'' . $typesTexts[$componentOrType] . '\'';
                 } else {
-                    $this->log('undefined component or type[' . $componentOrType . ']', Logger::ERROR);
-                    throw new \Exception;
+                    throw new Exception('undefined component or type[' . $componentOrType . ']');
                 }
             };
 
@@ -253,8 +255,7 @@ class Pages extends \SNOWGIRL_CORE\SEO\Pages
                 } elseif (in_array($componentOrType, $types)) {
                     return '\'' . $componentOrType . '\'';
                 } else {
-                    $this->log('undefined component or type[' . $componentOrType . ']', Logger::ERROR);
-                    throw new \Exception;
+                    throw new Exception('undefined component or type[' . $componentOrType . ']');
                 }
             };
 
@@ -274,8 +275,7 @@ class Pages extends \SNOWGIRL_CORE\SEO\Pages
                 if (isset($expr[$column])) {
                     $baseColumnsToSelect[] = $expr[$column] . ' AS ' . $db->quote($column);
                 } else {
-                    $this->log('undefined column expr[' . $column . ']', Logger::ERROR);
-                    return false;
+                    new Exception('undefined column expr[' . $column . ']');
                 }
             }
 
@@ -333,16 +333,18 @@ class Pages extends \SNOWGIRL_CORE\SEO\Pages
 
             //sync with SRC::getWhere
             $queryWhere = [];
-            //@todo uncomment if do not shows out-of-stocks in catalog...
-//            $queryWhere[] = $db->quote('is_in_stock', $this->itemTable) . ' = 1';
+
+            if ($this->inStockOnly) {
+                $queryWhere[] = $db->quote('is_in_stock', $this->itemTable) . ' = ' . Entity::normalizeBool(true);
+            }
 
             //sync with SRC::getWhere
             if (!in_array(URI::SPORT, $typesToSelect) && !in_array(Tag::class, $componentsToSelect)) {
-                $queryWhere[] = $db->quote('is_sport', $this->itemTable) . ' = 0';
+                $queryWhere[] = $db->quote('is_sport', $this->itemTable) . ' = ' . Entity::normalizeBool(false);
             }
 
             if (!in_array(URI::SIZE_PLUS, $typesToSelect) && !in_array(Tag::class, $componentsToSelect)) {
-                $queryWhere[] = $db->quote('is_size_plus', $this->itemTable) . ' = 0';
+                $queryWhere[] = $db->quote('is_size_plus', $this->itemTable) . ' = ' . Entity::normalizeBool(false);
             }
 
             $queryWhere = array_merge($queryWhere, array_map(function ($type) use ($db, $typesColumns) {
@@ -452,7 +454,6 @@ class Pages extends \SNOWGIRL_CORE\SEO\Pages
     /**
      * @param array $componentsAndTypes
      * @param bool $aliases
-     *
      * @return array
      */
     protected function orderAccordingPagePath(array $componentsAndTypes, $aliases = false)
@@ -483,7 +484,6 @@ class Pages extends \SNOWGIRL_CORE\SEO\Pages
 
     /**
      * @param ItemAttr[] $components
-     *
      * @return ItemAttr[]|ItemAttrAlias[]
      */
     protected function replaceWithAliases(array $components)
