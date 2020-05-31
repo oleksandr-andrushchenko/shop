@@ -2,7 +2,6 @@
 
 namespace SNOWGIRL_SHOP\SEO;
 
-use SNOWGIRL_CORE\Service\Db;
 use SNOWGIRL_CORE\Sitemap as Generator;
 use SNOWGIRL_CORE\Helper\WalkChunk2;
 use SNOWGIRL_CORE\Query\Expression;
@@ -77,15 +76,12 @@ class Sitemap extends \SNOWGIRL_CORE\SEO\Sitemap
             $catalog = $app->managers->catalog->clear();
             $customCatalog = $app->managers->catalogCustom->clear();
 
-            /** @var Db $db */
             $db = $app->managers->catalogCustom->getDb();
 
-            $table = $customCatalog->getEntity()->getTable();
             $pk = $customCatalog->getEntity()->getPk();
-            $table2 = $catalog->getEntity()->getTable();
 
             (new WalkChunk2(1000))
-                ->setFnGet(function ($lastId, $size) use ($db, $table, $pk, $table2, $catalog, $customCatalog) {
+                ->setFnGet(function ($lastId, $size) use ($db, $pk, $catalog, $customCatalog) {
                     if ($lastId) {
                         $customCatalog->setWhere(new Expression($db->quote($pk) . ' > ?', $lastId));
                     }
