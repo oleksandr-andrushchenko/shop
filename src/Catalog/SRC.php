@@ -36,17 +36,19 @@ class SRC
     private $page;
     private $catalogPage;
     private $catalogCustomPage;
+    private $useCache;
 
     /**
-     * @todo    !!! create separate Strategies (classes implemented from common interface) instead of raw mods
-     *
      * @param URI $uri
      * @param array $entities - attrs entities to collect (used in templates, e.g. - entity.item.catalog.phtml )
+     * @param bool $useCache
+     * @todo    !!! create separate Strategies (classes implemented from common interface) instead of raw mods
      */
-    public function __construct(URI $uri, array $entities = [])
+    public function __construct(URI $uri, array $entities = [], bool $useCache = true)
     {
         $this->uri = $uri;
         $this->entities = Manager::mapEntitiesAddPksAsKeys($entities);
+        $this->useCache = $useCache;
     }
 
     public function getDataProvider(string $forceProvider = null): DataProvider
@@ -57,8 +59,6 @@ class SRC
             if (null == $this->dataProvider) {
 
                 $class = __CLASS__ . '\\DataProvider\\' . ucfirst($provider);
-
-//                var_dump($class);die;
 
                 $this->dataProvider = new $class($this);
             }
@@ -111,22 +111,30 @@ class SRC
 
     public function getItemsIdToAttrs(): array
     {
-        $cacheKey = $this->getItemsIdToAttrsCacheKey();
-        $cache = $this->getURI()->getApp()->container->cache($this->getMasterServices());
-
-        if (!$cache->has($cacheKey, $output)) {
+        $fn = function () {
             $output = [];
 
             foreach ($this->getDataProvider()->getItemsAttrs() as $item) {
-                $id = (int)$item['item_id'];
+                $id = (int) $item['item_id'];
                 unset($item['item_id']);
                 $output[$id] = $item;
             }
 
-            $cache->set($cacheKey, $output);
+            return $output;
+        };
+
+        if ($this->useCache) {
+            $cacheKey = $this->getItemsIdToAttrsCacheKey();
+            $cache = $this->getURI()->getApp()->container->cache($this->getMasterServices());
+
+            if (!$cache->has($cacheKey, $output)) {
+                $cache->set($cacheKey, $output = $fn());
+            }
+
+            return $output;
         }
 
-        return $output;
+        return $fn();
     }
 
     public function getItemsId(): array
@@ -141,16 +149,17 @@ class SRC
 
     /**
      * @param bool|false $total
-     *
      * @return Item[]
      */
     public function getItems(&$total = false): array
     {
         if (null === $total) {
-            $this->getURI()->getApp()->container->cache($this->getMasterServices())->getMulti([
-                $this->getItemsIdToAttrsCacheKey(),
-                $this->getItemsCountCacheKey()
-            ]);
+            if ($this->useCache) {
+                $this->getURI()->getApp()->container->cache($this->getMasterServices())->getMulti([
+                    $this->getItemsIdToAttrsCacheKey(),
+                    $this->getItemsCountCacheKey()
+                ]);
+            }
 
             $total = $this->getTotalCount();
         }
@@ -181,7 +190,7 @@ class SRC
             foreach ($itemIdToAttrs as $attrs) {
                 if ($attrs[$attrKey]) {
                     foreach (explode(',', $attrs[$attrKey]) as $attrId2) {
-                        $attrId[] = (int)$attrId2;
+                        $attrId[] = (int) $attrId2;
                     }
                 }
             }
@@ -246,15 +255,22 @@ class SRC
     public function getTotalCount(): int
     {
         if (null === $this->totalCount) {
-            $key = $this->getItemsCountCacheKey();
+            $fn = function () {
+                return $this->getDataProvider()->getTotalCount();
+            };
 
-            if (!$this->getURI()->getApp()->container->cache($this->getMasterServices())->has($key, $output)) {
-                $output = $this->getDataProvider()->getTotalCount();
+            if ($this->useCache) {
+                $this->totalCount = $fn();
+            } else {
+                $cacheKey = $this->getItemsCountCacheKey();
+                $cache = $this->getURI()->getApp()->container->cache($this->getMasterServices());
 
-                $this->getURI()->getApp()->container->cache($this->getMasterServices())->set($key, $output);
+                if (!$cache->has($cacheKey, $output)) {
+                    $cache->set($cacheKey, $output = $this->getDataProvider()->getTotalCount());
+                }
+
+                $this->totalCount = $output;
             }
-
-            $this->totalCount = $output;
         }
 
         return $this->totalCount;
@@ -272,7 +288,7 @@ class SRC
             $v = substr($v, 1);
         }
 
-        return (object)[
+        return (object) [
             'column' => 'relevance' == $v ? null : $v,
             'cache_column' => $vv = implode('_', ['order', $desc ? 'desc' : 'asc', $v]),
             'cache_index' => 'ix_' . $vv,
@@ -312,7 +328,7 @@ class SRC
                 $v = self::getDefaultShowValue($this->getURI()->getApp());
             }
 
-            $this->limit = (int)$v;
+            $this->limit = (int) $v;
         }
 
         return $this->limit;
@@ -418,7 +434,6 @@ class SRC
 
     /**
      * @param bool $retrieve
-     *
      * @return bool|mixed|null|PageCatalog
      * @throws Throwable
      */
@@ -450,7 +465,6 @@ class SRC
 
     /**
      * @param bool $retrieve
-     *
      * @return bool|PageCatalogCustom
      * @throws Throwable
      */
@@ -486,7 +500,6 @@ class SRC
 
     /**
      * @param $k
-     *
      * @return bool|Item\Attr\Alias
      * @throws Throwable
      */
