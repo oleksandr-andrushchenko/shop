@@ -40,7 +40,8 @@ class DeleteAttrsWithoutItemsAction
 
         foreach ($app->managers->catalog->getSvaPkToTable() as $pk => $table) {
             if (in_array($table, [
-                $app->managers->categories->getEntity()->getTable()
+                $app->managers->categories->getEntity()->getTable(),
+                $app->managers->brands->getEntity()->getTable(),
             ])) {
                 continue;
             }
