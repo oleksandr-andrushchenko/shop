@@ -59,6 +59,7 @@ class CheckItemIsInStockAction
 //                    }
                 } elseif (false === $answer) {
                     $item->setIsInStock(false);
+                    $item->setOrders(9999999);
 
                     if ($app->managers->items->updateOne($item)) {
                         $app->managers->items->indexOne($item);
