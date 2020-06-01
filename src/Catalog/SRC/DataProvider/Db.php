@@ -207,10 +207,9 @@ class Db extends DataProvider
             return $output;
         }
 
-//        $output['is_in_stock'] = SORT_DESC;
-
-        $output['created_at'] = SORT_DESC;
-        $output['partner_updated_at'] = SORT_DESC;
+        $output['is_in_stock'] = SORT_DESC;
+//        $output['created_at'] = SORT_DESC;
+//        $output['partner_updated_at'] = SORT_DESC;
 
         if ($info->column) {
             $output[$info->column] = $info->desc ? SORT_DESC : SORT_ASC;
