@@ -25,7 +25,6 @@ use Throwable;
 
 /**
  * Class Item
- *
  * @property App app
  * @package SNOWGIRL_SHOP\Util
  */
@@ -35,12 +34,14 @@ class Item extends Util
      * @var IndexerHelper
      */
     private $indexerHelper;
+    private $inStockOnly;
 
     protected function initialize()
     {
         parent::initialize();
 
         $this->indexerHelper = new IndexerHelper();
+        $this->inStockOnly = !!$this->app->config('catalog.in_stock_only', false);
     }
 
     public function doFixSeoNames()
@@ -212,7 +213,7 @@ class Item extends Util
         return true;
     }
 
-    public function doDeleteWithNonExistingCategories(FixWhere $fixWhere = null)
+    public function doDeleteWithNonExistingCategories(FixWhere $fixWhere = null, array $params = [])
     {
         $db = $this->app->container->db;
         $it = $this->app->managers->items->getEntity()->getTable();
@@ -222,7 +223,8 @@ class Item extends Util
         $where = $fixWhere ? $fixWhere->get() : [];
         $where[] = new Expression($db->quote($ck, $ct) . ' IS NULL');
 
-        $query = new Query(['params' => []]);
+        $query = new Query($params);
+        $query->params = [];
         $query->text = implode(' ', [
             'DELETE ' . $db->quote($it),
             'FROM ' . $db->quote($it),
@@ -233,7 +235,7 @@ class Item extends Util
         return $this->app->container->db->req($query)->affectedRows();
     }
 
-    public function doDeleteWithNonExistingBrands(FixWhere $fixWhere = null)
+    public function doDeleteWithNonExistingBrands(FixWhere $fixWhere = null, array $params = [])
     {
         $db = $this->app->container->db;
         $it = $this->app->managers->items->getEntity()->getTable();
@@ -243,7 +245,8 @@ class Item extends Util
         $where = $fixWhere ? $fixWhere->get() : [];
         $where[] = new Expression($db->quote($bk, $bt) . ' IS NULL');
 
-        $query = new Query(['params' => []]);
+        $query = new Query($params);
+        $query->params = [];
         $query->text = implode(' ', [
             'DELETE ' . $db->quote($it),
             'FROM ' . $db->quote($it),
@@ -254,7 +257,7 @@ class Item extends Util
         return $this->app->container->db->req($query)->affectedRows();
     }
 
-    public function doFixWithNonExistingCountries(FixWhere $fixWhere)
+    public function doFixWithNonExistingCountries(FixWhere $fixWhere, array $params = [])
     {
         $db = $this->app->container->db;
         $pk = $this->app->managers->countries->getEntity()->getPk();
@@ -264,19 +267,19 @@ class Item extends Util
         $where = $fixWhere->get();
         $where[] = new Expression($db->quote($pk) . ' NOT IN (' . implode(',', $id) . ')');
 
-        return $this->app->managers->items->updateMany([$pk => null], $where);
+        return $this->app->managers->items->updateMany([$pk => null], $where, $params);
     }
 
-    public function doFixWithNonExistingAttrs(FixWhere $fixWhere)
+    public function doFixWithNonExistingAttrs(FixWhere $fixWhere, array $params = [])
     {
-        $aff = $this->doDeleteWithNonExistingCategories($fixWhere);
+        $aff = $this->doDeleteWithNonExistingCategories($fixWhere, $params);
         $this->output('deleted with invalid categories: ' . $aff);
 
-        $tmp = $this->doDeleteWithNonExistingBrands($fixWhere);
+        $tmp = $this->doDeleteWithNonExistingBrands($fixWhere, $params);
         $this->output('deleted with invalid brands: ' . $tmp);
         $aff += $tmp;
 
-        $tmp = $this->doFixWithNonExistingCountries($fixWhere);
+        $tmp = $this->doFixWithNonExistingCountries($fixWhere, $params);
         $this->output('updated with invalid countries: ' . $tmp);
         $aff += $tmp;
 
@@ -287,10 +290,10 @@ class Item extends Util
         'rating',
         'is_active',
 
-        'order_desc_relevance',
-        'order_desc_rating',
-        'order_asc_price',
-        'order_desc_price'
+//        'order_desc_relevance',
+//        'order_desc_rating',
+//        'order_asc_price',
+//        'order_desc_price'
     ];
 
     public function doCreateArchiveTable()
@@ -670,16 +673,18 @@ class Item extends Util
     }
 
     /**
-     * @todo to run this without vendor_id or time intervals - need to create indexes (!)
+     * @param FixWhere|null $fixWhere
+     * @param array $params
+     * @return null|int
      * @todo already created:
      * [category_id,    vendor_id, created_at, updated_at]
      * [                vendor_id, created_at, updated_at]
-     * @param FixWhere|null $fixWhere
-     * @param array $params
-     * @return bool
+     * @todo to run this without vendor_id or time intervals - need to create indexes (!)
      */
-    public function doFixItemsCategories(FixWhere $fixWhere = null, array $params = [])
+    public function doFixItemsCategories(FixWhere $fixWhere = null, array $params = []): ?int
     {
+        $aff = 0;
+
         $manager = $this->app->managers->categoriesToEntities;
 
         $manager->generate();
@@ -687,7 +692,7 @@ class Item extends Util
 //        $time = time();
 
         //the highest priority
-        $manager->updateByParentsAndEntities($fixWhere, $params);
+        $aff += $manager->updateByParentsAndEntities($fixWhere, $params);
 
         if (!$fixWhere) {
             $fixWhere = new FixWhere($this->app);
@@ -704,12 +709,12 @@ class Item extends Util
 //        $manager->updateByEntitiesLikeEntities($fixWhere, $params);
 //        $manager->updateByNamesLikeEntities($fixWhere, $params);
 
-        $manager->updateByParentsAndNamesLikeEntities($fixWhere, $params);
+        $aff += $manager->updateByParentsAndNamesLikeEntities($fixWhere, $params);
 
         //update for admin
         $manager->generate(true);
 
-        return true;
+        return $aff;
     }
 
     public function doTransferByAttrs($source, $target)
@@ -822,11 +827,15 @@ class Item extends Util
             'is_sales' => 'boolean',
             'price' => 'integer',
 
-            'order_desc_relevance' => 'integer',
-            'order_desc_rating' => 'integer',
-            'order_asc_price' => 'integer',
-            'order_desc_price' => 'integer'
+//            'order_desc_relevance' => 'integer',
+//            'order_desc_rating' => 'integer',
+//            'order_asc_price' => 'integer',
+//            'order_desc_price' => 'integer'
         ];
+
+        if (!$this->inStockOnly) {
+            $properties['is_in_stock'] = 'boolean';
+        }
 
         foreach ($this->getSearchColumns() as $column) {
             $properties[$column] = 'text';
@@ -887,6 +896,10 @@ class Item extends Util
         $this->indexerHelper->prepareData($this->app);
 
         $where = Arrays::cast($where);
+
+        if ($this->inStockOnly) {
+            $where['is_in_stock'] = 1;
+        }
 
         (new WalkChunk2(1000))
             ->setFnGet(function ($lastId, $size) use ($where) {
@@ -955,8 +968,8 @@ class Item extends Util
     }
 
     /**
-     * @todo add missing documents sync support
      * @return int
+     * @todo add missing documents sync support
      */
     public function doDeleteMissingElastic(): int
     {
