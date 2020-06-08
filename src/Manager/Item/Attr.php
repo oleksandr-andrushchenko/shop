@@ -2,6 +2,7 @@
 
 namespace SNOWGIRL_SHOP\Manager\Item;
 
+use SNOWGIRL_CORE\AbstractApp;
 use SNOWGIRL_CORE\Console\ConsoleApp;
 use SNOWGIRL_CORE\Entity;
 use SNOWGIRL_CORE\Http\HttpApp;
@@ -18,7 +19,6 @@ use SNOWGIRL_CORE\URI\Manager as UriManager;
 
 /**
  * Class Attr
- *
  * @property HttpApp|ConsoleApp app
  * @method Attr copy($clear = false)
  * @method Attr clear()
@@ -30,6 +30,19 @@ use SNOWGIRL_CORE\URI\Manager as UriManager;
 abstract class Attr extends Manager
 {
     protected $checkUri;
+
+    private $useCache;
+    private $inStockOnly;
+    private $providerName;
+
+    public function __construct(AbstractApp $app)
+    {
+        parent::__construct($app);
+
+        $this->useCache = !!$app->config('catalog.cache', false);
+        $this->inStockOnly = !!$app->config('catalog.in_stock_only', false);
+        $this->providerName = $app->config('data.provider.src', 'db');
+    }
 
     public function checkUri($checkUri)
     {
@@ -124,7 +137,6 @@ abstract class Attr extends Manager
 
     /**
      * @param Entity $entity
-     *
      * @return bool
      * @throws Entity\EntityException
      */
@@ -145,7 +157,6 @@ abstract class Attr extends Manager
 
     /**
      * @param Entity $entity
-     *
      * @return bool
      * @throws Exception
      */
@@ -190,50 +201,52 @@ abstract class Attr extends Manager
         ];
     }
 
-    /**
-     * @param URI $uri
-     * @param null $query
-     * @param bool|false $prefix
-     *
-     * @return string
-     */
-    public function getItemsCountsListByUriCacheKey(URI $uri, $query = null, $prefix = false)
+    public function getItemsCountsListByUriCacheKey(URI $uri, string $query = null, bool $prefix = false): string
     {
         return implode('-', [
             $this->entity->getTable(),
+            $this->inStockOnly,
+            $this->providerName,
             md5(serialize([
                 $this->getParams(),
                 $uri->getParamsByTypes('filter'),
                 $query,
-                $prefix
+                $prefix,
             ])),
             'ids'
         ]);
     }
 
-    protected function getFiltersCountsByUri(URI $uri, $query = null, $prefix = false)
+    protected function getFiltersCountsByUri(URI $uri, string $query = null, bool $prefix = false)
     {
-        $key = $this->getItemsCountsListByUriCacheKey($uri, $query, $prefix);
-
-        if (!$this->app->container->cache->has($key, $output)) {
+        $fn = function ($uri, $query, $prefix) {
             $output = [];
 
             $pk = $this->entity->getPk();
 
             foreach ($this->getDataProvider()->getFiltersCountsByUri($uri, $query, $prefix) as $i) {
-                $output[$i[$pk]] = (int)$i['cnt'];
+                $output[$i[$pk]] = (int) $i['cnt'];
             }
 
-            $this->app->container->cache->set($key, $output);
+            return $output;
+        };
+
+        if ($this->useCache) {
+            $key = $this->getItemsCountsListByUriCacheKey($uri, $query, $prefix);
+
+            if (!$this->app->container->cache->has($key, $output)) {
+                $this->app->container->cache->set($key, $output = $fn($uri, $query, $prefix));
+            }
+
+            return $output;
         }
 
-        return $output;
+        return $fn($uri, $query, $prefix);
     }
 
     /**
      * @param URI $uri
      * @param bool|true $itemsCounts
-     *
      * @return Entity[]|ItemAttrEntity[]
      */
     public function getObjectsByUri(URI $uri, $itemsCounts = true)
@@ -248,13 +261,12 @@ abstract class Attr extends Manager
 
     /**
      * @param URI $uri
-     * @param            $query
-     * @param bool|true $itemsCounts
-     * @param bool|false $prefix
-     *
+     * @param string $query
+     * @param bool $itemsCounts
+     * @param bool $prefix
      * @return Entity[]|ItemAttrEntity[]
      */
-    public function getObjectsByUriAndQuery(URI $uri, $query, $itemsCounts = true, $prefix = false)
+    public function getObjectsByUriAndQuery(URI $uri, string $query, bool $itemsCounts = true, bool $prefix = false): array
     {
         $counts = $this->getFiltersCountsByUri($uri, $query, $prefix);
 
@@ -267,7 +279,6 @@ abstract class Attr extends Manager
     /**
      * @param array $itemId
      * @param bool|false $names
-     *
      * @return array
      */
     public function getMva(array $itemId, &$names = false)
@@ -360,7 +371,7 @@ abstract class Attr extends Manager
     }
 
     /**
-     * @return TermManager|false
+     * @return bool|Manager|TermManager
      */
     public function getTermsManager()
     {
@@ -370,8 +381,6 @@ abstract class Attr extends Manager
             return false;
         }
 
-        //SNOWGIRL_SHOP\Manager\Color
-        //SNOWGIRL_SHOP\Manager\Color\Term
         return $this->app->managers->get($class);
     }
 }
