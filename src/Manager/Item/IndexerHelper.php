@@ -18,7 +18,6 @@ class IndexerHelper
     private $sva;
     private $mva;
     private $columnsOptions;
-    private $ajaxSuggestionsAttrPkToTable;
 
     /**
      * @var Manager[]
@@ -51,8 +50,7 @@ class IndexerHelper
                         }
                         break;
                     case Entity::COLUMN_TIME:
-                        if ($document[$column]) {
-                        } else {
+                        if (!$document[$column]) {
                             $document[$column] = $options['default'];
                         }
                         break;
@@ -154,7 +152,7 @@ class IndexerHelper
      * @param App|HttpApp|ConsoleApp $app $app
      * @return array
      */
-    public function getAjaxSuggestionsAttrPkToTable(App $app): array
+    public static function getAjaxSuggestionsAttrPkToTable(App $app): array
     {
         return [
             ($entity = $app->managers->brands->getEntity())->getPk() => $entity->getTable(),
@@ -172,7 +170,7 @@ class IndexerHelper
             return;
         }
 
-        $this->ajaxSuggestionsAttrPkToTable = $this->getAjaxSuggestionsAttrPkToTable($app);
+        $ajaxSuggestionsAttrPkToTable = self::getAjaxSuggestionsAttrPkToTable($app);
         $this->itemPk = $app->managers->items->getEntity()->getPk();
 
         $this->columns = [
@@ -182,10 +180,10 @@ class IndexerHelper
             'old_price',
             'price',
 
-            'order_desc_relevance',
-            'order_desc_rating',
-            'order_asc_price',
-            'order_desc_price'
+//            'order_desc_relevance',
+//            'order_desc_rating',
+//            'order_asc_price',
+//            'order_desc_price'
         ];
 
         $this->searchColumns = $app->managers->items->findColumns(Entity::SEARCH_IN);
@@ -214,7 +212,7 @@ class IndexerHelper
         //which attrs name to inject into index
         $this->injectAttrIdToName = [];
 
-        foreach ($this->ajaxSuggestionsAttrPkToTable as $attrPk => $attrTable) {
+        foreach ($ajaxSuggestionsAttrPkToTable as $attrPk => $attrTable) {
             /** @var Manager $attrManager */
             $attrManager = $app->managers->getByTable($attrTable);
             $entity = $attrManager->getEntity();

@@ -5,9 +5,9 @@ namespace SNOWGIRL_SHOP\Manager\Item\DataProvider;
 use SNOWGIRL_SHOP\Catalog\URI;
 use SNOWGIRL_SHOP\Manager\Item\DataProvider;
 
-class Indexer extends DataProvider
+class IndexerDataProvider extends DataProvider
 {
-    use \SNOWGIRL_CORE\Manager\DataProvider\Traits\Indexer;
+    use \SNOWGIRL_CORE\Manager\DataProvider\Traits\IndexerDataProvider;
 
     public function getPricesByUri(URI $uri): array
     {
@@ -115,6 +115,8 @@ class Indexer extends DataProvider
             return !in_array($k, $exclude);
         }, ARRAY_FILTER_USE_KEY);
 
+//        print_r($where);die;
+
         $body = [
             'aggs' => [
                 'filtered' => [
@@ -133,6 +135,8 @@ class Indexer extends DataProvider
             'size' => 0,
             'body' => $body
         ];
+
+//        print_r($params);die;
 
         $raw = $this->manager->getApp()->container->indexer($this->manager->getMasterServices())
             ->searchRaw($this->manager->getEntity()->getTable(), $params);

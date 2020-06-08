@@ -3,17 +3,16 @@
 namespace SNOWGIRL_SHOP\Util;
 
 use SNOWGIRL_CORE\Entity;
+use SNOWGIRL_CORE\Helper\Arrays;
 use SNOWGIRL_CORE\Helper\WalkChunk;
-use SNOWGIRL_CORE\Helper\WalkChunk2;
 use SNOWGIRL_CORE\Manager;
 use SNOWGIRL_CORE\Query\Expression;
-use SNOWGIRL_CORE\Service\Nosql\Mongo;
-use SNOWGIRL_CORE\Service\Db\Mysql;
 use SNOWGIRL_CORE\Query;
 use SNOWGIRL_CORE\Util;
 use SNOWGIRL_SHOP\Console\ConsoleApp as App;
 use SNOWGIRL_SHOP\Item\FixWhere;
 use SNOWGIRL_SHOP\Manager\Item\Attr as ItemAttrManager;
+use SNOWGIRL_SHOP\Entity\Term as TermEntity;
 use SNOWGIRL_SHOP\Manager\Term as TermManager;
 
 /**
@@ -42,7 +41,7 @@ class Attr extends Util
             $linkManager = $manager->getMvaLinkManager();
             $linkTable = $linkManager->getEntity()->getTable();
 
-            $query = new Query();
+            $query = new Query($params);
             $query->params = [];
             $query->text = implode(' ', [
                 'DELETE ' . $db->quote('ia'),
@@ -50,7 +49,6 @@ class Attr extends Util
                 'LEFT JOIN ' . $db->quote($table) . ' ' . $db->quote('a') . ' USING (' . $db->quote($pk) . ')',
                 'WHERE ' . $db->quote($pk, 'a') . ' IS NULL'
             ]);
-            $query->merge($params);
 
             $affTmp1 = $db->req($query)->affectedRows();
 
@@ -59,7 +57,7 @@ class Attr extends Util
             $where = $fixWhere ? $fixWhere->get() : [];
             $where[] = new Expression($db->quote($itemPk, $itemTable) . ' IS NULL');
 
-            $query = new Query();
+            $query = new Query($params);
             $query->params = [];
             $query->text = implode(' ', [
                 'DELETE ' . $db->quote('ia'),
@@ -67,7 +65,6 @@ class Attr extends Util
                 'LEFT JOIN ' . $db->quote($itemTable) . ' USING (' . $db->quote($itemPk) . ')',
                 $db->makeWhereSQL($where, $query->params)
             ]);
-            $query->merge($params);
 
             $affTmp2 = $db->req($query)->affectedRows();
 

@@ -55,9 +55,7 @@ class Catalog extends Util
         ];
         $where = new Expression($this->app->container->db->quote('updated_at') . ' IS NOT NULL');
 
-        $output = $this->app->utils->database->doMigrateDataFromTableToTable($tableFrom, $tableTo, $columns, $where);
-
-        return $output;
+        return $this->app->utils->database->doMigrateDataFromTableToTable($tableFrom, $tableTo, $columns, $where);
     }
 
     protected $translator;
@@ -267,7 +265,7 @@ class Catalog extends Util
         ]);
     }
 
-    protected function generateTexts($replaceWithSite, $language, $selectorH1, $selectorBody, \Closure $bodyNodeFilter, $remoteUriToUriParams)
+    protected function generateTexts($replaceWithSite, $language, $selectorH1, $selectorBody, callable $bodyNodeFilter, $remoteUriToUriParams)
     {
         $aff = 0;
 
@@ -436,7 +434,10 @@ class Catalog extends Util
                     $where[] = new Expression($this->app->container->db->quote($itemPk) . ' > ?', $lastId);
                 }
 
-                return $manager->setWhere($where)->setLimit($size)->getArrays();
+                return $manager
+                    ->setWhere($where)
+                    ->setLimit($size)
+                    ->getArrays();
             })
             ->setFnDo(function ($items) use ($index, &$aff) {
                 $itemPk = $this->app->managers->catalog->getEntity()->getPk();

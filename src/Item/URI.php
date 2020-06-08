@@ -151,7 +151,7 @@ class URI
 
     public function getSRC(): SRC
     {
-        return $this->src ?: $this->src = new SRC($this, [], !empty($this->getApp()->config('catalog.cache')));
+        return $this->src ?: $this->src = new SRC($this);
     }
 
     public function getSEO(): SEO

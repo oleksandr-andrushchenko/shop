@@ -35,7 +35,6 @@ class FixItemsCategoriesAction
                 ->setUpdatedAtFrom($app->request->get('param_4'))
                 ->setUpdatedAtTo($app->request->get('param_5'))
                 ->setOrBetweenCreatedAndUpdated($app->request->get('param_6'))
-
         );
 
         $app->response->addToBody(implode("\r\n", [

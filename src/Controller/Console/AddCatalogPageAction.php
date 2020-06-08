@@ -3,6 +3,8 @@
 namespace SNOWGIRL_SHOP\Controller\Console;
 
 use SNOWGIRL_CORE\Controller\Console\PrepareServicesTrait;
+use SNOWGIRL_CORE\Entity\EntityException;
+use SNOWGIRL_CORE\Http\Exception\NotFoundHttpException;
 use SNOWGIRL_SHOP\Catalog\SEO;
 use SNOWGIRL_SHOP\Entity\Item\Attr;
 use SNOWGIRL_CORE\Http\Exception\BadRequestHttpException;
@@ -14,7 +16,6 @@ use SNOWGIRL_SHOP\Entity\Page\Catalog;
  * Example: php bin/console add-catalog-page category=10,color=10,sport,sales,size-plus
  * Should be synced with Pages::generateCatalogPages
  * Class AddPageCatalogAction
- *
  * @package SNOWGIRL_SHOP\Controller\Console
  */
 class AddCatalogPageAction
@@ -23,8 +24,9 @@ class AddCatalogPageAction
 
     /**
      * @param App $app
-     * @throws \SNOWGIRL_CORE\Entity\EntityException
-     * @throws \SNOWGIRL_CORE\Http\Exception\NotFoundHttpException
+     * @throws BadRequestHttpException
+     * @throws EntityException
+     * @throws NotFoundHttpException
      */
     public function __invoke(App $app)
     {
@@ -44,7 +46,7 @@ class AddCatalogPageAction
             ->setMeta($this->buildMeta($app, $where));
 
         if ($aff = $app->managers->catalog->insertOne($page)) {
-            $app->managers->catalog->indexOne($page);
+            $app->managers->catalog->addToIndex($page);
         }
 
         $app->response->addToBody(implode("\r\n", [

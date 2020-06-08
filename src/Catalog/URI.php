@@ -510,7 +510,7 @@ class URI
             return self::$src[$key];
         }
 
-        self::$src[$key] = new SRC($this, [Brand::class, Vendor::class], !empty($this->getApp()->config('catalog.cache')));
+        self::$src[$key] = new SRC($this, [Brand::class, Vendor::class]);
 
         return self::$src[$key];
     }

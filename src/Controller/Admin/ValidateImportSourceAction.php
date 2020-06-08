@@ -39,10 +39,10 @@ class ValidateImportSourceAction
             'firstPassedValues' => false
         ]);
 
-        $import->walkFilteredFile(function ($row) use (&$content) {
+        foreach ($import->getFilteredFile() as $row) {
             $content->firstFilteredRow = $row;
-            return false;
-        });
+            break;
+        }
 
         $import->walkImport(false, function ($row, $values) use (&$content) {
             $content->firstPassedRow = $row;

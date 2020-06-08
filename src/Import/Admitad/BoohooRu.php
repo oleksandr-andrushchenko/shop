@@ -2,7 +2,6 @@
 
 namespace SNOWGIRL_SHOP\Import\Admitad;
 
-use SNOWGIRL_CORE\Helper\Arrays;
 use SNOWGIRL_SHOP\Import\Admitad;
 
 class BoohooRu extends Admitad
@@ -48,8 +47,8 @@ class BoohooRu extends Admitad
         'caramel' => '',
         'sand' => '',
         'khaki' => '',
-        '' => '',
-        '' => '',
+//        '' => '',
+//        '' => '',
     ];
 
     protected function before()

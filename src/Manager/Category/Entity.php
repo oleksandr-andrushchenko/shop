@@ -3,14 +3,12 @@
 namespace SNOWGIRL_SHOP\Manager\Category;
 
 use SNOWGIRL_CORE\Query;
-use SNOWGIRL_CORE\Helper\Arrays;
 use SNOWGIRL_CORE\Manager;
 use SNOWGIRL_CORE\Query\Expression;
 use SNOWGIRL_SHOP\Console\ConsoleApp;
 use SNOWGIRL_SHOP\Entity\Category as CategoryEntity;
 use SNOWGIRL_SHOP\Entity\Category;
 use SNOWGIRL_SHOP\Entity\Category\Entity as CategoryEntityEntity;
-use SNOWGIRL_SHOP\Entity\Item as ItemEntity;
 use SNOWGIRL_SHOP\Http\HttpApp;
 use SNOWGIRL_SHOP\Item\FixWhere;
 
@@ -66,10 +64,9 @@ class Entity extends Manager
 
         $db = $this->getDb();
         $table = $this->getEntity()->getTable();
-        $pk = $this->getEntity()->getPk();
 
-        $categoryPkQuotted = $db->quote($this->app->managers->categories->getEntity()->getPk());
-        $categoryTableQuotted = $db->quote($this->app->managers->categories->getEntity()->getTable());
+        $categoryPkQuoted = $db->quote($this->app->managers->categories->getEntity()->getPk());
+        $categoryTableQuoted = $db->quote($this->app->managers->categories->getEntity()->getTable());
 
         $this->deleteMany(['is_active' => 0]);
 
@@ -77,17 +74,17 @@ class Entity extends Manager
         $query->text = implode(' ', [
             'INSERT' . ' INTO ' . $db->quote($table),
             '(' . $db->quote('category_id') . ', ' . $db->quote('entity') . ', ' . $db->quote('entity_hash') . ', ' . $db->quote('count') . ')',
-            '(SELECT ' . $categoryPkQuotted . ', ' . $db->quote('entity') . ', MD5(' . $db->quote('entity') . '), COUNT(*) AS ' . $db->quote('cnt'),
+            '(SELECT ' . $categoryPkQuoted . ', ' . $db->quote('entity') . ', MD5(' . $db->quote('entity') . '), COUNT(*) AS ' . $db->quote('cnt'),
             'FROM ' . $db->quote($this->app->managers->items->getEntity()->getTable()),
             'WHERE ' . $db->quote('entity') . ' <> \'\'',
-            'GROUP BY ' . $db->quote('entity') . ', ' . $categoryPkQuotted,
+            'GROUP BY ' . $db->quote('entity') . ', ' . $categoryPkQuoted,
             'HAVING ' . $db->quote('cnt') . ' > ?)',
             'ON DUPLICATE KEY UPDATE ' . $db->quote('count') . ' = VALUES(' . $db->quote('count') . ')'
         ]);
 
         $db->req($query);
 
-        $this->deleteMany(new Expression($categoryPkQuotted . ' NOT IN (SELECT ' . $categoryPkQuotted . ' FROM ' . $categoryTableQuotted . ')'));
+        $this->deleteMany(new Expression($categoryPkQuoted . ' NOT IN (SELECT ' . $categoryPkQuoted . ' FROM ' . $categoryTableQuoted . ')'));
         $this->deleteMany(['is_active' => 0, 'count' => 0]);
 
         return self::$generated = true;

@@ -7,9 +7,9 @@ use SNOWGIRL_CORE\Query\Expression;
 use SNOWGIRL_SHOP\Catalog\URI;
 use SNOWGIRL_SHOP\Manager\Item\DataProvider;
 
-class Db extends DataProvider
+class DbDataProvider extends DataProvider
 {
-    use \SNOWGIRL_CORE\Manager\DataProvider\Traits\Db;
+    use \SNOWGIRL_CORE\Manager\DataProvider\Traits\DbDataProvider;
 
     public function getPricesByUri(URI $uri): array
     {
@@ -45,7 +45,7 @@ class Db extends DataProvider
         return $db->selectMany($this->manager->getEntity()->getTable(), new Query([
             'columns' => $columns,
             'where' => $where,
-            'groups' => $groups
+            'groups' => $groups,
         ]));
     }
 

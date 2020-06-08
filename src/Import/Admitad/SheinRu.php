@@ -2,7 +2,6 @@
 
 namespace SNOWGIRL_SHOP\Import\Admitad;
 
-use SNOWGIRL_CORE\Helper\Arrays;
 use SNOWGIRL_SHOP\Import\Admitad;
 
 class SheinRu extends Admitad

@@ -17,7 +17,7 @@ class GetAttrSuggestionsAction
         $this->prepareServices($app);
 
         $table = $app->request->get('name');
-        $prefix = $app->request->get('prefix');
+        $prefix = !empty($app->request->get('prefix'));
         $query = $app->request->get('q');
 
         $sizeMax = 300;

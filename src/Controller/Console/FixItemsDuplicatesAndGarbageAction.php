@@ -4,7 +4,6 @@ namespace SNOWGIRL_SHOP\Controller\Console;
 
 use SNOWGIRL_CORE\Controller\Console\OutputTrait;
 use SNOWGIRL_CORE\Controller\Console\PrepareServicesTrait;
-use SNOWGIRL_CORE\Http\Exception\BadRequestHttpException;
 use SNOWGIRL_CORE\Helper\WalkChunk;
 use SNOWGIRL_CORE\Query\Expression;
 use SNOWGIRL_SHOP\Console\ConsoleApp as App;
@@ -113,11 +112,11 @@ class FixItemsDuplicatesAndGarbageAction
         foreach ($app->managers->sources->getObjects() as $source) {
             (new WalkChunk(1000))
                 ->setFnGet(function ($page, $size) use ($app, $source) {
-                    $pkQuotted = $app->container->db->quote($app->managers->items->getEntity()->getPk());
+                    $pkQuoted = $app->container->db->quote($app->managers->items->getEntity()->getPk());
 
                     return $app->managers->items
                         ->setColumns([
-                            new Expression('GROUP_CONCAT(' . $pkQuotted . ') AS ' . $pkQuotted),
+                            new Expression('GROUP_CONCAT(' . $pkQuoted . ') AS ' . $pkQuoted),
                         ])
                         ->setWhere([
                             'import_source_id' => $source->getId(),
