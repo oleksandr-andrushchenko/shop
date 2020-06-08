@@ -49,10 +49,6 @@ class IndexerDataProvider extends DataProvider
     {
         $output = [];
 
-//        if ($this->inStockOnly) {
-//            $output['is_in_stock'] = true;
-//        }
-
         $params = $this->src->getURI()->getParamsByTypes('filter');
 
         if (isset($params[URI::SPORT])) {
