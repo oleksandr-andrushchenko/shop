@@ -3,6 +3,7 @@
 namespace SNOWGIRL_SHOP\Catalog;
 
 use SNOWGIRL_CORE\AbstractApp as App;
+use SNOWGIRL_CORE\Cache\CacheException;
 use SNOWGIRL_SHOP\Catalog\SRC\DataProvider;
 
 use SNOWGIRL_CORE\Helper\Arrays;
@@ -37,6 +38,8 @@ class SRC
     private $catalogPage;
     private $catalogCustomPage;
     private $useCache;
+    private $inStockOnly;
+    private $providerName;
 
     /**
      * @param URI $uri
@@ -49,16 +52,16 @@ class SRC
         $this->uri = $uri;
         $this->entities = Manager::mapEntitiesAddPksAsKeys($entities);
         $this->useCache = $useCache;
+        $this->inStockOnly = !!$uri->getApp()->config('catalog.in_stock_only', false);
+        $this->providerName = $this->getURI()->getApp()->config('data.provider.src', 'db');
     }
 
     public function getDataProvider(string $forceProvider = null): DataProvider
     {
-        $provider = $this->getURI()->getApp()->config('data.provider.src', 'db');
-
-        if ((null === $forceProvider) || ($forceProvider == $provider)) {
+        if ((null === $forceProvider) || ($forceProvider == $this->providerName)) {
             if (null == $this->dataProvider) {
 
-                $class = __CLASS__ . '\\DataProvider\\' . ucfirst($provider);
+                $class = __CLASS__ . '\\DataProvider\\' . ucfirst($this->providerName) . 'DataProvider';
 
                 $this->dataProvider = new $class($this);
             }
@@ -66,7 +69,7 @@ class SRC
             return $this->dataProvider;
         }
 
-        $class = __CLASS__ . '\\DataProvider\\' . ucfirst($forceProvider);
+        $class = __CLASS__ . '\\DataProvider\\' . ucfirst($forceProvider) . 'DataProvider';
 
         return new $class($this);
     }
@@ -96,7 +99,9 @@ class SRC
         return implode('-', [
             $this->getURI()->getApp()->managers->items->getEntity()->getTable(),
             $this->getItemsRawCacheKey(),
-            'ids'
+            $this->inStockOnly,
+            $this->providerName,
+            'ids',
         ]);
     }
 
@@ -105,7 +110,9 @@ class SRC
         return implode('-', [
             $this->getURI()->getApp()->managers->items->getEntity()->getTable(),
             $this->getItemsRawCacheKey(),
-            'total'
+            $this->inStockOnly,
+            $this->providerName,
+            'total',
         ]);
     }
 
@@ -148,8 +155,9 @@ class SRC
     }
 
     /**
-     * @param bool|false $total
+     * @param bool $total
      * @return Item[]
+     * @throws CacheException
      */
     public function getItems(&$total = false): array
     {
@@ -292,7 +300,7 @@ class SRC
             'column' => 'relevance' == $v ? null : $v,
             'cache_column' => $vv = implode('_', ['order', $desc ? 'desc' : 'asc', $v]),
             'cache_index' => 'ix_' . $vv,
-            'desc' => $desc
+            'order' => $desc,
         ];
     }
 
