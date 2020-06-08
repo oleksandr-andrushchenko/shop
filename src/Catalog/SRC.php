@@ -44,14 +44,13 @@ class SRC
     /**
      * @param URI $uri
      * @param array $entities - attrs entities to collect (used in templates, e.g. - entity.item.catalog.phtml )
-     * @param bool $useCache
      * @todo    !!! create separate Strategies (classes implemented from common interface) instead of raw mods
      */
-    public function __construct(URI $uri, array $entities = [], bool $useCache = true)
+    public function __construct(URI $uri, array $entities = [])
     {
         $this->uri = $uri;
         $this->entities = Manager::mapEntitiesAddPksAsKeys($entities);
-        $this->useCache = $useCache;
+        $this->useCache = !!$uri->getApp()->config('catalog.cache', false);
         $this->inStockOnly = !!$uri->getApp()->config('catalog.in_stock_only', false);
         $this->providerName = $this->getURI()->getApp()->config('data.provider.src', 'db');
     }
