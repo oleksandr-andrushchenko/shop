@@ -11,7 +11,6 @@ use SNOWGIRL_SHOP\SEO;
 
 /**
  * Class Sitemap
- *
  * @property SEO seo
  * @package SNOWGIRL_SHOP\SEO
  */
@@ -122,7 +121,6 @@ class Sitemap extends \SNOWGIRL_CORE\SEO\Sitemap
     /**
      * Alternative method - much more effective (using [is_article, count] Db key and last-id instead of limit's
      * offsets)
-     *
      * @return \Closure
      */
     protected function getCatalogGenerator()
@@ -168,14 +166,21 @@ class Sitemap extends \SNOWGIRL_CORE\SEO\Sitemap
             $items = $app->managers->items->clear();
             $pk = $items->getEntity()->getPk();
 
+            $where = [];
+
+            if ($app->config('catalog.in_stock_only', false)) {
+                $where['is_in_stock'] = 1;
+            }
+
             (new WalkChunk2(1000))
-                ->setFnGet(function ($lastId, $size) use ($db, $items, $pk) {
+                ->setFnGet(function ($lastId, $size) use ($db, $items, $pk, $where) {
                     if ($lastId) {
-                        $items->setWhere(new Expression($db->quote($pk) . ' > ?', $lastId));
+                        $where[] = new Expression($db->quote($pk) . ' > ?', $lastId);
                     }
 
                     return $items
                         ->setColumns([$pk, 'name', 'image', 'is_in_stock', 'brand_id', 'created_at', 'updated_at'])
+                        ->setWhere($where)
                         ->setOrders([$pk => SORT_ASC])
                         ->setLimit($size)
                         ->getArrays();
