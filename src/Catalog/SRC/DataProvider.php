@@ -7,17 +7,19 @@ use SNOWGIRL_SHOP\Catalog\SRC;
 abstract class DataProvider
 {
     protected $src;
+    protected $inStockOnly;
 
     public function __construct(SRC $src)
     {
         $this->src = $src;
+        $this->inStockOnly = !empty($src->getURI()->getApp()->config('catalog.in_stock_only', false));
     }
 
-    abstract public function getItemsAttrs();
+    abstract public function getItemsAttrs(): array;
 
-    abstract public function getWhere($raw = false);
+    abstract public function getWhere(bool $raw = false): array;
 
-    abstract public function getOrder($cache = false);
+    abstract public function getOrder(bool $cache = false): array;
 
-    abstract public function getTotalCount();
+    abstract public function getTotalCount(): int;
 }
