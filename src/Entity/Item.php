@@ -38,14 +38,14 @@ class Item extends Entity
         'is_in_stock' => ['type' => self::COLUMN_INT, 'default' => 0],
         'import_source_id' => ['type' => self::COLUMN_INT, self::REQUIRED, 'entity' => __NAMESPACE__ . '\Import\Source'],
 
-        'order_desc_relevance' => ['type' => self::COLUMN_INT, 'default' => 0],
-        'order_desc_rating' => ['type' => self::COLUMN_INT, 'default' => 0],
-        'order_asc_price' => ['type' => self::COLUMN_INT, 'default' => 0],
-        'order_desc_price' => ['type' => self::COLUMN_INT, 'default' => 0],
+//        'order_desc_relevance' => ['type' => self::COLUMN_INT, 'default' => 0],
+//        'order_desc_rating' => ['type' => self::COLUMN_INT, 'default' => 0],
+//        'order_asc_price' => ['type' => self::COLUMN_INT, 'default' => 0],
+//        'order_desc_price' => ['type' => self::COLUMN_INT, 'default' => 0],
 
         'partner_updated_at' => ['type' => self::COLUMN_INT, self::REQUIRED],
         'created_at' => ['type' => self::COLUMN_TIME, self::FTDBMS_ATTR, self::REQUIRED],
-        'updated_at' => ['type' => self::COLUMN_TIME, 'default' => null]
+        'updated_at' => ['type' => self::COLUMN_TIME, 'default' => null],
     ];
     protected static $indexes = [
         'uk_source_partner_item' => ['import_source_id', 'partner_item_id'],
@@ -312,13 +312,13 @@ class Item extends Entity
         return (int) $this->getRawAttr('partner_updated_at');
     }
 
-    public function setOrders(int $v)
-    {
-        return $this->setAttr('order_desc_relevance', $v)
-            ->setAttr('order_desc_rating', $v)
-            ->setAttr('order_asc_price', $v)
-            ->setAttr('order_desc_price', $v);
-    }
+//    public function setOrders(int $v)
+//    {
+//        return $this->setAttr('order_desc_relevance', $v)
+//            ->setAttr('order_desc_rating', $v)
+//            ->setAttr('order_asc_price', $v)
+//            ->setAttr('order_desc_price', $v);
+//    }
 
     public function setCreatedAt($v)
     {
