@@ -64,7 +64,8 @@ alter table `import_history`
 
 alter table `item` drop `order_desc_rating`,
   drop `order_asc_price`,
-  drop `order_desc_price`;
+  drop `order_desc_price`,
+  drop `order_desc_relevance`;
 
 
 alter table `item` add `order_desc_relevance` int(11) NOT NULL DEFAULT 0 after `import_source_id`,
@@ -125,3 +126,10 @@ CREATE TABLE `item_attribute_value` (
 
 
 alter table vendor add `is_in_stock_check` tinyint(1) NOT NULL DEFAULT 0 after class_name;
+
+alter table `item` drop `order_desc_rating`,
+  drop `order_asc_price`,
+  drop `order_desc_price`,
+  drop `order_desc_relevance`;
+
+alter table `item` add key `ix_import_source_id_partner_item_id` (`import_source_id`, `partner_item_id`);
