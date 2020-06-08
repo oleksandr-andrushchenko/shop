@@ -301,17 +301,14 @@ CREATE TABLE `item` (
   `is_size_plus` tinyint(1) unsigned NOT NULL DEFAULT 0,
   `is_in_stock` tinyint(1) unsigned NOT NULL DEFAULT 0,
   `import_source_id` tinyint(3) unsigned NOT NULL,
-  `order_desc_relevance` int(11) NOT NULL DEFAULT 0,
-  `order_desc_rating` int(11) NOT NULL DEFAULT 0,
-  `order_asc_price` int(11) NOT NULL DEFAULT 0,
-  `order_desc_price` int(11) NOT NULL DEFAULT 0,
   `partner_updated_at` int(5) unsigned NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`item_id`),
   UNIQUE KEY `uk_source_partner_item` (`import_source_id`,`partner_item_id`),
   KEY `ix_catalog_category_brand` (`is_sport`,`is_size_plus`,`category_id`,`brand_id`),
-  KEY `ix_category_source_updated` (`category_id`,`import_source_id`,`partner_updated_at`)
+  KEY `ix_category_source_updated` (`category_id`,`import_source_id`,`partner_updated_at`),
+  KEY `ix_import_source_id_partner_item_id` (`import_source_id`,`partner_item_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Страницы всех предложений';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
