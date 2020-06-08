@@ -59,10 +59,14 @@ class CheckItemIsInStockAction
 //                    }
                 } elseif (false === $answer) {
                     $item->setIsInStock(false);
-                    $item->setOrders(9999999);
+//                    $item->setOrders(9999999);
 
                     if ($app->managers->items->updateOne($item)) {
-                        $app->managers->items->indexOne($item);
+                        if ($app->config('catalog.in_stock_only', false)) {
+                            $app->managers->items->deleteFromIndex($item);
+                        } else {
+                            $app->managers->items->addToIndex($item);
+                        }
                     }
 
                     $app->container->logger->warning('Item marked as out of stock', [
