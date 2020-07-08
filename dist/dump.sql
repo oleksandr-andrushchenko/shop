@@ -307,8 +307,7 @@ CREATE TABLE `item` (
   PRIMARY KEY (`item_id`),
   UNIQUE KEY `uk_source_partner_item` (`import_source_id`,`partner_item_id`),
   KEY `ix_catalog_category_brand` (`is_sport`,`is_size_plus`,`category_id`,`brand_id`),
-  KEY `ix_category_source_updated` (`category_id`,`import_source_id`,`partner_updated_at`),
-  KEY `ix_import_source_id_partner_item_id` (`import_source_id`,`partner_item_id`)
+  KEY `ix_category_source_updated` (`category_id`,`import_source_id`,`partner_updated_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Страницы всех предложений';
 /*!40101 SET character_set_client = @saved_cs_client */;
 

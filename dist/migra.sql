@@ -133,3 +133,5 @@ alter table `item` drop `order_desc_rating`,
   drop `order_desc_relevance`;
 
 alter table `item` add key `ix_import_source_id_partner_item_id` (`import_source_id`, `partner_item_id`);
+
+alter table item drop key ix_import_source_id_partner_item_id;
