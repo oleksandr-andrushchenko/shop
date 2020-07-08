@@ -106,7 +106,7 @@ class Catalog extends Manager
         }
 
         if (0 == count($tmp)) {
-            $this->app->container->logger->debug('catalog: empty "params"');
+            $this->app->container->logger->warning('catalog: empty "params"');
 
             return [];
         }
@@ -159,7 +159,7 @@ class Catalog extends Manager
         }, explode('/', $uri)));
 
         if (0 == strlen($uri)) {
-            $this->app->container->logger->debug('catalog: empty "uri"');
+            $this->app->container->logger->warning('catalog: empty "uri"');
 
             return [];
         }
