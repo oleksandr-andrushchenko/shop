@@ -60,19 +60,20 @@ if ((!$item->get('archive')) && $item->isInStock()) {
     $attrToName['vendor_id'] = 'Магазин';
 }
 ?>
+
 <div class="row vs<?php echo $this->typeOwn ? ' type-own' : '' ?>" itemscope itemtype="http://schema.org/Product">
-    <div class="col-md-6 vs title right">
-        <h1 class="item-name" itemprop="name">
-            <?php echo htmlspecialchars($this->h1) ?>
-            <?php echo $id = $item->getPartnerItemId() ?>
-            <?php echo $this->app->views->getItemRating($item) ?>
-        </h1>
-        <meta itemprop="description" content="<?php echo htmlspecialchars(trim(implode(' ', [
-            htmlspecialchars($this->app->managers->items->getEntityCustom($item)),
-            htmlspecialchars($this->app->managers->items->getBrand($item)->getName())
+    <h1 class="col-xs-12 vs title item-name" itemprop="name">
+        <?php echo htmlspecialchars($this->h1) ?>
+        <?php echo $id = $item->getPartnerItemId() ?>
+        <?php echo $this->app->views->getItemRating($item) ?>
+    </h1>
+
+    <meta itemprop="description" content="<?php echo htmlspecialchars(trim(implode(' ', [
+        htmlspecialchars($this->app->managers->items->getEntityCustom($item)),
+        htmlspecialchars($this->app->managers->items->getBrand($item)->getName())
 //            $item->getColorId() ? $item->getColor()->getName() : ''
-        ]))) ?>">
-    </div>
+    ]))) ?>">
+
     <div class="col-md-6 images">
         <div class="item-images-wrapper">
             <ul class="item-thumbnails">
@@ -168,7 +169,10 @@ if ((!$item->get('archive')) && $item->isInStock()) {
                             Еще детали
                         </a>
                         <a href="<?php echo $tmp ?>" class="btn btn-lg btn-primary btn-buy" target="_blank"
-                           rel="nofollow">Купить</a>
+                           rel="nofollow">
+                            <span class="fa fa-shopping-cart"></span>
+                            Купить
+                        </a>
                     <?php } else { ?>
                         <span class="btn btn-lg btn-out-of-stock"></span>
                     <?php } ?>
