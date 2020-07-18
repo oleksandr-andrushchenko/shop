@@ -17,16 +17,13 @@ class Outer extends \SNOWGIRL_CORE\View\Layout\Outer
     /**
      * Nice digital fonts:
      * https://fonts.google.com/?selection.family=Acme|Cambo|Cardo|Catamaran|Cherry+Cream+Soda|Chonburi|Cinzel|David+Libre|Delius+Swash+Caps|Gilda+Display|Hammersmith+One|Inder|Martel|Martel+Sans|Merriweather|Montserrat|Montserrat+Alternates|Noto+Serif+KR|Quicksand|Rubik|Ruslan+Display|Sriracha|Suez+One|Syncopate|Vampiro+One|Yatra+One
-     *
      * @return \SNOWGIRL_CORE\View\Layout
      */
     protected function addCssNodes(): Layout
     {
         return parent::addCssNodes()
             ->addHeadCss('@shop/core.css')
-            ->addLazyCss('@core/rating.css')
-            ->addLazyCss('https://fonts.googleapis.com/css?family=Chonburi&display=swap')
-            ->addLazyCss('.price .val,.old-price .val{font-family: \'Chonburi\', cursive;}', true);
+            ->addLazyCss('@core/rating.css');
     }
 
     protected function addJsNodes(): Layout
