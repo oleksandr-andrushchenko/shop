@@ -826,6 +826,7 @@ class Item extends Util
             'is_size_plus' => 'boolean',
             'is_sales' => 'boolean',
             'price' => 'integer',
+            'rating' => 'integer',
 
 //            'order_desc_relevance' => 'integer',
 //            'order_desc_rating' => 'integer',
