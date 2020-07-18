@@ -193,7 +193,7 @@
 
 .item-tags-body,
 .item-description-body {
-    font-size: 14px;
+    /*font-size: 14px;*/
     margin: 15px 0 15px 15px
 }
 
@@ -213,7 +213,7 @@
 }
 
 .item-description tr {
-    line-height: 1.8
+    line-height: 2
 }
 
 .item-description tr:nth-child(odd) {
@@ -250,7 +250,6 @@
 }
 
 .item-terms h3 {
-    font-weight: bold;
     font-size: 13px;
     margin-top: 18px;
     margin-bottom: 0
@@ -301,7 +300,7 @@
     }
 
     .images {
-        margin-top: 0 !important
+        /*margin-top: 0 !important*/
     }
 
     .item-name .rating {
