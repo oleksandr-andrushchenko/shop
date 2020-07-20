@@ -15,7 +15,7 @@ h1, .h1, .about {
     margin-top: 0
 }
 
-.content > .container {
+.content.container {
     margin: 0;
     padding: 0;
     width: 100%
