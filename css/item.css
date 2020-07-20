@@ -169,7 +169,9 @@
 }
 
 .item-meta .price .val {
-    font-size: 40px
+    font-size: 40px;
+    font-weight: 500;
+    color: #000
 }
 
 .item-meta .old-price {
