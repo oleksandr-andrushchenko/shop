@@ -159,7 +159,8 @@
 }
 
 .widget-grid-items .item .price .val {
-    font-size: 16px
+    font-size: 16px;
+    font-weight: 500
 }
 
 .widget-grid-items .item .old-price .val {
@@ -185,6 +186,10 @@
     text-overflow: ellipsis;
     white-space: nowrap;
     overflow: hidden
+}
+
+.widget-grid-items .item .brand-n-entity {
+    font-weight: 600
 }
 
 .pager {

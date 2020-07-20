@@ -74,7 +74,7 @@ if ((!$item->get('archive')) && $item->isInStock()) {
 //            $item->getColorId() ? $item->getColor()->getName() : ''
     ]))) ?>">
 
-    <div class="col-md-6 images">
+    <div class="col-xs-12 col-md-6 images">
         <div class="item-images-wrapper">
             <ul class="item-thumbnails">
                 <?php foreach ($this->images as $image) { ?>
@@ -116,7 +116,7 @@ if ((!$item->get('archive')) && $item->isInStock()) {
             </div>
         </div>
     </div>
-    <div class="col-md-6 details right">
+    <div class="col-xs-12 col-md-6 details right">
         <div class="item-meta clearfix">
             <div class="item-prices">
                 <span class="price">
@@ -280,7 +280,7 @@ if ((!$item->get('archive')) && $item->isInStock()) {
     </div>
 
     <?php if ($sharer) { ?>
-        <div class="col-md-6 sharer">
+        <div class="col-xs-12 col-md-6 sharer">
             <?php echo $sharer ?>
         </div>
     <?php } ?>
