@@ -26,7 +26,9 @@ $brand = $this->app->managers->items->getBrand($item);
         <div class="image">
             <?php echo $this->app->views->image($item->getImage(), Images::FORMAT_WIDTH, 227, [
                 'alt' => 'Фото ' . $item->getName(),
-                'title' => 'Смотреть ' . $item->getName()
+                'title' => 'Смотреть ' . $item->getName(),
+                'width' => 227,
+                'height' => false,
             ]) ?>
         </div>
     </a>

@@ -57,7 +57,9 @@ $brandName = htmlspecialchars($brand->getName());
             <?php echo $this->app->views->getImage($vendorImage, Images::FORMAT_HEIGHT, 25, [
                 'alt' => $vendor->getName(),
                 'title' => 'Предоставляет ' . $vendor->getName(),
-                'class' => 'll vendor'
+                'class' => 'll vendor',
+                'height' => 25,
+                'width' => false,
             ]) ?>
         <?php } ?>
 
@@ -77,7 +79,9 @@ $brandName = htmlspecialchars($brand->getName());
             <?php echo $this->app->views->getImage($item->getImage(), Images::FORMAT_WIDTH, 227, [
                 'alt' => 'Фото ' . $item->getName(),
                 'title' => 'Смотреть ' . $item->getName(),
-                'itemprop' => 'image'
+                'itemprop' => 'image',
+                'width' => 227,
+                'height' => false,
             ]) ?>
         </div>
     </a>
