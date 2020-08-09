@@ -28,7 +28,7 @@ class IndexerHelper
 
     public function getDocumentByArray(array $entity): array
     {
-        $document = $item = array_filter($entity, function ($v) {
+        $document = array_filter($entity, function ($v) {
             return null !== $v;
         });;
 
@@ -71,6 +71,7 @@ class IndexerHelper
                      'is_sport',
                      'is_size_plus',
                      'is_sales',
+                     'is_in_stock',
                  ] as $column) {
             if (isset($document[$column])) {
                 $document[$column] = 1 == $document[$column];
