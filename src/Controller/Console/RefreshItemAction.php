@@ -29,6 +29,8 @@ class RefreshItemAction
             throw (new NotFoundHttpException)->setNonExisting('item');
         }
 
+        $force = 1 == $app->request->get('param_2');
+
         $response = [];
 
         $response['Is in stock'] = ($item->isInStock() ? 'true' : 'false');
@@ -38,21 +40,24 @@ class RefreshItemAction
 
         if (is_bool($realIsInStock)) {
             $item->setIsInStock($realIsInStock);
+        }
+
+        if ($force || $item->isAttrsChanged()) {
             $aff = $app->managers->items->updateOne($item);
             $response['Update db response'] = var_export($aff, true);
+
+            try {
+                // @todo create elastic upsert method
+                $aff = $app->managers->items->addToIndex($item, true);
+            } catch (Missing404Exception $e) {
+                $aff = $app->managers->items->addToIndex($item);
+            }
+
+            $response['Update index response'] = var_export($aff, true);
+
+            $aff = $app->managers->items->deleteCache($item);
+            $response['Delete cache response'] = var_export($aff, true);
         }
-
-        try {
-            // @todo create elastic upsert method
-            $aff = $app->managers->items->addToIndex($item, true);
-        } catch (Missing404Exception $e) {
-            $aff = $app->managers->items->addToIndex($item);
-        }
-
-        $response['Update index response'] = var_export($aff, true);
-
-        $aff = $app->managers->items->deleteCache($item);
-        $response['Delete cache response'] = var_export($aff, true);
 
         $app->response->addToBody(implode("\r\n", array_merge($this->formatResponse($response), [
             __CLASS__,
