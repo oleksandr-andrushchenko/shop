@@ -9,7 +9,8 @@ class LamodaRu extends Vendor
 {
     public function getBuySelector()
     {
-        return '.ii-product__wrapper .product__cart-add-button';
+//        return '.ii-product__wrapper .product__cart-add-button';
+        return '.ii-product__buy[data-in-stock="true"]';
     }
 
     public function getItemTargetLink(Item $item)
