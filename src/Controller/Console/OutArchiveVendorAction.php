@@ -13,6 +13,7 @@ class OutArchiveVendorAction
 
     /**
      * @param App $app
+     * @throws BadRequestHttpException
      * @throws NotFoundHttpException
      */
     public function __invoke(App $app)

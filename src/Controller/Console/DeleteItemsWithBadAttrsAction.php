@@ -3,6 +3,7 @@
 namespace SNOWGIRL_SHOP\Controller\Console;
 
 use SNOWGIRL_CORE\Controller\Console\PrepareServicesTrait;
+use SNOWGIRL_CORE\Http\Exception\NotFoundHttpException;
 use SNOWGIRL_SHOP\Console\ConsoleApp as App;
 
 class DeleteItemsWithBadAttrsAction
@@ -11,7 +12,7 @@ class DeleteItemsWithBadAttrsAction
 
     /**
      * @param App $app
-     * @throws \SNOWGIRL_CORE\Http\Exception\NotFoundHttpException
+     * @throws NotFoundHttpException
      */
     public function __invoke(App $app)
     {
