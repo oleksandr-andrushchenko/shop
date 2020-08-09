@@ -2,6 +2,7 @@
 
 namespace SNOWGIRL_SHOP\Controller\Console;
 
+use Elasticsearch\Common\Exceptions\Missing404Exception;
 use SNOWGIRL_CORE\Controller\Console\PrepareServicesTrait;
 use SNOWGIRL_CORE\Http\Exception\BadRequestHttpException;
 use SNOWGIRL_CORE\Http\Exception\NotFoundHttpException;
@@ -41,7 +42,13 @@ class RefreshItemAction
             $response['Update db response'] = var_export($aff, true);
         }
 
-        $aff = $app->managers->items->addToIndex($item, true);
+        try {
+            // @todo create elastic upsert method
+            $aff = $app->managers->items->addToIndex($item, true);
+        } catch (Missing404Exception $e) {
+            $aff = $app->managers->items->addToIndex($item);
+        }
+
         $response['Update index response'] = var_export($aff, true);
 
         $aff = $app->managers->items->deleteCache($item);
