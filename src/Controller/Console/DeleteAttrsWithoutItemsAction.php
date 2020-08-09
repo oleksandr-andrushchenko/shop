@@ -5,6 +5,11 @@ namespace SNOWGIRL_SHOP\Controller\Console;
 use SNOWGIRL_CORE\Controller\Console\PrepareServicesTrait;
 use SNOWGIRL_SHOP\Console\ConsoleApp as App;
 
+/**
+ * Class DeleteAttrsWithoutItemsAction
+ * @deprecated VERY dangerous command - better to use DeleteItemsWithBadAttrsAction
+ * @package SNOWGIRL_SHOP\Controller\Console
+ */
 class DeleteAttrsWithoutItemsAction
 {
     use PrepareServicesTrait;
