@@ -579,13 +579,17 @@ snowgirlApp.prototype.addEasyZoomToMappingModifyFromItems = function ($modify) {
 snowgirlApp.prototype.addMapItemModify = function ($mapItem, fromValue, toValue, info) {
     info = info || {};
 
-    var fromValueQuoted = fromValue.replace(/'/g, "\\'");
     var dbColumn = $mapItem.data('column');
-    var $from, $to;
 
-    if (fromValue && $mapItem.find("[name='map[" + dbColumn + "][modify_from][]'][value='" + fromValueQuoted + "']").length) {
-        return true;
+    if (fromValue) {
+        var fromValueQuoted = fromValue.replace(/'/g, "\\'");
+
+        if (fromValue && $mapItem.find("[name='map[" + dbColumn + "][modify_from][]'][value='" + fromValueQuoted + "']").length) {
+            return true;
+        }
     }
+
+    var $from, $to;
 
     $from = $('<input/>', {
         class: 'form-control',
