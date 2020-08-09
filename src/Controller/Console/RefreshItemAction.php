@@ -20,7 +20,7 @@ class RefreshItemAction
     {
         $this->prepareServices($app);
 
-        if (!$itemId = $app->request->has('param_1')) {
+        if (!$itemId = $app->request->get('param_1')) {
             throw (new BadRequestHttpException)->setInvalidParam('item_id');
         }
 
