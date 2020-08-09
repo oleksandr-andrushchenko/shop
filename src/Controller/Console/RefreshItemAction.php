@@ -30,26 +30,41 @@ class RefreshItemAction
 
         $response = [];
 
-        $response[] = 'Is in stock: ' . ($item->isInStock() ? 'true' : 'false');
+        $response['Is in stock'] = ($item->isInStock() ? 'true' : 'false');
 
         $realIsInStock = $app->managers->items->checkRealIsInStock($item);
-        $response[] = 'Real is in stock: ' . var_export($realIsInStock, true);
+        $response['Real is in stock'] = var_export($realIsInStock, true);
 
         if (is_bool($realIsInStock)) {
             $item->setIsInStock($realIsInStock);
             $aff = $app->managers->items->updateOne($item);
-            $response[] = 'Update db response: ' . var_export($aff, true);
+            $response['Update db response'] = var_export($aff, true);
         }
 
         $aff = $app->managers->items->addToIndex($item, true);
-        $response[] = 'Update index response: ' . var_export($aff, true);
+        $response['Update index response'] = var_export($aff, true);
 
         $aff = $app->managers->items->deleteCache($item);
-        $response[] = 'Delete cache response: ' . var_export($aff, true);
+        $response['Delete cache response'] = var_export($aff, true);
 
-        $response[] = __CLASS__;
-        $response[] = 'DONE';
+        $app->response->addToBody(implode("\r\n", array_merge($this->formatResponse($response), [
+            __CLASS__,
+            'DONE',
+        ])));
+    }
 
-        $app->response->addToBody(implode("\r\n", $response));
+    private function formatResponse(array $response): array
+    {
+        $max = 0;
+
+        array_walk($response, function ($v,$k) use (&$max) {
+            $max = max($max, mb_strlen($k));
+        });
+
+        array_walk($response, function (&$v, &$k) use($max) {
+            $v = str_pad($k, $max) . ': ' . $v;
+        });
+
+        return $response;
     }
 }
