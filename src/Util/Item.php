@@ -257,20 +257,20 @@ class Item extends Util
         return $this->app->container->db->req($query)->affectedRows();
     }
 
-    public function doFixWithNonExistingCountries(FixWhere $fixWhere, array $params = [])
+    public function doFixWithNonExistingCountries(FixWhere $fixWhere = null, array $params = [])
     {
         $db = $this->app->container->db;
         $pk = $this->app->managers->countries->getEntity()->getPk();
 
         $id = $this->app->managers->countries->getList($pk);
 
-        $where = $fixWhere->get();
+        $where = $fixWhere ? $fixWhere->get() : [];
         $where[] = new Expression($db->quote($pk) . ' NOT IN (' . implode(',', $id) . ')');
 
         return $this->app->managers->items->updateMany([$pk => null], $where, $params);
     }
 
-    public function doFixWithNonExistingAttrs(FixWhere $fixWhere, array $params = [])
+    public function doFixWithNonExistingAttrs(FixWhere $fixWhere = null, array $params = [])
     {
         $aff = $this->doDeleteWithNonExistingCategories($fixWhere, $params);
         $this->output('deleted with invalid categories: ' . $aff);
@@ -673,13 +673,13 @@ class Item extends Util
     }
 
     /**
-     * @param FixWhere|null $fixWhere
-     * @param array $params
-     * @return null|int
      * @todo already created:
      * [category_id,    vendor_id, created_at, updated_at]
      * [                vendor_id, created_at, updated_at]
      * @todo to run this without vendor_id or time intervals - need to create indexes (!)
+     * @param FixWhere|null $fixWhere
+     * @param array $params
+     * @return null|int
      */
     public function doFixItemsCategories(FixWhere $fixWhere = null, array $params = []): ?int
     {
@@ -969,8 +969,8 @@ class Item extends Util
     }
 
     /**
-     * @return int
      * @todo add missing documents sync support
+     * @return int
      */
     public function doDeleteMissingElastic(): int
     {
