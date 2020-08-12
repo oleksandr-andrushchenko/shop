@@ -94,11 +94,11 @@ class IndexerDataProvider extends DataProvider
                                 'query' => [
                                     'bool' => [
                                         'filter' => [
-                                            $tmp
-                                        ]
-                                    ]
-                                ]
-                            ]
+                                            $tmp,
+                                        ],
+                                    ],
+                                ],
+                            ],
                         ];
                     } else {
                         $output[$pk] = $tmp;
