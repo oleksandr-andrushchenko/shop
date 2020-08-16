@@ -147,7 +147,7 @@ class Import
     {
         $output = [
             'columns' => [],
-            'indexes' => []
+            'indexes' => [],
         ];
 
         if ($handler = fopen($this->getDownloadedCsvFileName(), 'r')) {
@@ -206,9 +206,9 @@ class Import
             $this->debug('downloading file...');
 
             shell_exec(implode(' ', [
-                'wget --quiet',
-                '--output-document=' . $file,
-                '"' . $this->getFilename() . '"'
+                '/usr/bin/wget --quiet',
+                '--output-document="' . $file . '"',
+                '"' . $this->getFilename() . '"',
             ]));
 
             $this->setAccessPermissions($file);
@@ -224,7 +224,7 @@ class Import
             'application/vnd.msexcel',
             'text/anytext',
             'application/octet-stream',
-            'application/txt'
+            'application/txt',
         ])) {
             throw new Exception('invalid csv file "' . $file . '"');
         }
@@ -501,7 +501,7 @@ class Import
                 if (!isset($output[$column][$v])) {
                     $output[$column][$v] = [
                         'total' => 0,
-                        'items' => []
+                        'items' => [],
                     ];
                 }
 
@@ -542,7 +542,7 @@ class Import
                 foreach ($output[$fileColumn][$value]['items'] as $k => $item) {
                     $output[$fileColumn][$value]['items'][$k] = [
                         'image' => isset($imageIndex) && isset($item[$imageIndex]) ? str_replace(['http://', 'https://'], '//', $item[$imageIndex]) : null,
-                        'name' => isset($nameIndex) && isset($item[$nameIndex]) ? $item[$nameIndex] : null
+                        'name' => isset($nameIndex) && isset($item[$nameIndex]) ? $item[$nameIndex] : null,
                     ];
                 }
             }
@@ -607,7 +607,7 @@ class Import
             'partner_link_hash',
 
             'created_at',
-            'updated_at'
+            'updated_at',
         ]);
     }
 
@@ -619,7 +619,7 @@ class Import
             'description',
             'entity',
             'is_in_stock',
-            $this->app->managers->sources->getEntity()->getPk()
+            $this->app->managers->sources->getEntity()->getPk(),
         ]);
     }
 
@@ -628,7 +628,7 @@ class Import
         return [
             Category::getPk() => $app->utils->attrs->getIdToName(Category::class),
 //            Brand::getPk() => $app->utils->attrs->getIdToName(Brand::class),
-            Country::getPk() => $app->utils->attrs->getIdToName(Country::class)
+            Country::getPk() => $app->utils->attrs->getIdToName(Country::class),
         ];
     }
 
@@ -672,10 +672,6 @@ class Import
     }
 
     /**
-     * @param bool $downloadImages
-     * @param callable $onAdd
-     * @param callable|null $onEnd
-     * @return bool
      * @todo ensure ids only
      * @todo what if categories were updated after first import (e.g. db items has another categories now)?? - could
      * be resolved if
@@ -690,6 +686,10 @@ class Import
      *          partner_item_id
      *          partner_link
      *          image
+     * @param callable $onAdd
+     * @param callable|null $onEnd
+     * @param bool $downloadImages
+     * @return bool
      */
     public function walkImport(bool $downloadImages, callable $onAdd, callable $onEnd = null)
     {
@@ -844,7 +844,7 @@ class Import
                         $this->debug(implode(' ', [
                             '[SKIPPED as duplicate]',
                             'partner_id=' . $partnerItemId,
-                            'link=' . $link
+                            'link=' . $link,
                         ]));
                         continue;
                     }
@@ -928,7 +928,7 @@ class Import
                             $this->debug(implode(' ', [
                                 '[SKIPPED by updated_at]',
                                 'partner_id=' . $partnerItemId,
-                                'updated_at=' . $row['_partner_updated_at']
+                                'updated_at=' . $row['_partner_updated_at'],
                             ]));
                             $this->skippedByUpdated++;
                             continue;
@@ -1098,7 +1098,7 @@ class Import
         return [
             'name',
             Category::getPk(),
-            Country::getPk()
+            Country::getPk(),
         ];
     }
 
@@ -1196,7 +1196,7 @@ class Import
             $tmp = $this->app->managers->importHistory
                 ->setWhere([
                     'import_source_id' => $this->source->getId(),
-                    'error' => null
+                    'error' => null,
                 ])
                 ->setOrders(['import_history_id' => SORT_DESC])
                 ->getObject();
@@ -1279,9 +1279,9 @@ class Import
                 ($dynamicPart ?: implode('-', [
                     md5($this->getFilename()),
                     $today->format('Y_m_d'),
-                    floor($diff->h / self::FILE_CACHE_HOURS)
-                ])) . '.csv'
-            ])
+                    floor($diff->h / self::FILE_CACHE_HOURS),
+                ])) . '.csv',
+            ]),
         ]);
     }
 
@@ -1419,9 +1419,9 @@ class Import
     }
 
     /**
+     * @todo add table index...
      * @param array $partnerItemId
      * @return array
-     * @todo add table index...
      */
     private function getPartnerUpdatedAtByPartnerItemId(array $partnerItemId): array
     {
@@ -1439,9 +1439,9 @@ class Import
     }
 
     /**
+     * @todo add table index...
      * @param array $partnerItemId
      * @return array
-     * @todo add table index...
      */
     private function getPartnerItemIdByPartnerItemId(array $partnerItemId): array
     {
@@ -1459,9 +1459,9 @@ class Import
     }
 
     /**
+     * @todo add table index...
      * @param array $partnerItemId
      * @return array
-     * @todo add table index...
      */
     private function getItemIdByPartnerItemId(array $partnerItemId): array
     {
@@ -1511,7 +1511,7 @@ class Import
             $entity = $manager->getEntity();
             $table = $entity->getTable();
 
-            list($nameToId, $uriToId) = $this->app->utils->attrs->getNameToIdAndUriToId($manager->copy(true), true);
+            [$nameToId, $uriToId] = $this->app->utils->attrs->getNameToIdAndUriToId($manager->copy(true), true);
 
             if ($termsManager = $manager->getTermsManager()) {
                 $where = isset($termsManager->getEntity()->getColumns()['lang']) ? ['lang' => $this->langs] : null;
@@ -1527,7 +1527,7 @@ class Import
                 'nameToId' => $nameToId,
                 'termNameToId' => $termNameToId,
                 'uriToId' => $uriToId,
-                'processNew' => !!$this->app->config('import.' . $table, false)
+                'processNew' => !!$this->app->config('import.' . $table, false),
             ];
         }
     }
@@ -1690,7 +1690,7 @@ class Import
             $entity = $manager->getEntity();
             $table = $entity->getTable();
 
-            list($nameToId, $uriToId) = $this->app->utils->attrs->getNameToIdAndUriToId($manager->copy(true), true);
+            [$nameToId, $uriToId] = $this->app->utils->attrs->getNameToIdAndUriToId($manager->copy(true), true);
 
             if ($termsManager = $manager->getTermsManager()) {
                 $where = isset($termsManager->getEntity()->getColumns()['lang']) ? ['lang' => $this->langs] : null;
@@ -1707,7 +1707,7 @@ class Import
                 'termNameToId' => $termNameToId,
                 'uriToId' => $uriToId,
                 'values' => [],
-                'processNew' => !!$this->app->config('import.' . $table, false)
+                'processNew' => !!$this->app->config('import.' . $table, false),
             ];
         }
     }
@@ -1805,7 +1805,7 @@ class Import
                     if ($mainImage != $image) {
                         $insert[] = [
                             'item_id' => (int) $partnerItemIdToItemId[$partnerItemId],
-                            'image_id' => $image
+                            'image_id' => $image,
                         ];
                     }
                 }
@@ -1895,7 +1895,7 @@ class Import
                                     if (Exception::_check($e, 'Duplicate entry')) {
                                         $tmp = $this->app->container->db->selectOne($table, new Query([
                                             'columns' => $entityPk,
-                                            'where' => ['uri' => $newUri]
+                                            'where' => ['uri' => $newUri],
                                         ]));
 
                                         if ($tmp) {
@@ -1915,7 +1915,7 @@ class Import
                         if ($id) {
                             $insert[] = [
                                 $itemPk => (int) $partnerItemIdToItemId[$partnerItemId],
-                                $entityPk => (int) $id
+                                $entityPk => (int) $id,
                             ];
                         }
                     }
@@ -2167,7 +2167,7 @@ class Import
                 'partner_item_id',
 //                'image',
                 'created_at',
-                'updated_at'
+                'updated_at',
             ];
 
             $editableColumns = $this->isForceUpdate ? [] : self::getPostEditableColumns();
@@ -2202,15 +2202,15 @@ class Import
                             implode(' OR ', array_filter([
                                 !in_array(Entity::REQUIRED, $options) ? ($db->quote($column) . ' IS NULL') : null,
                                 Entity::COLUMN_INT == $options['type'] ? ($db->quote($column) . ' = 0') : null,
-                                Entity::COLUMN_TEXT == $options['type'] ? ($db->quote($column) . ' = \'\'') : null
+                                Entity::COLUMN_TEXT == $options['type'] ? ($db->quote($column) . ' = \'\'') : null,
                             ], function ($v) {
                                 return null !== $v;
                             })),
                             'VALUES(' . $db->quote($column) . ')',
-                            $db->quote($column)
+                            $db->quote($column),
                         ]) . ')');
                 }, $editableColumns)) . ($editableColumns ? ',' : ''),
-                $onDuplicateClosure('updated_at', 'NOW()')
+                $onDuplicateClosure('updated_at', 'NOW()'),
             ]);
             $query->params = $this->bindValues;
             $query->log = $this->debug;
@@ -2237,7 +2237,7 @@ class Import
             implode('', [
                 $this->getFilename(),
                 $this->source->getFileFilter(),
-                $this->source->getFileMapping()
+                $this->source->getFileMapping(),
             ]),
         ]));
     }
@@ -2435,20 +2435,20 @@ class Import
         $query->text = implode(' ', [
             $db->makeSelectSQL([
                 'partner_item_id',
-                new Expression('SUBSTR(' . $db->quote('image_id') . ', 1, ' . $this->app->images->getHashLength() . ') AS ' . $db->quote('image_id'))
+                new Expression('SUBSTR(' . $db->quote('image_id') . ', 1, ' . $this->app->images->getHashLength() . ') AS ' . $db->quote('image_id')),
             ], false, $query->params),
             $db->makeFromSQL($this->app->managers->items->getEntity()->getTable()),
             $db->makeJoinSQL([[
                 $this->app->managers->items->getEntity()->getTable(),
                 $this->app->managers->itemImages->getEntity()->getTable(),
-                $this->app->managers->items->getEntity()->getPk()
+                $this->app->managers->items->getEntity()->getPk(),
             ]], $query->params),
             $db->makeWhereSQL([
                 'import_source_id' => $this->source->getId(),
             ], $query->params),
             $db->makeHavingSQL([
                 'image_id' => $images,
-            ], $query->params)
+            ], $query->params),
         ]);
         $query->placeholders = false;
         $query->log = $this->debug;
@@ -2566,8 +2566,8 @@ class Import
             $this->app->dirs['@tmp'],
             implode('_', [
                 'import_pid',
-                $this->source->getId()
-            ])
+                $this->source->getId(),
+            ]),
         ]);
     }
 
