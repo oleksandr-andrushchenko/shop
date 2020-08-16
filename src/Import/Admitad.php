@@ -39,7 +39,7 @@ class Admitad extends Import
     protected $langs = ['ru'];
     protected $isCheckUpdatedAt = true;
 
-    public function getFilename(): string
+    public function _getFilename(): string
     {
         if ($lastOkImport = $this->getLastOkImport()) {
             return $this->source->getFile() . '&last_import=' . $lastOkImport->getCreatedAt(true)->format('Y.m.d.H.i');
