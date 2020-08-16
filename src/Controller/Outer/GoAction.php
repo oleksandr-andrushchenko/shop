@@ -103,10 +103,6 @@ class GoAction
             $app->request->redirect($app->request->getReferer(), 301);
         }
 
-        if ($app->isDev()) {
-            die('Redirecting to "' . $link . '"...');
-        }
-
         $tmp = <<<HTML
 <!DOCTYPE html>
 <html>

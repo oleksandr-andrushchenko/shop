@@ -131,7 +131,7 @@ class Import
         $this->filters = $this->getFilters();
         $this->mappings = $this->getMappings();
 
-        $this->debug = null === $debug ? $app->isDev() : $debug;
+        $this->debug = $debug;
     }
 
     public function getFilename(): string
@@ -333,10 +333,6 @@ class Import
             if (false === $fn($row, $i++)) {
                 break;
             }
-
-//            if ($this->app->isDev() && (100 == $i)) {
-//                break;
-//            }
         }
 
         fclose($handle);
@@ -435,10 +431,6 @@ class Import
                 $row = $this->postNormalizeRow($row);
 
                 yield $row;
-
-//            if ($this->app->isDev() && (100 == $i)) {
-//                break;
-//            }
             }
         } finally {
             if ($handle) {

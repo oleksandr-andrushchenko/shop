@@ -21,7 +21,6 @@ use SNOWGIRL_SHOP\Manager\Page\Catalog\IndexerHelper;
 
 /**
  * Class Catalog
- *
  * @property HttpApp|ConsoleApp app
  * @package SNOWGIRL_SHOP\Util
  */
@@ -51,7 +50,7 @@ class Catalog extends Util
             'h1',
             'body',
             'seo_texts',
-            'updated_at' => 'created_at'
+            'updated_at' => 'created_at',
         ];
         $where = new Expression($this->app->container->db->quote('updated_at') . ' IS NOT NULL');
 
@@ -68,7 +67,7 @@ class Catalog extends Util
         if (null === $this->trans) {
             $this->trans = new TranslateClient([
                 'key' => $this->app->config('keys.google_api_key'),
-                'projectId' => $this->app->config('keys.google_cloud_project_id')
+                'projectId' => $this->app->config('keys.google_cloud_project_id'),
             ]);
         }
 
@@ -77,14 +76,6 @@ class Catalog extends Util
 
     protected function translate($text, $source = 'en', $target = 'ru')
     {
-        if ($this->app->isDev()) {
-            return file_get_contents('https://example.com/translate?' . implode('&', [
-                    'text=' . urlencode($text),
-                    'source=' . urlencode($source),
-                    'target=' . urlencode($target)
-                ]));
-        }
-
         return $this->translateRaw($text, $source, $target);
     }
 
@@ -92,14 +83,14 @@ class Catalog extends Util
     {
         $tmp = $this->getTranslator()->translate($text, [
             'source' => $source,
-            'target' => $target
+            'target' => $target,
         ]);
 
         if (is_array($tmp) && isset($tmp['text'])) {
             $table = get_html_translation_table(HTML_SPECIALCHARS, ENT_QUOTES | ENT_HTML401);
 
             return strtr($tmp['text'], array_flip(array_merge($table, [
-                "'" => '&#39;'
+                "'" => '&#39;',
             ])));
         }
 
@@ -109,7 +100,6 @@ class Catalog extends Util
     /**
      * @param      $content
      * @param bool $link
-     *
      * @return HtmlParser
      */
     public function getParser($content, $link = true)
@@ -212,7 +202,7 @@ class Catalog extends Util
             'https://www.macys.com/shop/jewelry-watches/all-fine-jewelry?id=65993&cm_sp=intl_hdr-_-women-_-65993_fine-jewelry_COL3' => self::CATEGORY_JEWELERY,
             'https://www.macys.com/shop/jewelry-watches/watches?id=23930&cm_sp=intl_hdr-_-women-_-23930_watches_COL3' => self::CATEGORY_WATCHES,
             'https://www.macys.com/shop/womens-clothing/michael-kors-womens-clothing?id=14728&cm_sp=intl_hdr-_-women-_-14728_michael-michael-kors_COL4' => ['category_id' => self::CATEGORY_CLOTHING, 'brand_id' => self::BRAND_MICHAEL_KORS],
-            'https://www.macys.com/shop/b/lacoste-shoes?id=71692' => ['category_id' => self::CATEGORY_SHOES, 'brand_id' => self::BRAND_LACOSTE]
+            'https://www.macys.com/shop/b/lacoste-shoes?id=71692' => ['category_id' => self::CATEGORY_SHOES, 'brand_id' => self::BRAND_LACOSTE],
         ]);
     }
 
@@ -261,7 +251,7 @@ class Catalog extends Util
             'https://www.very.co.uk/beauty/beauty-gift-sets/e/b/100180.end' => self::CATEGORY_BEAUTY,
             'https://www.very.co.uk/sports-leisure/womens-sports-shoes/e/b/2898.end' => ['category_id' => self::CATEGORY_SHOES, URI::SPORT => 1],
             'https://www.very.co.uk/sports-leisure/luggage/e/b/3132.end' => self::CATEGORY_SUITCASES,
-            'https://www.very.co.uk/sports-leisure/bags-backpacks/e/b/3008.end' => self::CATEGORY_BACKPACKS
+            'https://www.very.co.uk/sports-leisure/bags-backpacks/e/b/3008.end' => self::CATEGORY_BACKPACKS,
         ]);
     }
 
@@ -285,7 +275,7 @@ class Catalog extends Util
             $custom = $this->app->managers->catalogCustom->getDb()
                 ->selectOne($this->app->managers->catalogCustom->getEntity()->getTable(), new Query([
                     'params' => [],
-                    'where' => ['params_hash' => $page->getParamsHash()]
+                    'where' => ['params_hash' => $page->getParamsHash()],
                 ]));
 
             if ($custom) {
@@ -347,7 +337,7 @@ class Catalog extends Util
                 'h1' => $h1,
                 'body' => $body,
                 'user' => 0,
-                'active' => 1
+                'active' => 1,
             ]);
 
             if ($this->app->managers->catalogCustom->save($custom)) {
