@@ -34,7 +34,6 @@ use Throwable;
 class Import
 {
     protected const LIMIT = 500;
-    protected const FILE_CACHE_HOURS = 3;
 
     /**
      * @var HttpApp|ConsoleApp
@@ -1271,7 +1270,6 @@ class Import
                 ($dynamicPart ?: implode('-', [
                     md5($this->getFilename()),
                     $today->format('Y_m_d'),
-                    floor($diff->h / self::FILE_CACHE_HOURS),
                 ])) . '.csv',
             ]),
         ]);
