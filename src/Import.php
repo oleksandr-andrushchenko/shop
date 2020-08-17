@@ -1967,7 +1967,7 @@ class Import
         return $this->getMvaByRow('tag_id', $row);
     }
 
-    private function getNameByRow($row)
+    private function getNameByRow($row): string
     {
         if (array_key_exists('_name', $row)) {
             return $row['_name'];
@@ -2060,20 +2060,29 @@ class Import
         return null;
     }
 
-    private function getIsInStockByRow($row)
+    private function getIsInStockByRow($row): int
     {
         if (isset($this->mappings['is_in_stock'])) {
             $map = $this->mappings['is_in_stock'];
 
-            if (array_key_exists('modify', $map) && array_key_exists($value = trim($row[$this->indexes[$map['column']]]), $modifies = $map['modify'])) {
-                return (int) $modifies[$value]['value'];
+            if (!array_key_exists('modify', $map)) {
+                return 0;
             }
+
+            $value = trim($row[$this->indexes[$map['column']]]);
+            $modifies = $map['modify'];
+
+            if (!array_key_exists($value, $modifies)) {
+                return 0;
+            }
+
+            return (int) $modifies[$value]['value'];
         }
 
         return 1;
     }
 
-    private function getPartnerLinkByRow($row)
+    private function getPartnerLinkByRow($row): string
     {
         if (array_key_exists('_partner_link', $row)) {
             return $row['_partner_link'];
@@ -2087,7 +2096,7 @@ class Import
         return $link;
     }
 
-    private function getPartnerLinkHashByRow($row)
+    private function getPartnerLinkHashByRow($row): string
     {
         if (array_key_exists('_partner_link_hash', $row)) {
             return $row['_partner_link_hash'];
@@ -2096,7 +2105,7 @@ class Import
         return md5($this->normalizePartnerLink($this->getPartnerLinkByRow($row)));
     }
 
-    private function getEntityByRow($row)
+    private function getEntityByRow($row): ?string
     {
         if (isset($this->mappings['entity']) && isset($this->indexes[$this->mappings['entity']['column']])) {
             $map = $this->mappings['entity'];
@@ -2586,7 +2595,7 @@ class Import
         return FileSystem::deleteFile($this->getPidFilename());
     }
 
-    private function clearText($text)
+    private function clearText(string $text): string
     {
         $text = htmlspecialchars_decode($text);
         $text = html_entity_decode($text);
