@@ -25,14 +25,14 @@ abstract class Vendor
         $this->entity = $entity;
     }
 
-    abstract public function getBuySelector();
+    abstract public function getBuySelector(): ?string;
 
-    public function getItemTargetLink(Item $item)
+    public function getItemTargetLink(Item $item): ?string
     {
         return $this->app->managers->items->getTargetLink($item);
     }
 
-    public function checkRealIsInStock(Item $item)
+    public function checkRealIsInStock(Item $item): ?bool
     {
         if (!$selector = $this->getBuySelector()) {
             return null;

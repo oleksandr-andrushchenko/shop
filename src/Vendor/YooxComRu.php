@@ -6,7 +6,7 @@ use SNOWGIRL_SHOP\Vendor;
 
 class YooxComRu extends Vendor
 {
-    public function getBuySelector()
+    public function getBuySelector(): ?string
     {
         return '.js-add-to-cart-container';
     }

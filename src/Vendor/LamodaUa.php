@@ -6,7 +6,7 @@ use SNOWGIRL_SHOP\Entity\Item;
 
 class LamodaUa extends LamodaRu
 {
-    public function getItemTargetLink(Item $item)
+    public function getItemTargetLink(Item $item): ?string
     {
         return 'https://www.lamoda.ua/p/' . strtolower($item->getPartnerItemId()) . '/';
     }
