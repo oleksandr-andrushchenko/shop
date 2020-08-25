@@ -370,7 +370,7 @@ class Catalog extends Util
     protected $elasticColumns;
     protected $elasticColumnsOptions;
 
-    protected function getIndexerMappings(): array
+    protected function getElasticMappings(): array
     {
         $this->indexerHelper->prepareData($this->app);
 
@@ -389,20 +389,6 @@ class Catalog extends Util
         }
 
         return ['properties' => $properties];
-    }
-
-    public function doCreateElasticIndex(string $index = null): bool
-    {
-        $index = $index ?: $this->app->managers->catalog->getEntity()->getTable();
-
-        $indexerManager = $this->app->container->indexer->getManager();
-        $indexerManager->deleteIndex($index);
-
-        if (!$indexerManager->createIndex($index, $this->getIndexerMappings())) {
-            return false;
-        }
-
-        return true;
     }
 
     public function doRawIndexElastic(string $index, $where = null): int
@@ -449,14 +435,12 @@ class Catalog extends Util
 
     public function doIndexElastic(): int
     {
-        $indexerManager = $this->app->container->indexer->getManager();
+        $manager = $this->app->container->indexer->getManager();
         $alias = $this->app->managers->catalog->getEntity()->getTable();
-        $newIndex = $alias . '_' . time();
+        $mappings = $this->getElasticMappings();
 
-        $this->doCreateElasticIndex($newIndex);
-
-        return $indexerManager->switchAliasIndex($alias, $newIndex, function ($index) {
-            return $this->doRawIndexElastic($index);
+        return $manager->switchAliasIndex($alias, $mappings, function ($newIndex) {
+            return $this->doRawIndexElastic($newIndex);
         });
     }
 
