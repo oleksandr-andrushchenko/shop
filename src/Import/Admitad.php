@@ -17,7 +17,7 @@ class Admitad extends Import
         'color_id' => ['name', 'entity', 'description'],
         'material_id' => ['name', 'entity', 'description'],
 //        'size_id' => ['description'],
-        'season_id' => ['description']
+        'season_id' => ['description'],
     ];
 
     protected $mappings = [
@@ -33,12 +33,36 @@ class Admitad extends Import
         'source_item_id' => ['column' => 'id'],
         'partner_link' => ['column' => 'url'],
         'is_in_stock' => ['column' => 'available', 'modify' => ['true' => ['value' => '1', 'tags' => []]], 0 => 'modify_only'],
-        'partner_updated_at' => ['column' => 'modified_time']
+        'partner_updated_at' => ['column' => 'modified_time'],
     ];
 
     protected $langs = ['ru'];
     protected $isCheckUpdatedAt = true;
 
+    protected $paramsIndex;
+    protected $paramsCallbacks;
+    protected $paramsValues;
+
+    public function getItemTargetLink(Item $item)
+    {
+        if ($parsedUrl = parse_url($item->getPartnerLink())) {
+            if (isset($parsedUrl['query'])) {
+                parse_str($parsedUrl['query'], $query);
+
+                if ($query && isset($query['ulp'])) {
+                    return $query['ulp'];
+                }
+            }
+        }
+
+        return parent::getItemTargetLink($item);
+    }
+
+    /**
+     * This could imply on ::updateMissedAsOutOfStock
+     * @return string
+     * @throws \Exception
+     */
     public function _getFilename(): string
     {
         if ($lastOkImport = $this->getLastOkImport()) {
@@ -48,11 +72,7 @@ class Admitad extends Import
         return parent::getFilename();
     }
 
-    protected $paramsIndex;
-    protected $paramsCallbacks;
-    protected $paramsValues;
-
-    protected function before()
+    protected function beforeWalkImport()
     {
         $this->paramsIndex = isset($this->indexes['param']);
 
@@ -162,11 +182,12 @@ class Admitad extends Import
         if ($this->paramsIndex && isset($this->paramsValues[$pk])) {
             return $this->paramsValues[$pk];
         }
+
+        return null;
     }
 
     /**
      * Returns mixed names
-     *
      * @param $row
      * @return array
      */
@@ -181,7 +202,6 @@ class Admitad extends Import
 
     /**
      * Returns mixed names
-     *
      * @param $row
      * @return array
      */
@@ -196,7 +216,6 @@ class Admitad extends Import
 
     /**
      * Returns mixed names
-     *
      * @param $row
      * @return string|integer
      */
@@ -211,7 +230,6 @@ class Admitad extends Import
 
     /**
      * Returns mixed names
-     *
      * @param $row
      * @return array
      */
@@ -226,7 +244,6 @@ class Admitad extends Import
 
     /**
      * Returns mixed names
-     *
      * @param $row
      * @return array
      */
@@ -239,18 +256,12 @@ class Admitad extends Import
         return parent::getMaterialsByRow($row);
     }
 
-    public function getItemTargetLink(Item $item)
+    protected function afterRememberRow($row)
     {
-        if ($parsedUrl = parse_url($item->getPartnerLink())) {
-            if (isset($parsedUrl['query'])) {
-                parse_str($parsedUrl['query'], $query);
-
-                if ($query && isset($query['ulp'])) {
-                    return $query['ulp'];
-                }
+        if (isset($this->mappings['deleted']) && isset($this->indexes[$this->mappings['deleted']['column']])) {
+            if ($row[$this->indexes[$this->mappings['deleted']['column']]]) {
+                $this->inStockFilePartnerItemId = array_diff($this->inStockFilePartnerItemId, $this->getPartnerItemIdByRow($row));
             }
         }
-
-        return parent::getItemTargetLink($item);
     }
 }
