@@ -171,6 +171,8 @@ class IndexerHelper
             return;
         }
 
+        $inStockOnly = !!$app->config('catalog.in_stock_only', false);
+
         $ajaxSuggestionsAttrPkToTable = self::getAjaxSuggestionsAttrPkToTable($app);
         $this->itemPk = $app->managers->items->getEntity()->getPk();
 
@@ -186,6 +188,10 @@ class IndexerHelper
 //            'order_asc_price',
 //            'order_desc_price'
         ];
+
+        if (!$inStockOnly) {
+            $this->columns[] = 'is_in_stock';
+        }
 
         $this->searchColumns = $app->managers->items->findColumns(Entity::SEARCH_IN);
 
