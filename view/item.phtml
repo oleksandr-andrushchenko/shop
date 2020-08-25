@@ -12,15 +12,19 @@ use SNOWGIRL_SHOP\Entity\Brand;
 use SNOWGIRL_SHOP\Entity\Size;
 use SNOWGIRL_CORE\Image;
 
-/** @var View $this */
-/** @var Item $item */
-/** @var Image $image */
-/** @var Item $related */
-/** @var Vendor $vendor */
-/** @var URI $tag */
-/** @var Category $category */
-/** @var Brand $brand */
-/** @var Size $size */
+/**
+ * @var View $this
+ * @var Item $item
+ * @var Image $image
+ * @var Item $related
+ * @var Vendor $vendor
+ * @var URI $tag
+ * @var Category $category
+ * @var Category $category
+ * @var Brand $brand
+ * @var Size $size
+ */
+
 $item = $this->item;
 
 $vendor = $this->app->managers->items->getVendor($item);
@@ -39,7 +43,7 @@ $this->getLayout()
     ->addJsConfig('deviceDesktop', $this->deviceDesktop)
     ->addJsConfig('typeOwn', $this->typeOwn)
     ->addJsConfig('isArchive', !!$item->get('archive'))
-    ->addJsConfig('isInStockCheck', $vendor->isInStockCheck())
+    ->addJsConfig('isInStockCheck', $this->inStockCheck && $vendor->isInStockCheck())
     ->addJsConfig('isInStock', $item->isInStock())
     ->addJs('@shop/item.js');
 
@@ -53,10 +57,10 @@ $attrToName = [
     'material_id' => 'Материал',
     'size_id' => 'Размер',
     'season_id' => 'Сезон',
-    'country_id' => 'Производитель'
+    'country_id' => 'Производитель',
 ];
 
-if ((!$item->get('archive')) && $item->isInStock()) {
+if (!$item->get('archive') && $item->isInStock()) {
     $attrToName['vendor_id'] = 'Магазин';
 }
 ?>
@@ -163,7 +167,7 @@ if ((!$item->get('archive')) && $item->isInStock()) {
                                     В корзину
                                 </button>
                             </span>
-                    <?php } elseif ($item->isInStock()) { ?>
+                    <?php } elseif ($this->outOfStockBuyButton || $item->isInStock()) { ?>
                         <a href="<?php echo $tmp = $this->app->managers->items->getGoLink($item) ?>"
                            class="btn btn-lg btn-default btn-details" target="_blank" rel="nofollow">
                             Еще детали
@@ -273,7 +277,7 @@ if ((!$item->get('archive')) && $item->isInStock()) {
                            target="_blank"><?php echo $tag->getSEO()->getParam('h1', [
                                 'category' => ($tmp = $tag->get(Category::getPk())) && ($category = $this->app->managers->categories->find($tmp))
                                     ? $category->getName()
-                                    : $this->makeText('catalog.catalog')
+                                    : $this->makeText('catalog.catalog'),
                             ]) ?></a>
                     <?php } ?>
                 </p>

@@ -79,6 +79,8 @@ class ItemAction
             'deviceDesktop' => $app->request->getDevice()->isDesktop(),
             'archive' => $archive = $item->get('archive'),
             'typeOwn' => (!$archive) && ($source = $app->managers->items->getImportSource($item)) && (ImportSource::TYPE_OWN == $source->getType()),
+            'outOfStockBuyButton' => $outOfStockBuyButton = !!$app->config('catalog.out_of_stock_buy_button', false),
+            'inStockCheck' => !$outOfStockBuyButton && !!$app->config('catalog.in_stock_check', false),
         ]);
 
         $relatedUri = $app->managers->items->getRelatedCatalogURI($item)
@@ -102,7 +104,7 @@ class ItemAction
                 'propName' => $relatedItemsH1,
                 'propUrl' => $relatedUri->copy()->_unset(URI::PER_PAGE)->output(),
                 'propTotal' => $total,
-                'banner' => isset($gridBanner) ? $gridBanner : null
+                'banner' => isset($gridBanner) ? $gridBanner : null,
             ], $view);
 
             $content->relatedItemsPager = $total > $relatedUri->getSRC()->getLimit();
@@ -110,7 +112,7 @@ class ItemAction
 
         $content->addParams([
             'relatedUriFilterParams' => $relatedUri->getParamsByTypes('filter'),
-            'relatedUriViewParams' => $relatedUri->getParamsByTypes('view')
+            'relatedUriViewParams' => $relatedUri->getParamsByTypes('view'),
         ]);
 
         $app->seo->manageItemBreadcrumbs($uri, $view);
