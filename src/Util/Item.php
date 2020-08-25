@@ -55,7 +55,7 @@ class Item extends Util
                     'FROM ' . $db->quote(Brand::getTable()) . ' AS ' . $db->quote('b'),
                     'INNER JOIN ' . $db->quote(ItemEntity::getTable()) . ' AS ' . $db->quote('i') . ' USING(' . $db->quote(Brand::getPk()) . ')',
                     'GROUP BY ' . $db->quote(Brand::getPk(), 'b'),
-                    'LIMIT ' . (($page - 1) * $size) . ', ' . $size
+                    'LIMIT ' . (($page - 1) * $size) . ', ' . $size,
                 ]));
             })
             ->setFnDo(function ($items) use ($db) {
@@ -98,7 +98,7 @@ class Item extends Util
                                         '(SELECT ' . $db->quote(Brand::getPk()),
                                         'FROM ' . $db->quote(Brand::getTable()),
                                         'WHERE ' . $db->quote('uri') . ' = \'' . $brand->getUri() . '\')',
-                                        'WHERE ' . $db->quote(Brand::getPk()) . ' = ' . $brand->getId()
+                                        'WHERE ' . $db->quote(Brand::getPk()) . ' = ' . $brand->getId(),
                                     ]))->affectedRows();
 
                                     $this->output('...' . $aff . ' affected');
@@ -121,7 +121,7 @@ class Item extends Util
                                         '(SELECT ' . $db->quote(Brand::getPk()),
                                         'FROM ' . $db->quote(Brand::getTable()),
                                         'WHERE ' . $db->quote('name') . ' = \'' . $brand->getName() . '\')',
-                                        'WHERE ' . $db->quote(Brand::getPk()) . ' = ' . $brand->getId()
+                                        'WHERE ' . $db->quote(Brand::getPk()) . ' = ' . $brand->getId(),
                                     ]))->affectedRows();
 
                                     $this->output('...' . $aff . ' affected');
@@ -184,7 +184,7 @@ class Item extends Util
                 $db->req(implode(' ', [
                     'ALTER TABLE' . ' ' . $db->quote($table),
                     'ADD COLUMN ' . $db->quote($info->cache_column) . ' int(11) NOT NULL DEFAULT \'0\'',
-                    'AFTER ' . $db->quote($after)
+                    'AFTER ' . $db->quote($after),
                 ]));
             }
 
@@ -198,7 +198,7 @@ class Item extends Util
                 'FROM ' . $db->quote($table),
                 $db->makeOrderSQL($src->getDataProvider('db')->getOrder(), $query->params),
                 ') AS ' . $db->quote('i2') . ' USING(' . $db->quote($pk) . ')',
-                'SET ' . $db->quote($info->cache_column, 'i') . ' = ' . $db->quote('num', 'i2')
+                'SET ' . $db->quote($info->cache_column, 'i') . ' = ' . $db->quote('num', 'i2'),
             ]);
 
             $aff = $db->req($query)->affectedRows();
@@ -229,7 +229,7 @@ class Item extends Util
             'DELETE ' . $db->quote($it),
             'FROM ' . $db->quote($it),
             'LEFT JOIN ' . $db->quote($ct) . ' ON ' . $db->quote($ck, $ct) . ' = ' . $db->quote($ck, $it),
-            $db->makeWhereSQL($where, $query->params)
+            $db->makeWhereSQL($where, $query->params),
         ]);
 
         return $this->app->container->db->req($query)->affectedRows();
@@ -251,7 +251,7 @@ class Item extends Util
             'DELETE ' . $db->quote($it),
             'FROM ' . $db->quote($it),
             'LEFT JOIN ' . $db->quote($bt) . ' ON ' . $db->quote($bk, $bt) . ' = ' . $db->quote($bk, $it),
-            $db->makeWhereSQL($where, $query->params)
+            $db->makeWhereSQL($where, $query->params),
         ]);
 
         return $this->app->container->db->req($query)->affectedRows();
@@ -385,7 +385,7 @@ class Item extends Util
                 'DELETE ' . $db->quote($table),
                 'FROM ' . $db->quote($table),
                 'INNER JOIN ' . $db->quote($itemTable) . ' USING(' . $db->quote($itemPk) . ')',
-                $db->makeWhereSQL($where, $query->params, $itemTable)
+                $db->makeWhereSQL($where, $query->params, $itemTable),
             ]);
 
             $affTmp = $db->req($query)->affectedRows();
@@ -435,7 +435,7 @@ class Item extends Util
             }, $tmpArchiveColumns)),
             'FROM ' . $db->quote($archiveTable),
             $db->makeWhereSQL($where, $query->params),
-            ')'
+            ')',
         ]);
 
         $affTmp = $db->req($query)->affectedRows();
@@ -446,7 +446,7 @@ class Item extends Util
         $db->getManager()->dropTable('numbers');
         $db->getManager()->createTable('numbers', [
             ($qv = $db->quote('value')) . ' TINYINT(1) UNSIGNED NOT NULL',
-            'PRIMARY KEY (' . $qv . ')'
+            'PRIMARY KEY (' . $qv . ')',
         ], 'MyISAM');
 
         $db->insertMany('numbers', array_map(function ($value) {
@@ -461,7 +461,7 @@ class Item extends Util
                 'SELECT ' . $db->quote($itemPk) . ', SUBSTRING_INDEX(SUBSTRING_INDEX(' . $db->quote($pk) . ', \',\', ' . $db->quote('value') . '), \',\', -1)',
                 'FROM ' . $db->quote('numbers'),
                 'INNER JOIN ' . $db->quote($archiveTable) . ' ON CHAR_LENGTH(' . $db->quote($pk) . ') - CHAR_LENGTH(REPLACE(' . $db->quote($pk) . ', \',\', \'\')) >= ' . $db->quote('value') . ' - 1',
-                'ORDER BY ' . $db->quote($itemPk) . ', ' . $db->quote($pk)
+                'ORDER BY ' . $db->quote($itemPk) . ', ' . $db->quote($pk),
             ]))->affectedRows();
             $this->output('Copied to item_' . $table . ': ' . $affTmp);
 
@@ -588,14 +588,14 @@ class Item extends Util
                         $db->quote('image'),
                         'GROUP_CONCAT(' . $db->quote($pk) . ') AS ' . $db->quote($pk),
                         'GROUP_CONCAT(' . $db->quote('name') . ') AS ' . $db->quote('name'),
-                        'COUNT(*) AS ' . $db->quote('cnt')
+                        'COUNT(*) AS ' . $db->quote('cnt'),
                     ]),
                     'FROM ' . $db->quote($table),
                     'WHERE ' . $db->quote('import_source_id') . ' = ' . $importSourceId,
                     'GROUP BY ' . $db->quote('image'),
                     'HAVING ' . $db->quote('cnt') . ' > 1',
 //                    'LIMIT ' . (($page - 1) * $size) . ', ' . $size
-                    'LIMIT ' . $size
+                    'LIMIT ' . $size,
                 ]));
             })
             ->setFnDo(function ($rows) use ($db, $pk) {
@@ -625,7 +625,7 @@ class Item extends Util
                     $aff = $this->app->managers->itemRedirects->insertMany(array_map(function ($insert, $delete) {
                         return [
                             'id_from' => $delete,
-                            'id_to' => $insert
+                            'id_to' => $insert,
                         ];
                     }, $insert[$i], $delete[$i]));
 
@@ -748,7 +748,7 @@ class Item extends Util
                 ->setFnDo(function ($items) use ($sourceMva, $targetSva, $targetMva, $mva, &$affGlobal) {
                     //update item table
                     $aff = $this->app->managers->items->updateMany($targetSva, [
-                        ItemEntity::getPk() => $items
+                        ItemEntity::getPk() => $items,
                     ]);
 
                     $affGlobal += $aff;
@@ -763,7 +763,7 @@ class Item extends Util
 
                         $aff = $this->app->managers->getByEntityClass($linkAttrEntity)->deleteMany([
                             'item_id' => $items,
-                            $attrPk => $attrId
+                            $attrPk => $attrId,
                         ]);
 
                         $affGlobal += $aff;
@@ -782,7 +782,7 @@ class Item extends Util
                             $aff = $this->app->managers->getByEntityClass($linkAttrEntity)->insertMany(array_map(function ($item) use ($attrPk, $attrId2) {
                                 return [
                                     'item_id' => $item,
-                                    $attrPk => $attrId2
+                                    $attrPk => $attrId2,
                                 ];
                             }, $items));
 
@@ -861,7 +861,7 @@ class Item extends Util
 
             $properties[$table]['properties'] = [
                 'id' => ['type' => 'integer'],
-                'name' => ['type' => 'text']
+                'name' => ['type' => 'text'],
             ];
         }
 
@@ -874,20 +874,6 @@ class Item extends Util
         }
 
         return ['properties' => $properties];
-    }
-
-    public function doCreateElasticIndex(string $index = null): bool
-    {
-        $index = $index ?: $this->app->managers->items->getEntity()->getTable();
-
-        $indexerManager = $this->app->container->indexer->getManager();
-        $indexerManager->deleteIndex($index);
-
-        if (!$indexerManager->createIndex($index, $this->getElasticMappings())) {
-            return false;
-        }
-
-        return true;
     }
 
     public function doRawIndexElastic(string $index, $where = null): int
@@ -932,7 +918,7 @@ class Item extends Util
 //                    $mysql->makeWhereSQL(['item_id' => 309018], $query->params, $itemTable),
                     $mysql->makeGroupSQL($itemPk, $query->params, $itemTable),
                     $mysql->makeOrderSQL([$itemPk => SORT_ASC], $query->params, $itemTable),
-                    $mysql->makeLimitSQL(0, $size, $query->params)
+                    $mysql->makeLimitSQL(0, $size, $query->params),
                 ]);
 
                 return $mysql->reqToArrays($query);
@@ -957,14 +943,12 @@ class Item extends Util
 
     public function doIndexElastic(): int
     {
-        $indexerManager = $this->app->container->indexer;
+        $manager = $this->app->container->indexer->getManager();
         $alias = $this->app->managers->items->getEntity()->getTable();
-        $newIndex = $alias . '_' . time();
+        $mappings = $this->getElasticMappings();
 
-        $this->doCreateElasticIndex($newIndex);
-
-        return $indexerManager->getManager()->switchAliasIndex($alias, $newIndex, function ($index) {
-            return $this->doRawIndexElastic($index);
+        return $manager->switchAliasIndex($alias, $mappings, function ($newIndex) {
+            return $this->doRawIndexElastic($newIndex);
         });
     }
 
