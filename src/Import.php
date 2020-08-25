@@ -113,6 +113,8 @@ class Import
      */
     protected $lastOkImport;
 
+    protected $inStockFilePartnerItemId;
+
     /**
      * Import constructor.
      * @param App $app
@@ -339,6 +341,13 @@ class Import
         return true;
     }
 
+    /**
+     * This could imply on ::updateMissedAsOutOfStock
+     * @param bool|null $allowModifyOnlyCheck
+     * @param array $allowModifyOnlyExclude
+     * @return Generator
+     * @throws Exception
+     */
     public function getFilteredFile(bool $allowModifyOnlyCheck = null, array $allowModifyOnlyExclude = []): Generator
     {
         try {
@@ -687,8 +696,6 @@ class Import
         try {
             $this->downloadImages = $downloadImages;
 
-            $this->before();
-
             $this->microtime = (int) microtime(true);
 
             $this->isRuLang = in_array('ru', $this->langs);
@@ -712,8 +719,12 @@ class Import
 
             $linkCategories = [];
 
+            $this->inStockFilePartnerItemId = [];
+
             # db
             $this->dbRows = [];
+
+            $this->beforeWalkImport();
 
             foreach ($this->getDbItems() as $row) {
                 $partnerItemId = $row['partner_item_id'];
@@ -741,6 +752,7 @@ class Import
 
             # file
             $this->fileRows = [];
+            //@todo $this->inStockFilePartnerItemId.... checkout filtered file...
 
             foreach ($this->getFilteredFile() as $row) {
                 if (!$partnerItemId = $this->getPartnerItemIdByRow($row)) {
@@ -960,6 +972,8 @@ class Import
             $this->error($e);
             $this->error = $e->getTraceAsString();
             return false;
+        } finally {
+            $this->afterWalkImport();
         }
     }
 
@@ -991,10 +1005,6 @@ class Import
 //            }
 
             $this->createHistory($hash);
-
-            //@todo this is wrong logic (coz of pre-import skips)
-            //@todo replace with: update for non existing partner_item_id in file (but exists in db), after import
-//            $this->setOutOfStock();
 
             $fixWhere = (new FixWhere($this->app))
                 ->setSources([$this->source])
@@ -1103,7 +1113,12 @@ class Import
         return $row;
     }
 
-    protected function before()
+    protected function beforeWalkImport()
+    {
+
+    }
+
+    protected function afterWalkImport()
     {
 
     }
@@ -1214,6 +1229,16 @@ class Import
         } else {
             $this->mva[$pk]['values'][$partnerItemId] = $value;
         }
+    }
+
+    protected function beforeRememberRow($row)
+    {
+
+    }
+
+    protected function afterRememberRow($row)
+    {
+
     }
 
     /**
@@ -1360,25 +1385,42 @@ class Import
         return $row;
     }
 
-    private function setOutOfStock(): int
-    {
-        return $this->app->managers->items->updateMany(['is_in_stock' => 0], [
-            'import_source_id' => $this->source->getId(),
-        ]);
-    }
-
     private function updateMissedAsOutOfStock(): int
     {
-        $filePartnerItemId = array_keys($this->fileRows);
-        $dbPartnerItemId = $this->getDbPartnerItemId();
+        $dbPartnerItemId = [];
 
-        $missedPartnerItemId = array_diff($dbPartnerItemId, $filePartnerItemId);
+        foreach ($this->app->managers->items
+                     ->setColumns(['partner_item_id'])
+                     ->setWhere([
+                         'import_source_id' => $this->source->getId(),
+                         'is_in_stock' => 1,
+                     ])
+                     ->getItems() as $row) {
+            $dbPartnerItemId[] = $row['partner_item_id'];
+        }
 
-        $aff = $this->app->managers->items->updateMany(['is_in_stock' => 0], [
-            'import_source_id' => $this->source->getId(),
-            'partner_item_id' => $missedPartnerItemId,
-        ]);
+        $aff = 0;
 
+        /**
+         *      db:             in file:    in stock:   to be out:
+         *  [   [1 2 3 4 5],    [3, 4],     [5] ] =>    [1, 2]
+         *  [   [4 5],          [1, 2, 3],  [5, 2]] =>  [4]
+         */
+
+        $missedPartnerItemIdChunks = array_chunk(array_diff(
+            $dbPartnerItemId,
+            array_keys($this->fileRows),
+            array_unique($this->inStockFilePartnerItemId)
+        ), self::LIMIT);
+
+        foreach ($missedPartnerItemIdChunks as $missedPartnerItemIdChunk) {
+            foreach ($missedPartnerItemIdChunk as $missedPartnerItemId) {
+                $aff += $this->app->managers->items->updateMany(['is_in_stock' => 0], [
+                    'import_source_id' => $this->source->getId(),
+                    'partner_item_id' => $missedPartnerItemId,
+                ]);
+            }
+        }
 
         $this->info('updated as out of stock: ' . $aff);
 
@@ -1397,15 +1439,10 @@ class Import
                 'partner_link_hash',
                 new Expression('SUBSTR(' . $imageQuoted . ', 1, ' . $this->app->images->getHashLength() . ') AS ' . $imageQuoted),
             ])
-            ->setWhere(['import_source_id' => $this->source->getId()])
+            ->setWhere([
+                'import_source_id' => $this->source->getId(),
+            ])
             ->getItems();
-    }
-
-    private function getDbPartnerItemId(): array
-    {
-        return $this->app->managers->items->clear()
-            ->setWhere(['import_source_id' => $this->source->getId()])
-            ->getColumn('partner_item_id');
     }
 
     /**
@@ -2459,44 +2496,37 @@ class Import
         return $output;
     }
 
-    private function beforeRow($row)
-    {
-
-    }
-
     private function rememberRow($row)
     {
-        $ok = false;
+        try {
+            $values = [];
 
-        $values = [];
-
-        while (true) {
-            $this->beforeRow($row);
+            $this->beforeRememberRow($row);
 
             if (!$values['partner_item_id'] = $this->getPartnerItemIdByRow($row)) {
-                break;
+                return false;
             }
 
             $values = array_merge($values, $this->getAllSvaByRow($row));
 
             if (!$values['category_id'] || !$values['brand_id']) {
                 $this->debug('[SKIPPED category or brand] partner_id=' . $values['partner_item_id']);
-                break;
+                return false;
             }
 
             if (!$values['name'] = $this->getNameByRow($row)) {
                 $this->debug('[SKIPPED name] partner_id=' . $values['partner_item_id']);
-                break;
+                return false;
             }
 
             if (!$values['price'] = $this->getPriceByRow($row)) {
                 $this->debug('[SKIPPED price] partner_id=' . $values['partner_item_id']);
-                break;
+                return false;
             }
 
             if (!$values['partner_link'] = $this->getPartnerLinkByRow($row)) {
                 $this->debug('[SKIPPED link] partner_id=' . $values['partner_item_id']);
-                break;
+                return false;
             }
 
             # @todo optimize
@@ -2504,12 +2534,16 @@ class Import
 
             if (!$values['image'] = $this->getDownloadedImageByRow($row)) {
                 $this->debug('[SKIPPED image] partner_id=' . $values['partner_item_id']);
-                break;
+                return false;
             }
 
             $values['import_source_id'] = $this->getImportSourceByRow($row);
             $values['old_price'] = $this->getOldPriceByRow($row);
-            $values['is_in_stock'] = $this->getIsInStockByRow($row);
+
+            if ($values['is_in_stock'] = $this->getIsInStockByRow($row)) {
+                $this->inStockFilePartnerItemId[] = $values['partner_item_id'];
+            }
+
             $values['entity'] = $this->getEntityByRow($row);
             $values['description'] = $this->getDescriptionByRow($row);
             $values['is_sport'] = empty($this->sport[$values['partner_item_id']]) ? 0 : 1;
@@ -2519,22 +2553,18 @@ class Import
             foreach ($this->requiredColumns as $dbColumn) {
                 if (isset($values[$dbColumn]) && !mb_strlen($values[$dbColumn])) {
                     $this->debug('[SKIPPED required ' . $dbColumn . ']=' . var_export($values[$dbColumn], true) . ' partner_id=' . $values['partner_item_id']);
-                    break;
+                    return false;
                 }
             }
 
             $this->rememberAllMvaByRow($row);
+            $this->afterRememberRow($row);
 
-            $ok = true;
-
-            break;
-        }
-
-        if ($ok) {
             return $values;
+        } catch (Throwable $e) {
+            $this->error($e);
+            return false;
         }
-
-        return false;
     }
 
     private function getFileLastModifiedTime(): ?DateTime
