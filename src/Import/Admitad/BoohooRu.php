@@ -51,7 +51,7 @@ class BoohooRu extends Admitad
 //        '' => '',
     ];
 
-    protected function before()
+    protected function beforeWalkImport()
     {
         parent::before();
 

@@ -7,7 +7,7 @@ use SNOWGIRL_SHOP\Import\Admitad;
 
 class LacosteRu extends Admitad
 {
-    protected function before()
+    protected function beforeWalkImport()
     {
         parent::before();
         

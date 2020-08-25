@@ -15,7 +15,7 @@ class AsosRu extends Admitad
 //        ]
     ];
 
-    protected function before()
+    protected function beforeWalkImport()
     {
         parent::before();
 

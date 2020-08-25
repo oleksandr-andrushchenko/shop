@@ -9,7 +9,7 @@ class SheinRu extends Admitad
     protected $colorIndex;
     protected $sizesIndex;
 
-    protected function before()
+    protected function beforeWalkImport()
     {
         $this->colorIndex = isset($this->indexes['color']);
         $this->sizesIndex = isset($this->indexes['size']);
