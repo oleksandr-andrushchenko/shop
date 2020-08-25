@@ -46,7 +46,7 @@ class URI
         self::ORDER,
         self::PER_PAGE,
         self::PAGE_NUM,
-        self::EVEN_NOT_STANDARD_PER_PAGE
+        self::EVEN_NOT_STANDARD_PER_PAGE,
     ];
 
     public const DEFINED_PARAMS = [
@@ -55,14 +55,14 @@ class URI
         self::PRICE_TO,
         self::ORDER,
         self::PER_PAGE,
-        self::PAGE_NUM
+        self::PAGE_NUM,
     ];
 
     public const SAFE_PARAMS = [];
     public const TYPE_PARAMS = [
         self::SPORT,
         self::SIZE_PLUS,
-        self::SALES
+        self::SALES,
     ];
 
     public const NON_ATTR_PATH_PARAMS = self::TYPE_PARAMS;
@@ -103,7 +103,7 @@ class URI
                 'attr' => self::$attrPathParams,
                 'defined' => self::DEFINED_PARAMS,
                 'type' => self::TYPE_PARAMS,
-                'safe' => self::SAFE_PARAMS
+                'safe' => self::SAFE_PARAMS,
             ])
             ->setOutput([])
             ->setParams($params);
@@ -130,7 +130,7 @@ class URI
             self::SALES,
 //            self::QUERY,
             self::PRICE_FROM,
-            self::PRICE_TO
+            self::PRICE_TO,
         ]);
 
         self::$pathParams = array_merge(self::$attrPathParams, self::NON_ATTR_PATH_PARAMS);
@@ -222,7 +222,7 @@ class URI
             'color',
             'material',
             'size',
-            self::SALES
+            self::SALES,
         ];
 
         if ($array) {
@@ -263,7 +263,6 @@ class URI
      * @param array $params
      * @param bool $aliases
      * @param int $mode
-     *
      * @return array|mixed|string
      * @throws \Exception
      */
@@ -328,7 +327,9 @@ class URI
                 if ($v && $entity = $manager->getAliasManager()->find($v)) {
                     $tmp[$table] = $entity->get('uri');
                 } else {
-                    self::$app->container->logger->warning($table . '[id=' . $v . '] is not exists');
+                    self::$app->container->logger->warning('invalid ' . $table, [
+                        $k => $v,
+                    ]);
                 }
             } else {
                 $table = $manager->getEntity()->getTable();
@@ -336,7 +337,9 @@ class URI
                 if ($v && $entity = $manager->find($v)) {
                     $tmp[$table] = $entity->get('uri');
                 } else {
-                    self::$app->container->logger->warning($table . '[id=' . $v . '] is not exists');
+                    self::$app->container->logger->warning('invalid ' . $table, [
+                        $k => $v,
+                    ]);
                 }
             }
         }
@@ -430,10 +433,8 @@ class URI
 
     /**
      * @todo normalize value...
-     *
      * @param $key
      * @param int $param
-     *
      * @return URI
      */
     public function set($key, $param = 1): URI
@@ -523,10 +524,8 @@ class URI
 
     /**
      * @todo optimize... (use Attribute::getObjectsByUri for example)
-     *
      * @param $param
      * @param $value
-     *
      * @return null|ItemAttr|Entity
      */
     public static function getPageComponentByParam($param, $value)
@@ -555,7 +554,6 @@ class URI
      * @param int $mode
      * @param bool $aliases
      * @param bool $isNoFollow
-     *
      * @return string
      * @throws Throwable
      */
