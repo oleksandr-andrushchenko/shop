@@ -42,7 +42,7 @@ class Pages extends \SNOWGIRL_CORE\SEO\Pages
         $this->itemTable = $this->seo->getApp()->managers->items->getEntity()->getTable();
         $this->catalogTable = $this->seo->getApp()->managers->catalog->getEntity()->getTable();
         $this->andAliases = !!$this->seo->getApp()->config('catalog.aliases', false);
-        $this->inStockOnly = !!$this->seo->getApp()->config('catalog.in_stock_only', false);
+        $this->inStockOnly = !!$this->seo->getApp()->configMasterOrOwn('catalog.in_stock_only', false);
 
         return $this;
     }

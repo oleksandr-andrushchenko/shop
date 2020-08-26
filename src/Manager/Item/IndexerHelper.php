@@ -171,7 +171,7 @@ class IndexerHelper
             return;
         }
 
-        $inStockOnly = !!$app->config('catalog.in_stock_only', false);
+        $inStockOnly = !!$app->configMasterOrOwn('catalog.in_stock_only', false);
 
         $ajaxSuggestionsAttrPkToTable = self::getAjaxSuggestionsAttrPkToTable($app);
         $this->itemPk = $app->managers->items->getEntity()->getPk();

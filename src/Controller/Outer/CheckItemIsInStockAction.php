@@ -66,7 +66,7 @@ class CheckItemIsInStockAction
                     if ($app->managers->items->updateOne($item)) {
                         try {
                             // @todo create elastic upsert method
-                            if ($app->config('catalog.in_stock_only', false)) {
+                            if ($app->configMasterOrOwn('catalog.in_stock_only', false)) {
                                 $app->managers->items->deleteFromIndex($item);
                             } else {
                                 $app->managers->items->addToIndex($item);

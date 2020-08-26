@@ -40,7 +40,7 @@ abstract class Attr extends Manager
         parent::__construct($app);
 
         $this->useCache = !!$app->config('catalog.cache', false);
-        $this->inStockOnly = !!$app->config('catalog.in_stock_only', false);
+        $this->inStockOnly = !!$app->configMasterOrOwn('catalog.in_stock_only', false);
         $this->providerName = $app->config('data.provider.src', 'db');
     }
 

@@ -41,7 +41,7 @@ class Item extends Util
         parent::initialize();
 
         $this->indexerHelper = new IndexerHelper();
-        $this->inStockOnly = !!$this->app->config('catalog.in_stock_only', false);
+        $this->inStockOnly = !!$this->app->configMasterOrOwn('catalog.in_stock_only', false);
     }
 
     public function doFixSeoNames()

@@ -168,7 +168,7 @@ class Sitemap extends \SNOWGIRL_CORE\SEO\Sitemap
 
             $where = [];
 
-            if ($app->config('catalog.in_stock_only', false)) {
+            if ($app->configMasterOrOwn('catalog.in_stock_only', false)) {
                 $where['is_in_stock'] = 1;
             }
 

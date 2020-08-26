@@ -12,7 +12,7 @@ abstract class DataProvider
     public function __construct(SRC $src)
     {
         $this->src = $src;
-        $this->inStockOnly = !!$src->getURI()->getApp()->config('catalog.in_stock_only', false);
+        $this->inStockOnly = !!$src->getURI()->getApp()->configMasterOrOwn('catalog.in_stock_only', false);
     }
 
     abstract public function getItemsAttrs(): array;

@@ -51,7 +51,7 @@ class SRC
         $this->uri = $uri;
         $this->entities = Manager::mapEntitiesAddPksAsKeys($entities);
         $this->useCache = !!$uri->getApp()->config('catalog.cache', false);
-        $this->inStockOnly = !!$uri->getApp()->config('catalog.in_stock_only', false);
+        $this->inStockOnly = !!$uri->getApp()->configMasterOrOwn('catalog.in_stock_only', false);
         $this->providerName = $this->getURI()->getApp()->config('data.provider.src', 'db');
     }
 
