@@ -22,7 +22,7 @@ use SNOWGIRL_SHOP\Http\HttpApp;
 use SNOWGIRL_SHOP\Manager\Item\Attr as ItemAttrManager;
 use SNOWGIRL_SHOP\Entity\Country;
 use SNOWGIRL_SHOP\Item\FixWhere;
-use DateTime;
+use stdClass;
 use Throwable;
 
 /**
@@ -176,7 +176,7 @@ class Import
             }
 
             try {
-                FileSystem::deleteFilesByPattern($this->getCsvFilename('*'));
+                FileSystem::deleteFilesByPattern($this->getCsvFilename(true));
 
                 if ($history) {
                     $this->app->managers->importHistory->deleteMany(['import_source_id' => $this->source->getId()]);
@@ -450,12 +450,12 @@ class Import
     /**
      * @param int $page
      * @param int $size
-     * @return \stdClass
+     * @return stdClass
      * @throws Exception
      */
-    public function getData(int $page = 1, int $size = 10): \stdClass
+    public function getData(int $page = 1, int $size = 10): stdClass
     {
-        $return = new \stdClass();
+        $return = new stdClass();
 
         $return->columns = $this->columns;
         $return->indexes = $this->indexes;
@@ -818,9 +818,6 @@ class Import
                 $this->addToGroup($category, $images[0], $partnerItemId, $this->imageGroups);
             }
 
-//            $this->filterGroups($this->linkGroups);
-//            $this->filterGroups($this->imageGroups);
-
 
             $this->skippedAsDuplicate = [];
             $this->skippedAsGarbage = [];
@@ -1087,7 +1084,7 @@ class Import
 
     /**
      * @return int|null
-     * @throws \Exception
+     * @throws Exception
      */
     public function __invoke()
     {
@@ -1281,20 +1278,16 @@ class Import
         return $this;
     }
 
-    private function getCsvFilename($dynamicPart = null): string
+    private function getCsvFilename(bool $all = false): string
     {
-        $now = new DateTime('now');
-        $today = new DateTime('today');
-        $diff = $now->diff($today);
-
         return implode('/', [
             $this->app->dirs['@tmp'],
             implode('_', [
                 'import_source',
                 $this->source->getId(),
-                ($dynamicPart ?: implode('-', [
+                ($all ? '*' : implode('-', [
                     md5($this->getFilename()),
-                    $today->format('Y_m_d'),
+                    date('Y_m_d'),
                 ])) . '.csv',
             ]),
         ]);
@@ -1306,7 +1299,7 @@ class Import
 
         $current = $this->getCsvFilename();
 
-        foreach (glob($this->getCsvFilename('*')) as $file) {
+        foreach (glob($this->getCsvFilename(true)) as $file) {
             if ($current != $file) {
                 if (FileSystem::deleteFile($file)) {
                     $aff++;
@@ -2339,15 +2332,6 @@ class Import
         }
     }
 
-    private function filterGroups(array &$groups)
-    {
-        foreach ($groups as $category => $keyToPartnerItemId) {
-            $groups[$category] = array_filter($groups[$category], function ($partnerItemId) {
-                return is_array($partnerItemId);
-            });
-        }
-    }
-
     /**
      * @param $row
      * @return array
@@ -2567,11 +2551,6 @@ class Import
         }
     }
 
-    private function getFileLastModifiedTime(): ?DateTime
-    {
-        return FileSystem::getRemoteFileLastModifiedTime($this->getFilename());
-    }
-
     /**
      * @return Import
      * @throws \Exception
@@ -2579,11 +2558,11 @@ class Import
     private function check(): Import
     {
         if (!$this->app->managers->sources->getVendor($this->source)->isActive()) {
-            throw new \Exception('vendor [import_source_id=' . $this->source->getName() . '] is disabled');
+            throw new Exception('vendor [import_source_id=' . $this->source->getName() . '] is disabled');
         }
 
         if ('cli' == PHP_SAPI && !$this->source->isCron()) {
-            throw new \Exception('[import_source_id=' . $this->source->getName() . '] is out of cron');
+            throw new Exception('[import_source_id=' . $this->source->getName() . '] is out of cron');
         }
 
         return $this;

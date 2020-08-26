@@ -25,8 +25,7 @@ class Redirect extends Manager
 
     /**
      * @param $id
-     *
-     * @return array|null
+     * @return int|int[]|null
      */
     public function getByIdFrom($id)
     {
