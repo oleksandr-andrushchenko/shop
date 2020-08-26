@@ -60,7 +60,7 @@ $attrToName = [
     'country_id' => 'Производитель',
 ];
 
-if (!$item->get('archive') && $item->isInStock()) {
+if ((!$item->get('archive')) && $item->isInStock()) {
     $attrToName['vendor_id'] = 'Магазин';
 }
 ?>
@@ -160,15 +160,15 @@ if (!$item->get('archive') && $item->isInStock()) {
                             <span class="inp-quantity-value">1</span>
                             <?php echo $this->noIndexClose() ?>
                             <button type="button" class="btn btn-default btn-quantity-inc">+</button>
-                            </span>
+                        </span>
 
                         <span class="item-cart-buttons">
-                                <button type="button" class="btn btn-lg btn-primary btn-add-to-cart">
-                                    В корзину
-                                </button>
-                            </span>
-                    <?php } elseif ($this->outOfStockBuyButton || $item->isInStock()) { ?>
-                        <a href="<?php echo $tmp = $this->app->managers->items->getGoLink($item) ?>"
+                            <button type="button" class="btn btn-lg btn-primary btn-add-to-cart">В корзину</button>
+                        </span>
+                    <?php } elseif ($vendor->isActive() && ($this->outOfStockBuyButton || $item->isInStock())) { ?>
+                        <a href="<?php echo $tmp = $item->isInStock()
+                            ? $this->app->managers->items->getGoLink($item)
+                            : $this->app->managers->vendors->getGoLink($vendor) ?>"
                            class="btn btn-lg btn-default btn-details" target="_blank" rel="nofollow">
                             Еще детали
                         </a>
