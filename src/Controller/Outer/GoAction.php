@@ -9,6 +9,7 @@ use SNOWGIRL_CORE\View\Layout;
 use SNOWGIRL_SHOP\Http\HttpApp as App;
 use SNOWGIRL_SHOP\Entity\PartnerLinkHolderInterface;
 use SNOWGIRL_SHOP\Manager\GoLinkBuilderInterface;
+use Throwable;
 
 class GoAction
 {
@@ -32,7 +33,7 @@ class GoAction
                     $app->views->getLayout()
                         ->addMessage(implode(' ', [
                             'Товар снят с продажи, извините за неудобства.',
-                            'Пожалуйста, обратите внимание на похожие модели'
+                            'Пожалуйста, обратите внимание на похожие модели',
                         ]), Layout::MESSAGE_WARNING);
 
                     $app->request->redirect($app->managers->items->getLink($archive), 301);
@@ -55,7 +56,7 @@ class GoAction
                 $app->views->getLayout()
                     ->addMessage(implode(' ', [
                         'Магазин более не доступен, извините за неудобства.',
-                        'Пожалуйста, обратите внимание на другие магазины'
+                        'Пожалуйста, обратите внимание на другие магазины',
                     ]), Layout::MESSAGE_WARNING);
 
                 $app->request->redirect($app->router->makeLink('default', ['action' => 'shops']), 301);
@@ -69,7 +70,7 @@ class GoAction
                 $app->views->getLayout()
                     ->addMessage(implode(' ', [
                         'Акция более не доступна, извините за неудобства.',
-                        'Пожалуйста, обратите внимание на другие акционные предложения'
+                        'Пожалуйста, обратите внимание на другие акционные предложения',
                     ]), Layout::MESSAGE_WARNING);
 
                 $app->request->redirect($app->router->makeLink('default', ['action' => 'stock']), 301);
@@ -96,8 +97,7 @@ class GoAction
         /** @var PartnerLinkHolderInterface $holder */
 
         if (!$link = $holder->getPartnerLink()) {
-            $app->container->logger->debug('invalid partner link(type=' . $type . ', id=' . $id . ')',
-                Logger::TYPE_ERROR);
+            $app->container->logger->error('invalid partner link', compact('type', 'id'));
             $app->views->getLayout()->addMessage('Предложение не доступно, извините за неудобства.',
                 Layout::MESSAGE_WARNING);
             $app->request->redirect($app->request->getReferer(), 301);
@@ -105,7 +105,7 @@ class GoAction
 
         $tmp = <<<HTML
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
 <meta charset="utf-8">
 <title>{$app->getSite()}</title>
