@@ -131,3 +131,6 @@ alter table `item` drop `order_desc_rating`,
   drop `order_asc_price`,
   drop `order_desc_price`,
   drop `order_desc_relevance`;
+
+
+alter table `import_history` add `count_out_of_stock` int(5) unsigned DEFAULT NULL after `count_affected`;

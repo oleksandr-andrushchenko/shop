@@ -114,6 +114,7 @@ class Import
     protected $lastOkImport;
 
     protected $inStockFilePartnerItemId;
+    private $countOutOfStock;
 
     /**
      * Import constructor.
@@ -1054,11 +1055,11 @@ class Import
                 $this->insertMva();
             });
 
-            $this->updateHistory();
-
             if ($this->walkTotal) {
                 $this->updateMissedAsOutOfStock();
             }
+
+            $this->updateHistory();
 
             if (false && $this->aff) {
                 $aff = $this->app->utils->items->doFixWithNonExistingAttrs($fixWhere, ['log' => $this->debug]);
@@ -1416,6 +1417,8 @@ class Import
         }
 
         $this->info('updated as out of stock: ' . $aff);
+
+        $this->countOutOfStock = $aff;
 
         return $aff;
     }
@@ -2297,6 +2300,7 @@ class Import
                 ->setCountSkippedOther($this->skippedByOther)
                 ->setCountPassed($this->passed)
                 ->setCountAffected($this->aff)
+                ->setCountOutOfStock($this->countOutOfStock)
                 ->setError($this->error));
         } else {
             $this->warning('invalid history object');

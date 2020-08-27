@@ -23,9 +23,10 @@ class History extends Entity
         'count_skipped_other' => ['type' => self::COLUMN_INT, 'default' => null],
         'count_passed' => ['type' => self::COLUMN_INT, 'default' => null],
         'count_affected' => ['type' => self::COLUMN_INT, 'default' => null],
+        'count_out_of_stock' => ['type' => self::COLUMN_INT, 'default' => null],
         'error' => ['type' => self::COLUMN_TEXT, 'default' => null],
         'created_at' => ['type' => self::COLUMN_TIME, self::REQUIRED],
-        'updated_at' => ['type' => self::COLUMN_TIME, 'default' => null]
+        'updated_at' => ['type' => self::COLUMN_TIME, 'default' => null],
     ];
 
     public function setId($v): Entity
@@ -40,22 +41,22 @@ class History extends Entity
 
     public function setImportHistoryId($v): History
     {
-        return $this->setRequiredAttr('import_history_id', (int)$v);
+        return $this->setRequiredAttr('import_history_id', (int) $v);
     }
 
-    public function getImportHistoryId()
+    public function getImportHistoryId(): int
     {
-        return (int)$this->getRawAttr('import_history_id');
+        return (int) $this->getRawAttr('import_history_id');
     }
 
     public function setImportSourceId($v): History
     {
-        return $this->setRequiredAttr('import_source_id', (int)$v);
+        return $this->setRequiredAttr('import_source_id', (int) $v);
     }
 
-    public function getImportSourceId()
+    public function getImportSourceId(): int
     {
-        return (int)$this->getRawAttr('import_source_id');
+        return (int) $this->getRawAttr('import_source_id');
     }
 
     public function setHash($v): History
@@ -63,7 +64,7 @@ class History extends Entity
         return $this->setRequiredAttr('hash', trim($v));
     }
 
-    public function getHash()
+    public function getHash(): string
     {
         return $this->getRawAttr('hash');
     }
@@ -73,9 +74,9 @@ class History extends Entity
         return $this->setRawAttr('count_total', $v);
     }
 
-    public function getCountTotal()
+    public function getCountTotal(): ?int
     {
-        return is_null($v = $this->getRawAttr('count_total')) ? null : (int)$v;
+        return is_null($v = $this->getRawAttr('count_total')) ? null : (int) $v;
     }
 
     public function setCountFilteredFilter(int $v = null): History
@@ -83,9 +84,9 @@ class History extends Entity
         return $this->setRawAttr('count_filtered_filter', $v);
     }
 
-    public function getCountFilteredFilter()
+    public function getCountFilteredFilter(): ?int
     {
-        return is_null($v = $this->getRawAttr('count_filtered_filter')) ? null : (int)$v;
+        return is_null($v = $this->getRawAttr('count_filtered_filter')) ? null : (int) $v;
     }
 
     public function setCountFilteredModifier(int $v = null): History
@@ -93,9 +94,9 @@ class History extends Entity
         return $this->setRawAttr('count_filtered_modifier', $v);
     }
 
-    public function getCountFilteredModifier()
+    public function getCountFilteredModifier(): ?int
     {
-        return is_null($v = $this->getRawAttr('count_filtered_modifier')) ? null : (int)$v;
+        return is_null($v = $this->getRawAttr('count_filtered_modifier')) ? null : (int) $v;
     }
 
     public function setCountSkippedUnique(int $v = null): History
@@ -103,9 +104,9 @@ class History extends Entity
         return $this->setRawAttr('count_skipped_unique', $v);
     }
 
-    public function getCountSkippedUnique()
+    public function getCountSkippedUnique(): ?int
     {
-        return is_null($v = $this->getRawAttr('count_skipped_unique')) ? null : (int)$v;
+        return is_null($v = $this->getRawAttr('count_skipped_unique')) ? null : (int) $v;
     }
 
     public function setCountSkippedUpdated(int $v = null): History
@@ -113,9 +114,9 @@ class History extends Entity
         return $this->setRawAttr('count_skipped_updated', $v);
     }
 
-    public function getCountSkippedUpdated()
+    public function getCountSkippedUpdated(): ?int
     {
-        return is_null($v = $this->getRawAttr('count_skipped_updated')) ? null : (int)$v;
+        return is_null($v = $this->getRawAttr('count_skipped_updated')) ? null : (int) $v;
     }
 
     public function setCountSkippedOther(int $v = null): History
@@ -123,9 +124,9 @@ class History extends Entity
         return $this->setRawAttr('count_skipped_other', $v);
     }
 
-    public function getCountSkippedOther()
+    public function getCountSkippedOther(): ?int
     {
-        return is_null($v = $this->getRawAttr('count_skipped_other')) ? null : (int)$v;
+        return is_null($v = $this->getRawAttr('count_skipped_other')) ? null : (int) $v;
     }
 
     public function setCountPassed(int $v = null): History
@@ -133,9 +134,9 @@ class History extends Entity
         return $this->setRawAttr('count_passed', $v);
     }
 
-    public function getCountPassed()
+    public function getCountPassed(): ?int
     {
-        return is_null($v = $this->getRawAttr('count_passed')) ? null : (int)$v;
+        return is_null($v = $this->getRawAttr('count_passed')) ? null : (int) $v;
     }
 
     public function setCountAffected(int $v = null): History
@@ -143,9 +144,19 @@ class History extends Entity
         return $this->setRawAttr('count_affected', $v);
     }
 
-    public function getCountAffected()
+    public function getCountAffected(): ?int
     {
-        return is_null($v = $this->getRawAttr('count_affected')) ? null : (int)$v;
+        return is_null($v = $this->getRawAttr('count_affected')) ? null : (int) $v;
+    }
+
+    public function setCountOutOfStock(int $v = null): History
+    {
+        return $this->setRawAttr('count_out_of_stock', $v);
+    }
+
+    public function getCountOutOfStock(): ?int
+    {
+        return is_null($v = $this->getRawAttr('count_out_of_stock')) ? null : (int) $v;
     }
 
     public function setError($v): History
@@ -153,7 +164,7 @@ class History extends Entity
         return $this->setAttr('error', ($v = trim($v)) ? $v : null);
     }
 
-    public function getError()
+    public function getError(): ?string
     {
         return ($v = $this->getRawAttr('error')) ? $v : null;
     }

@@ -235,6 +235,7 @@ CREATE TABLE `import_history` (
   `count_skipped_other` int(5) unsigned DEFAULT NULL,
   `count_passed` int(5) unsigned DEFAULT NULL,
   `count_affected` int(5) unsigned DEFAULT NULL,
+  `count_out_of_stock` int(5) unsigned DEFAULT NULL,
   `error` varchar(2048) DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NULL DEFAULT NULL ON UPDATE current_timestamp(),
