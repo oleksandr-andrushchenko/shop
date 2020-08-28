@@ -195,7 +195,7 @@ class SEO
 
             if (!isset($name)) {
                 if (!$category = $this->uri->getApp()->managers->categories->find($id)) {
-                    $this->uri->getApp()->container->logger->error('invalid category', [
+                    $this->uri->getApp()->container->logger->warning('invalid category', [
                         'category_id' => $id,
                     ]);
 
@@ -284,7 +284,7 @@ class SEO
                 return true;
             }
 
-            $this->uri->getApp()->container->logger->error('invalid color', [
+            $this->uri->getApp()->container->logger->warning('invalid color', [
                 'color_id' => $id,
             ]);
             return false;
@@ -325,7 +325,7 @@ class SEO
                 return true;
             }
 
-            $this->uri->getApp()->container->logger->error('invalid season', [
+            $this->uri->getApp()->container->logger->warning('invalid season', [
                 'season_id' => $id,
             ]);
             return false;
@@ -369,7 +369,7 @@ class SEO
                 return true;
             }
 
-            $this->uri->getApp()->container->logger->error('invalid material', [
+            $this->uri->getApp()->container->logger->warning('invalid material', [
                 'material_id' => $id,
             ]);
             return false;
@@ -410,7 +410,7 @@ class SEO
                 return true;
             }
 
-            $this->uri->getApp()->container->logger->error('invalid size', [
+            $this->uri->getApp()->container->logger->warning('invalid size', [
                 'size_id' => $id,
             ]);
             return false;
@@ -451,7 +451,7 @@ class SEO
                 return true;
             }
 
-            $this->uri->getApp()->container->logger->error('invalid tag', [
+            $this->uri->getApp()->container->logger->warning('invalid tag', [
                 'tag_id' => $id,
             ]);
             return false;
@@ -492,7 +492,7 @@ class SEO
                 return true;
             }
 
-            $this->uri->getApp()->container->logger->error('invalid country', [
+            $this->uri->getApp()->container->logger->warning('invalid country', [
                 'country_id' => $id,
             ]);
             return false;
@@ -533,7 +533,7 @@ class SEO
                 return true;
             }
 
-            $this->uri->getApp()->container->logger->error('invalid vendor', [
+            $this->uri->getApp()->container->logger->warning('invalid vendor', [
                 'vendor_id' => $id,
             ]);
             return false;
