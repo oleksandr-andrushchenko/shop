@@ -888,8 +888,8 @@ class Item extends Util
             $where['is_in_stock'] = 1;
         }
 
-        (new WalkChunk2(1000))
-            ->setFnGet(function ($lastId, $size) use ($where) {
+        (new WalkChunk(1000))
+            ->setFnGet(function ($page, $size) use ($where) {
                 $itemPk = $this->app->managers->items->getEntity()->getPk();
                 $itemTable = $this->app->managers->items->getEntity()->getTable();
                 $mva = $this->indexerHelper->getMva();
@@ -897,9 +897,17 @@ class Item extends Util
 
                 $query = new Query(['params' => []]);
 
-                if ($lastId) {
-                    $where[] = new Expression($mysql->quote($itemPk, $itemTable) . ' > ?', $lastId);
+                $order = [];
+
+                if (!$this->inStockOnly) {
+                    $order['is_in_stock'] = SORT_DESC;
                 }
+
+                $order = array_merge($order, [
+                    'partner_updated_at' => SORT_DESC,
+                    'created_at' => SORT_DESC,
+                    'updated_at' => SORT_DESC,
+                ]);
 
                 $query->text = implode(' ', [
                     'SELECT ' . implode(', ', array_map(function ($column) use ($mysql, $mva, $itemTable) {
@@ -917,8 +925,8 @@ class Item extends Util
                     $where ? $mysql->makeWhereSQL($where, $query->params, $itemTable) : '',
 //                    $mysql->makeWhereSQL(['item_id' => 309018], $query->params, $itemTable),
                     $mysql->makeGroupSQL($itemPk, $query->params, $itemTable),
-                    $mysql->makeOrderSQL([$itemPk => SORT_ASC], $query->params, $itemTable),
-                    $mysql->makeLimitSQL(0, $size, $query->params),
+                    $mysql->makeOrderSQL($order, $query->params, $itemTable),
+                    $mysql->makeLimitSQL(($page - 1) * $size, $size, $query->params),
                 ]);
 
                 return $mysql->reqToArrays($query);
