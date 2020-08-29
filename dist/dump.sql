@@ -185,7 +185,7 @@ DROP TABLE IF EXISTS `country`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `country` (
-  `country_id` tinyint(3) unsigned NOT NULL AUTO_INCREMENT,
+  `country_id` smallint(5) unsigned NOT NULL AUTO_INCREMENT,
   `name` varchar(128) NOT NULL,
   `uri` varchar(128) NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
@@ -205,14 +205,13 @@ DROP TABLE IF EXISTS `country_term`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `country_term` (
   `id` smallint(5) unsigned NOT NULL AUTO_INCREMENT,
-  `country_id` tinyint(3) unsigned NOT NULL,
+  `country_id` smallint(5) unsigned NOT NULL,
   `lang` char(2) NOT NULL DEFAULT 'ru',
   `value` tinytext NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NULL DEFAULT NULL ON UPDATE current_timestamp(),
   PRIMARY KEY (`id`),
-  KEY `country_id` (`country_id`),
-  CONSTRAINT `country_term_ibfk_1` FOREIGN KEY (`country_id`) REFERENCES `country` (`country_id`) ON DELETE CASCADE ON UPDATE CASCADE
+  KEY `country_id` (`country_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 

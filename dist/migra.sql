@@ -134,3 +134,8 @@ alter table `item` drop `order_desc_rating`,
 
 
 alter table `import_history` add `count_out_of_stock` int(5) unsigned DEFAULT NULL after `count_affected`;
+
+
+alter table country_term drop CONSTRAINT country_term_ibfk_1;
+alter table country_term change country_id `country_id` smallint unsigned NOT NULL;
+alter table country change country_id `country_id` smallint unsigned NOT NULL AUTO_INCREMENT;
