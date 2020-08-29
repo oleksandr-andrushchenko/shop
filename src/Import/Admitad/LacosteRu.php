@@ -9,7 +9,7 @@ class LacosteRu extends Admitad
 {
     protected function beforeWalkImport()
     {
-        parent::before();
+        parent::beforeWalkImport();
         
         if ($this->paramsIndex) {
             $this->paramsCallbacks['size_id'] = function ($params) {
