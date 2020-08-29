@@ -167,50 +167,27 @@ class Item extends Util
         return true;
     }
 
-    public function doUpdateItemsOrders()
+    public function doUpdateItemsOrders(): int
     {
-        $table = $this->app->managers->items->getEntity()->getTable();
-        $pk = $this->app->managers->items->getEntity()->getPk();
-        $db = $this->app->container->db;
-        $after = 'is_in_stock';
+        $aff = 0;
 
         foreach (SRC::getOrderValues() as $order) {
-            $uri = new URI([URI::ORDER => $order]);
+            $uri = new URI([
+                URI::ORDER => $order,
+            ]);
+
             $src = $uri->getSRC();
 
             $info = $src->getOrderInfo();
 
-            if (!in_array($info->cache_column, $db->getManager()->getColumns($table))) {
-                $db->req(implode(' ', [
-                    'ALTER TABLE' . ' ' . $db->quote($table),
-                    'ADD COLUMN ' . $db->quote($info->cache_column) . ' int(11) NOT NULL DEFAULT \'0\'',
-                    'AFTER ' . $db->quote($after),
-                ]));
-            }
+            $affTmp = $this->addOrderColumn($src->getDataProvider('db')->getOrder(), $info->cache_column);
 
-            $db->req('SET @num=0');
+            $aff += $affTmp;
 
-            $query = new Query(['params' => []]);
-            $query->text = implode(' ', [
-                'UPDATE ' . $db->quote($table) . ' AS ' . $db->quote('i'),
-                'INNER JOIN (',
-                'SELECT ' . $db->quote($pk) . ', @num:=@num+1 AS ' . $db->quote('num'),
-                'FROM ' . $db->quote($table),
-                $db->makeOrderSQL($src->getDataProvider('db')->getOrder(), $query->params),
-                ') AS ' . $db->quote('i2') . ' USING(' . $db->quote($pk) . ')',
-                'SET ' . $db->quote($info->cache_column, 'i') . ' = ' . $db->quote('num', 'i2'),
-            ]);
-
-            $aff = $db->req($query)->affectedRows();
-
-            $after = $info->cache_column;
-
-            $this->output('DONE[' . $info->cache_column . ']: ' . $aff);
+            $this->output("column {$info->cache_column} has been created, updated for {$affTmp} items");
         }
 
-        $this->output('DONE');
-
-        return true;
+        return $aff;
     }
 
     public function doDeleteWithNonExistingCategories(FixWhere $fixWhere = null, array $params = [])
@@ -883,31 +860,37 @@ class Item extends Util
         $this->indexerHelper->prepareData($this->app);
 
         $where = Arrays::cast($where);
+        $order = [];
 
         if ($this->inStockOnly) {
             $where['is_in_stock'] = 1;
+        } else {
+            $order['is_in_stock'] = SORT_DESC;
         }
 
-        (new WalkChunk(1000))
-            ->setFnGet(function ($page, $size) use ($where) {
-                $itemPk = $this->app->managers->items->getEntity()->getPk();
-                $itemTable = $this->app->managers->items->getEntity()->getTable();
+        $order = array_merge($order, [
+            'partner_updated_at' => SORT_DESC,
+            'created_at' => SORT_DESC,
+            'updated_at' => SORT_DESC,
+        ]);
+
+        $tmpIndexElasticColumn = 'tmp_index_elastic';
+        $this->addOrderColumn($order, $tmpIndexElasticColumn, true);
+
+        $itemTable = $this->app->managers->items->getEntity()->getTable();
+        $itemPk = $this->app->managers->items->getEntity()->getPk();
+        $columns = array_merge($this->indexerHelper->getColumns(), [$tmpIndexElasticColumn]);
+
+        (new WalkChunk2(1000))
+            ->setFnGet(function ($lastId, $size) use ($where, $order, $itemTable, $itemPk, $columns, $tmpIndexElasticColumn) {
                 $mva = $this->indexerHelper->getMva();
                 $mysql = $this->app->container->db;
 
                 $query = new Query(['params' => []]);
 
-                $order = [];
-
-                if (!$this->inStockOnly) {
-                    $order['is_in_stock'] = SORT_DESC;
+                if ($lastId) {
+                    $where[] = new Expression($mysql->quote($tmpIndexElasticColumn, $itemTable) . ' > ?', $lastId);
                 }
-
-                $order = array_merge($order, [
-                    'partner_updated_at' => SORT_DESC,
-                    'created_at' => SORT_DESC,
-                    'updated_at' => SORT_DESC,
-                ]);
 
                 $query->text = implode(' ', [
                     'SELECT ' . implode(', ', array_map(function ($column) use ($mysql, $mva, $itemTable) {
@@ -916,24 +899,21 @@ class Item extends Util
                         }
 
                         return $mysql->quote($column, $itemTable);
-                    }, $this->indexerHelper->getColumns())),
+                    }, $columns)),
                     'FROM ' . $mysql->quote($itemTable) . ' ' . implode(' ', array_map(function ($attrTable)
                     use ($mysql, $itemTable, $itemPk) {
                         $linkTable = 'item_' . $attrTable;
                         return 'LEFT JOIN ' . $mysql->quote($linkTable) . ' ON' . $mysql->quote($itemPk, $itemTable) . ' = ' . $mysql->quote($itemPk, $linkTable);
                     }, $mva)),
                     $where ? $mysql->makeWhereSQL($where, $query->params, $itemTable) : '',
-//                    $mysql->makeWhereSQL(['item_id' => 309018], $query->params, $itemTable),
                     $mysql->makeGroupSQL($itemPk, $query->params, $itemTable),
-                    $mysql->makeOrderSQL($order, $query->params, $itemTable),
-                    $mysql->makeLimitSQL(($page - 1) * $size, $size, $query->params),
+                    $mysql->makeOrderSQL([$tmpIndexElasticColumn => SORT_ASC], $query->params, $itemTable),
+                    $mysql->makeLimitSQL(0, $size, $query->params),
                 ]);
 
                 return $mysql->reqToArrays($query);
             })
-            ->setFnDo(function ($items) use ($index, &$aff) {
-                $itemPk = $this->app->managers->items->getEntity()->getPk();
-
+            ->setFnDo(function ($items) use ($index, $itemPk, $tmpIndexElasticColumn, &$aff) {
                 $documents = [];
 
                 foreach ($items as $item) {
@@ -942,9 +922,11 @@ class Item extends Util
 
                 $aff += $this->app->container->indexer->getManager()->indexMany($index, $documents);
 
-                return end($documents) ? key($documents) : false;
+                return end($documents) ? $documents[key($documents)][$tmpIndexElasticColumn] : false;
             })
             ->run();
+
+        $this->app->container->db->getManager()->dropTableColumn($itemTable, $tmpIndexElasticColumn);
 
         return $aff;
     }
@@ -972,5 +954,38 @@ class Item extends Util
     public function doDeleteElastic(array $id)
     {
         //@todo
+    }
+
+    private function addOrderColumn(array $order, string $column, bool $index = false): int
+    {
+        $table = $this->app->managers->items->getEntity()->getTable();
+        $pk = $this->app->managers->items->getEntity()->getPk();
+        $db = $this->app->container->db;
+        $dbManager = $db->getManager();
+
+        if (!$dbManager->columnExists($table, $column)) {
+            $dbManager->addTableColumn($table, $column, 'int(11) NOT NULL DEFAULT \'0\'');
+        }
+
+        $db->req('SET @num=0');
+
+        $query = new Query(['params' => []]);
+        $query->text = implode(' ', [
+            'UPDATE ' . $db->quote($table) . ' AS ' . $db->quote('i'),
+            'INNER JOIN (',
+            'SELECT ' . $db->quote($pk) . ', @num:=@num+1 AS ' . $db->quote('num'),
+            'FROM ' . $db->quote($table),
+            $db->makeOrderSQL($order, $query->params),
+            ') AS ' . $db->quote('i2') . ' USING(' . $db->quote($pk) . ')',
+            'SET ' . $db->quote($column, 'i') . ' = ' . $db->quote('num', 'i2'),
+        ]);
+
+        $aff = $db->req($query)->affectedRows();
+
+        if ($index && !$dbManager->indexExists($table, $column)) {
+            $dbManager->addTableKey($table, $column);
+        }
+
+        return $aff;
     }
 }
