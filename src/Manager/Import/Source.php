@@ -5,7 +5,6 @@ namespace SNOWGIRL_SHOP\Manager\Import;
 use SNOWGIRL_CORE\Query;
 use SNOWGIRL_CORE\AbstractApp;
 use SNOWGIRL_CORE\Entity;
-use SNOWGIRL_CORE\Service\Db;
 use SNOWGIRL_SHOP\Entity\Item;
 use SNOWGIRL_CORE\Manager;
 use SNOWGIRL_SHOP\Entity\Import\Source as ImportSourceEntity;
@@ -16,12 +15,11 @@ use SNOWGIRL_CORE\Helper\Classes;
 
 /**
  * Class Source
- *
  * @property ImportSourceEntity $entity
  * @method static ImportSourceEntity getItem($id)
  * @method ImportSourceEntity find($id)
  * @method static Source factory($app)
- * @property App app
+ * @property AbstractApp app
  * @method ImportSourceEntity[] getObjects($idAsKeyOrKey = null)
  * @method Source clear()
  * @method Source setWhat($what)
@@ -82,7 +80,6 @@ class Source extends Manager
     /**
      * @param ImportSourceEntity $source
      * @param array $input
-     *
      * @return array|bool|null
      */
     public function updateFileMapping(ImportSourceEntity $source, array $input)
@@ -111,8 +108,8 @@ class Source extends Manager
                             $modify[$v] = [
                                 'value' => $map['modify_to'][$k] ?: null,
                                 'tags' => array_map(function ($v) {
-                                    return (int)$v;
-                                }, isset($map['tags']) && isset($map['tags'][$v]) ? (array)$map['tags'][$v] : [])
+                                    return (int) $v;
+                                }, isset($map['tags']) && isset($map['tags'][$v]) ? (array) $map['tags'][$v] : []),
                             ];
 
                             if (isset($map['is_sport']) && isset($map['is_sport'][$v]) && 1 == $map['is_sport'][$v]) {
@@ -175,28 +172,28 @@ class Source extends Manager
 
     public function deleteItems(ImportSourceEntity $source)
     {
-        return $this->app->container->db->makeTransaction(function () use ($source) {
+        $items = $this->app->container->db->makeTransaction(function () use ($source) {
             $where = [
-                'vendor_id' => $source->getVendorId()
+                'vendor_id' => $source->getVendorId(),
             ];
 
             $items = $this->app->container->db->selectMany(Item::getTable(), new Query([
                 'columns' => 'image',
-                'where' => $where
+                'where' => $where,
             ]));
 
             $this->app->container->db->deleteMany(Item::getTable(), new Query(['where' => $where]));
 
-            $this->app->container->db->on(Db::EVENT_COMPLETE, function () use ($items) {
-                foreach ($items as $item) {
-                    $this->app->images->get($item['image'])->delete();
-                }
-
-                //@todo flush cache
-            });
-
-            return true;
+            return $items;
         });
+
+        if ($items) {
+            foreach ($items as $item) {
+                $this->app->images->deleteByFile($item['image']);
+            }
+        }
+
+        return true;
     }
 
     public function getLink(Entity $entity, array $params = [], $domain = false)
@@ -205,13 +202,12 @@ class Source extends Manager
 
         return $this->app->router->makeLink('admin', array_merge($params, [
             'action' => 'import-source',
-            'id' => $entity->getId()
+            'id' => $entity->getId(),
         ]), $domain);
     }
 
     /**
      * @param ImportSourceEntity $source
-     *
      * @return Entity|VendorEntity
      */
     public function getVendor(ImportSourceEntity $source)
@@ -219,7 +215,7 @@ class Source extends Manager
         return $this->getLinked($source, 'vendor_id');
     }
 
-    public function getImport(ImportSourceEntity $source, bool $debug = null): Import
+    public function getImport(ImportSourceEntity $source, bool $debug = null, bool $stdout = false): Import
     {
         if ($class = $source->getClassName()) {
             $class = Classes::aliasToReal($this->app, $class, 'Import');
@@ -227,7 +223,7 @@ class Source extends Manager
             $class = Import::class;
         }
 
-        return new $class($this->app, $source, $debug);
+        return new $class($this->app, $source, $debug, $stdout);
     }
 
     public function getImportClasses($withAliases = false, $whole = false)
