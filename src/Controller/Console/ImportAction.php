@@ -36,6 +36,7 @@ class ImportAction
 
         $app->request->set('param_1', $app->request->get('param_2', 0));
         $app->request->set('param_2', $app->request->get('param_3', 0));
+        $app->request->set('param_3', $app->request->get('param_4', 0));
 
         (new ImportAllAction)($app, $importSource);
     }
