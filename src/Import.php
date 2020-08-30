@@ -3,7 +3,9 @@
 namespace SNOWGIRL_SHOP;
 
 use Generator;
+use Monolog\Handler\StreamHandler;
 use Monolog\Logger;
+use Psr\Log\LoggerInterface;
 use SNOWGIRL_CORE\Entity;
 use SNOWGIRL_CORE\Exception;
 use SNOWGIRL_CORE\Helper\Strings;
@@ -58,7 +60,6 @@ class Import
 
     protected $isCheckUpdatedAt;
     protected $isForceUpdate;
-    protected $debug;
     protected $cacheDropped;
     protected $walkTotal;
     protected $walkFilteredFilter;
@@ -117,13 +118,13 @@ class Import
     private $countOutOfStock;
 
     /**
-     * Import constructor.
-     * @param App $app
-     * @param ImportSource $source
-     * @param bool|null $debug
-     * @throws Exception
+     * @var LoggerInterface
      */
-    public function __construct(App $app, ImportSource $source, bool $debug = null)
+    private $logger;
+
+    private $debug;
+
+    public function __construct(App $app, ImportSource $source, bool $debug = null, bool $stdout = false)
     {
         $this->app = $app;
         $this->source = $source;
@@ -132,6 +133,20 @@ class Import
 
         $this->filters = $this->getFilters();
         $this->mappings = $this->getMappings();
+
+        $this->logger = clone $app->container->logger;
+
+        $this->logger->pushProcessor(function ($data) {
+            $data['extra']['source_id'] = $this->source->getId();
+
+            return $data;
+        });
+
+        if ($stdout) {
+            $handler = new StreamHandler('php://stdout', Logger::INFO);
+            $handler->setFormatter($app->container->makeSingle('logger_handler_formatter', 'logger'));
+            $this->logger->pushHandler($handler);
+        }
 
         $this->debug = $debug;
     }
@@ -170,7 +185,7 @@ class Import
     public function dropCache($history = false): bool
     {
         if (!$this->cacheDropped) {
-            $this->debug('dropping cache...');
+            $this->logger->debug('dropping cache...');
 
             if ($this->checkPid()) {
                 throw new Exception('previous running...');
@@ -188,7 +203,7 @@ class Import
 
                 $this->cacheDropped = true;
             } catch (Throwable $e) {
-                $this->error($e);
+                $this->logger->error($e);
                 return false;
             }
         }
@@ -205,7 +220,7 @@ class Import
         $file = $this->getCsvFilename();
 
         if (!FileSystem::isFileExists($file)) {
-            $this->debug('downloading file...');
+            $this->logger->debug('downloading file...');
 
             shell_exec(implode(' ', [
                 '/usr/bin/wget --quiet',
@@ -633,7 +648,7 @@ class Import
         ];
     }
 
-    public static function factoryAndRun(App $app, ImportSource $importSource = null, bool $debug = null): ?bool
+    public static function factoryAndRun(App $app, ImportSource $importSource = null, bool $debug = null, bool $stdout = false): ?bool
     {
         /** @var HttpApp|ConsoleApp $app */
 
@@ -659,7 +674,7 @@ class Import
         foreach ($importSources as $importSource) {
             try {
                 if ($app->managers->sources->getVendor($importSource)->isActive()) {
-                    $app->managers->sources->getImport($importSource, $debug)->run();
+                    $app->managers->sources->getImport($importSource, $debug, $stdout)->run();
                 } else {
                     $app->container->logger->debug('Vendor "' . $app->managers->sources->getVendor($importSource)->getName() . '" is disabled');
                 }
@@ -757,38 +772,38 @@ class Import
 
             foreach ($this->getFilteredFile() as $row) {
                 if (!$partnerItemId = $this->getPartnerItemIdByRow($row)) {
-                    $this->warning('invalid partner item id');
+                    $this->logger->warning('invalid partner item id');
                     continue;
                 }
 
                 $row['_partner_item_id'] = $partnerItemId;
 
                 if (!$category = $this->getCategoryByRow($row)) {
-                    $this->warning('invalid category');
+                    $this->logger->warning('invalid category');
                     continue;
                 }
 
                 if (!$rawLink = $this->getPartnerLinkByRow($row)) {
-                    $this->warning('invalid partner link');
+                    $this->logger->warning('invalid partner link');
                     continue;
                 }
 
                 $row['_partner_link'] = $rawLink;
 
                 if (!$link = $this->getPartnerLinkHashByRow($row)) {
-                    $this->warning('invalid partner link hash');
+                    $this->logger->warning('invalid partner link hash');
                     continue;
                 }
 
                 $row['_partner_link_hash'] = $link;
 
                 if (!$images = $this->getImagesByRow($row)) {
-                    $this->warning('invalid images');
+                    $this->logger->warning('invalid images');
                     continue;
                 }
 
                 if (!$images[0]) {
-                    $this->warning('invalid image');
+                    $this->logger->warning('invalid image');
                     continue;
                 }
 
@@ -842,7 +857,7 @@ class Import
                     $link = $this->getPartnerLinkHashByRow($row);
 
                     if (in_array($partnerItemId, $this->skippedAsDuplicate)) {
-                        $this->debug(implode(' ', [
+                        $this->logger->debug(implode(' ', [
                             '[SKIPPED as duplicate]',
                             'partner_id=' . $partnerItemId,
                             'link=' . $link,
@@ -854,7 +869,7 @@ class Import
                         $row['_price'] = $this->getPriceByRow($row);
                         $row['_name'] = $this->getNameByRow($row);
 
-                        $this->debug(implode(' ', [
+                        $this->logger->debug(implode(' ', [
                             '[SKIPPED as garbage]',
                             'partner_id=' . $partnerItemId,
                             'image=' . $row['_images'][0],
@@ -867,7 +882,7 @@ class Import
 
                     # manage duplicates
                     if ($duplicates = $this->getRowDuplicates($row)) {
-//                        $this->debug('[' . $partnerItemId . '] duplicates: ' . implode(', ', $duplicates));
+//                        $this->logger->debug('[' . $partnerItemId . '] duplicates: ' . implode(', ', $duplicates));
 
 
                         if (in_array($partnerItemId, $this->existingPartnerItemId)) {
@@ -887,9 +902,9 @@ class Import
                             }
                         }
 
-//                        $this->debug('partner item id: ' . $partnerItemId);
-//                        $this->debug('duplicates: ' . var_export($duplicates, true));
-//                        $this->debug('main partner item id: ' . $mainPartnerItemId);
+//                        $this->logger->debug('partner item id: ' . $partnerItemId);
+//                        $this->logger->debug('duplicates: ' . var_export($duplicates, true));
+//                        $this->logger->debug('main partner item id: ' . $mainPartnerItemId);
 
                         foreach ($duplicates as $duplicatePartnerItemId) {
                             if (($mainPartnerItemId != $duplicatePartnerItemId) && isset($this->fileRows[$duplicatePartnerItemId])) {
@@ -907,8 +922,8 @@ class Import
                             $this->dropRowGarbage($row);
                         }
 
-//                        $this->debug('partner item id: ' . $partnerItemId);
-//                        $this->debug('garbage: ' . var_export($this->getRowGarbage($row), true));
+//                        $this->logger->debug('partner item id: ' . $partnerItemId);
+//                        $this->logger->debug('garbage: ' . var_export($this->getRowGarbage($row), true));
                     }
 
                     # manage garbage
@@ -926,7 +941,7 @@ class Import
                         $row['_partner_updated_at'] = $this->getPartnerUpdatedAtByRow($row);
 
                         if (!$this->isForceUpdate && ($partnerItemIdToPartnerUpdatedAt[$partnerItemId] <= $row['_partner_updated_at'])) {
-                            $this->debug(implode(' ', [
+                            $this->logger->debug(implode(' ', [
                                 '[SKIPPED by updated_at]',
                                 'partner_id=' . $partnerItemId,
                                 'updated_at=' . $row['_partner_updated_at'],
@@ -956,8 +971,8 @@ class Import
                         $this->skippedByOther++;
                     }
 
-//                    $this->debug('partner item id: ' . $partnerItemId);
-//                    $this->debug('values: ' . var_export($values, true));
+//                    $this->logger->debug('partner item id: ' . $partnerItemId);
+//                    $this->logger->debug('values: ' . var_export($values, true));
                 }
             }
 
@@ -967,7 +982,7 @@ class Import
 
             return true;
         } catch (Throwable $e) {
-            $this->error($e);
+            $this->logger->error($e);
             $this->error = $e->getTraceAsString();
             return false;
         } finally {
@@ -984,7 +999,7 @@ class Import
         $this->check();
 
         if ($this->checkPid()) {
-            $this->info('SKIPPED by previous running');
+            $this->logger->info('SKIPPED by previous running');
             return null;
         }
 
@@ -998,7 +1013,7 @@ class Import
 
 //            if ($history && $history->getHash() == $hash) {
             # @todo restore
-//                $this->debug('SKIPPED by hash');
+//                $this->logger->debug('SKIPPED by hash');
 //                return null;
 //            }
 
@@ -1021,7 +1036,7 @@ class Import
             $this->passed = 0;
 
             $this->walkImport(true, function ($row, $values) {
-                $this->debug('[PASSED] partner_id=' . $values['partner_item_id']);
+                $this->logger->debug('[PASSED] partner_id=' . $values['partner_item_id']);
 
                 if (!isset($this->keys)) {
                     $this->keys = array_keys($values);
@@ -1034,7 +1049,7 @@ class Import
                 $this->passed++;
                 $this->index++;
 
-//                $this->debug('index: ' . $this->index);
+//                $this->logger->debug('index: ' . $this->index);
 
                 if (self::LIMIT == $this->index) {
                     if ($aff = $this->insertItems()) {
@@ -1063,19 +1078,19 @@ class Import
 
             if (false && $this->aff) {
                 $aff = $this->app->utils->items->doFixWithNonExistingAttrs($fixWhere, ['log' => $this->debug]);
-                $this->info('affected with non-existing attributes: ' . $aff);
+                $this->logger->info('affected with non-existing attributes: ' . $aff);
 
                 $aff = $this->app->utils->attrs->doDeleteNonExistingItemsMva($fixWhere, ['log' => $this->debug]);
-                $this->info('affected with invalid mva: ' . $aff);
+                $this->logger->info('affected with invalid mva: ' . $aff);
 
 //                $this->app->utils->attrs->doAddMvaByInclusions($fixWhere);
                 $this->app->utils->items->doFixItemsCategories($fixWhere, ['log' => $this->debug]);
-                $this->info('affected with non-appropriate categories: ' . $aff);
+                $this->logger->info('affected with non-appropriate categories: ' . $aff);
             }
 
             $this->deleteOldFiles();
         } catch (Throwable $e) {
-            $this->error($e);
+            $this->logger->error($e);
         }
 
         $this->deletePid();
@@ -1308,7 +1323,7 @@ class Import
             }
         }
 
-        $this->info('deleted old files: ' . $aff);
+        $this->logger->info('deleted old files: ' . $aff);
 
         return $aff;
     }
@@ -1416,7 +1431,7 @@ class Import
             }
         }
 
-        $this->info('updated as out of stock: ' . $aff);
+        $this->logger->info('updated as out of stock: ' . $aff);
 
         $this->countOutOfStock = $aff;
 
@@ -1569,7 +1584,7 @@ class Import
                     $id = $rawNameOrId;
                 } else {
                     if (is_array($rawNameOrId)) {
-                        $this->warning('sva[' . $entityPk . '] as array found: ' . var_export($rawNameOrId, true));
+                        $this->logger->warning('sva[' . $entityPk . '] as array found: ' . var_export($rawNameOrId, true));
                         $rawNameOrId = $rawNameOrId[0];
                     }
 
@@ -1601,8 +1616,8 @@ class Import
                             $data['nameToId'][$nameOrIdLower] = $id;
                             $data['uriToId'][$uri] = $id;
                         } catch (Throwable $e) {
-                            $this->error($e);
-                            $this->error('can\'t insert entity: ' . var_export($entity, true));
+                            $this->logger->error($e);
+                            $this->logger->error('can\'t insert entity: ' . var_export($entity, true));
                         }
                     }
                 }
@@ -1775,7 +1790,7 @@ class Import
                             // @todo check if ok
                             unset($images[$k]);
 
-                            $this->warning($url . ': ' . $error);
+                            $this->logger->warning($url . ': ' . $error);
                             continue;
                         }
 
@@ -1816,7 +1831,7 @@ class Import
             foreach ($this->images as $partnerItemId => $images) {
                 if (!isset($partnerItemIdToItemId[$partnerItemId])) {
                     // @todo checkout & fix
-                    $this->warning('$partnerItemIdToItemId[' . $partnerItemId . '] not found... skipping...');
+                    $this->logger->warning('$partnerItemIdToItemId[' . $partnerItemId . '] not found... skipping...');
                     continue;
                 }
 
@@ -1836,10 +1851,10 @@ class Import
 
             $aff = $insert ? $manager->insertMany($insert, ['ignore' => true, 'log' => $this->debug]) : 0;
 
-            $this->info('AFF ' . $table . ': ' . $aff);
+            $this->logger->info('AFF ' . $table . ': ' . $aff);
         } catch (Throwable $e) {
-            $this->debug('Error on image[' . $table . '] insert: ' . $e->getMessage());
-            $this->error($e);
+            $this->logger->debug('Error on image[' . $table . '] insert: ' . $e->getMessage());
+            $this->logger->error($e);
         }
 
         $this->images = [];
@@ -1868,7 +1883,7 @@ class Import
 
                 foreach ($data['values'] as $partnerItemId => $rawArray) {
                     if (!isset($partnerItemIdToItemId[$partnerItemId])) {
-                        $this->warning('$partnerItemIdToItemId[' . $partnerItemId . '] not found... skipping...');
+                        $this->logger->warning('$partnerItemIdToItemId[' . $partnerItemId . '] not found... skipping...');
                         continue;
                     }
 
@@ -1913,7 +1928,7 @@ class Import
                                         break;
                                     }
                                 } catch (Throwable $e) {
-                                    $this->error($e);
+                                    $this->logger->error($e);
 
                                     if (Exception::_check($e, 'Duplicate entry')) {
                                         $tmp = $this->app->container->db->selectOne($table, new Query([
@@ -1926,10 +1941,10 @@ class Import
                                             $this->mva[$entityPk]['uriToId'][$newUri] = $id;
                                             $this->mva[$entityPk]['nameToId'][$nameOrId] = $id;
                                         } else {
-                                            $this->warning('Can\'t figure out ' . $table . ' id in case of duplicate');
+                                            $this->logger->warning('Can\'t figure out ' . $table . ' id in case of duplicate');
                                         }
                                     } else {
-                                        $this->warning('Can\'t figure out ' . $table . ' id');
+                                        $this->logger->warning('Can\'t figure out ' . $table . ' id');
                                     }
                                 }
                             }
@@ -1946,10 +1961,10 @@ class Import
 
                 $aff = $insert ? $manager->getMvaLinkManager()->insertMany($insert, ['ignore' => true, 'log' => $this->debug]) : 0;
 
-                $this->info('AFF ' . $manager->getMvaLinkManager()->getEntity()->getTable() . ': ' . $aff);
+                $this->logger->info('AFF ' . $manager->getMvaLinkManager()->getEntity()->getTable() . ': ' . $aff);
             } catch (Throwable $e) {
-                $this->debug('Error on mva[' . $manager->getMvaLinkManager()->getEntity()->getTable() . '] insert: ' . $e->getMessage());
-                $this->error($e);
+                $this->logger->debug('Error on mva[' . $manager->getMvaLinkManager()->getEntity()->getTable() . '] insert: ' . $e->getMessage());
+                $this->logger->error($e);
             }
 
             $this->mva[$entityPk]['values'] = [];
@@ -2166,7 +2181,7 @@ class Import
     private function insertItems(): ?int
     {
         try {
-            $this->info('-----------PROGRESS-----------')
+            $this->logger->info('-----------PROGRESS-----------')
                 ->info('PASSED = ' . $this->passed)
                 ->info('SKIPPED by unique key = ' . $this->skippedByUnique)
                 ->info('SKIPPED by updated at = ' . $this->skippedByUpdated)
@@ -2175,7 +2190,7 @@ class Import
                 ->info('------------------------------');
 
             if ((!$this->keys) || (!$this->bindValues) || (!$this->index)) {
-                $this->warning('empty runtime values', [
+                $this->logger->warning('empty runtime values', [
                     'keys' => $this->keys,
                     'bindValues' => $this->bindValues,
                     'index' => $this->index,
@@ -2249,10 +2264,10 @@ class Import
 
             $aff = $db->req($query)->affectedRows();
 
-            $this->info('AFF item: ' . $aff);
+            $this->logger->info('AFF item: ' . $aff);
             return $aff;
         } catch (Throwable $e) {
-            $this->error($e);
+            $this->logger->error($e);
             return null;
         }
     }
@@ -2283,7 +2298,7 @@ class Import
 
         $this->app->managers->importHistory->insertOne($this->history);
 
-        $this->debug('history id: ' . $this->history->getId());
+        $this->logger->debug('history id: ' . $this->history->getId());
 
         return $this;
     }
@@ -2303,7 +2318,7 @@ class Import
                 ->setCountOutOfStock($this->countOutOfStock)
                 ->setError($this->error));
         } else {
-            $this->warning('invalid history object');
+            $this->logger->warning('invalid history object');
         }
 
         return $this;
@@ -2498,22 +2513,22 @@ class Import
             $values = array_merge($values, $this->getAllSvaByRow($row));
 
             if (!$values['category_id'] || !$values['brand_id']) {
-                $this->debug('[SKIPPED category or brand] partner_id=' . $values['partner_item_id']);
+                $this->logger->debug('[SKIPPED category or brand] partner_id=' . $values['partner_item_id']);
                 return false;
             }
 
             if (!$values['name'] = $this->getNameByRow($row)) {
-                $this->debug('[SKIPPED name] partner_id=' . $values['partner_item_id']);
+                $this->logger->debug('[SKIPPED name] partner_id=' . $values['partner_item_id']);
                 return false;
             }
 
             if (!$values['price'] = $this->getPriceByRow($row)) {
-                $this->debug('[SKIPPED price] partner_id=' . $values['partner_item_id']);
+                $this->logger->debug('[SKIPPED price] partner_id=' . $values['partner_item_id']);
                 return false;
             }
 
             if (!$values['partner_link'] = $this->getPartnerLinkByRow($row)) {
-                $this->debug('[SKIPPED link] partner_id=' . $values['partner_item_id']);
+                $this->logger->debug('[SKIPPED link] partner_id=' . $values['partner_item_id']);
                 return false;
             }
 
@@ -2521,7 +2536,7 @@ class Import
             $values['partner_link_hash'] = $this->getPartnerLinkHashByRow($row);
 
             if (!$values['image'] = $this->getDownloadedImageByRow($row)) {
-                $this->debug('[SKIPPED image] partner_id=' . $values['partner_item_id']);
+                $this->logger->debug('[SKIPPED image] partner_id=' . $values['partner_item_id']);
                 return false;
             }
 
@@ -2540,7 +2555,7 @@ class Import
 
             foreach ($this->requiredColumns as $dbColumn) {
                 if (isset($values[$dbColumn]) && !mb_strlen($values[$dbColumn])) {
-                    $this->debug('[SKIPPED required ' . $dbColumn . ']=' . var_export($values[$dbColumn], true) . ' partner_id=' . $values['partner_item_id']);
+                    $this->logger->debug('[SKIPPED required ' . $dbColumn . ']=' . var_export($values[$dbColumn], true) . ' partner_id=' . $values['partner_item_id']);
                     return false;
                 }
             }
@@ -2550,7 +2565,7 @@ class Import
 
             return $values;
         } catch (Throwable $e) {
-            $this->error($e);
+            $this->logger->error($e);
             return false;
         }
     }
@@ -2614,32 +2629,5 @@ class Import
         $text = trim($text);
 
         return $text;
-    }
-
-    private function error($message, array $context = [])
-    {
-        return $this->log($message, $context, Logger::ERROR);
-    }
-
-    private function warning(string $message, array $context = [])
-    {
-        return $this->log($message, $context, Logger::WARNING);
-    }
-
-    private function info(string $message, array $context = [])
-    {
-        return $this->log($message, $context, Logger::INFO);
-    }
-
-    private function debug(string $message, array $context = [])
-    {
-        return $this->log($message, $context, Logger::DEBUG);
-    }
-
-    private function log($message, array $context = [], int $level = Logger::DEBUG)
-    {
-        $this->app->container->logger->addRecord($level, 'import[' . $this->source->getId() . ']: ' . $message, $context);
-
-        return $this;
     }
 }
