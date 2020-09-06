@@ -13,6 +13,11 @@ class ImportAction
     use PrepareServicesTrait;
 
     /**
+     * param 1 - import source id
+     * param 2 - debug
+     * param 3 - profile
+     * param 4 - rotate
+     *
      * @param App $app
      *
      * @throws Exception

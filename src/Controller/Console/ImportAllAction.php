@@ -23,10 +23,10 @@ class ImportAllAction
         $this->prepareServices($app);
 
         $debug = 1 == $app->request->get('param_1', 0);
-        $stdout = 1 == $app->request->get('param_2', 0);
+        $profile = 1 == $app->request->get('param_2', 0);
         $rotate = 1 == $app->request->get('param_3', 0);
 
-        Import::factoryAndRun($app, $importSource, $debug, $stdout);
+        Import::factoryAndRun($app, $importSource, $debug, $profile);
 
         if ($rotate) {
             (new IndexElasticAction)($app);

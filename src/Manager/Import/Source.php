@@ -215,7 +215,7 @@ class Source extends Manager
         return $this->getLinked($source, 'vendor_id');
     }
 
-    public function getImport(ImportSourceEntity $source, bool $debug = null, bool $stdout = false): Import
+    public function getImport(ImportSourceEntity $source, bool $debug = null, bool $profile = false): Import
     {
         if ($class = $source->getClassName()) {
             $class = Classes::aliasToReal($this->app, $class, 'Import');
@@ -223,7 +223,7 @@ class Source extends Manager
             $class = Import::class;
         }
 
-        return new $class($this->app, $source, $debug, $stdout);
+        return new $class($this->app, $source, $debug, $profile);
     }
 
     public function getImportClasses($withAliases = false, $whole = false)
