@@ -13,7 +13,6 @@ use SNOWGIRL_SHOP\Item\URI as ItemURI;
  * Class SEO
  *
  * @property HttpApp|ConsoleApp app
- * @method HttpApp|ConsoleApp getApp()
  * @package SNOWGIRL_SHOP
  */
 class SEO extends \SNOWGIRL_CORE\SEO

@@ -6,14 +6,14 @@ use SNOWGIRL_CORE\Helper\WalkChunk;
 use SNOWGIRL_CORE\Query\Expression;
 use SNOWGIRL_CORE\Query;
 use SNOWGIRL_CORE\Util;
-use SNOWGIRL_CORE\AbstractApp;
+use SNOWGIRL_SHOP\Console\ConsoleApp;
 use SNOWGIRL_SHOP\Entity\Item;
 use SNOWGIRL_SHOP\Entity\Import\Source as ImportSource;
+use SNOWGIRL_SHOP\Http\HttpApp;
 
 /**
  * Class Import
- *
- * @property App app
+ * @property ConsoleApp|HttpApp app
  * @package SNOWGIRL_SHOP\Util
  */
 class Import extends Util
@@ -39,7 +39,7 @@ class Import extends Util
                 if ($this->app->managers->sources->updateOne($source)) {
                     $this->output(implode(' ', [
                         'source\'s "' . $source->getName() . '"[' . $source->getId() . ']',
-                        'file mappings "' . $dbColumn . '" modifiers updated: tags added'
+                        'file mappings "' . $dbColumn . '" modifiers updated: tags added',
                     ]));
                     $aff++;
                 }
@@ -53,7 +53,6 @@ class Import extends Util
 
     /**
      * @param ImportSource $importSource
-     *
      * @return bool
      */
     public function doDeleteImportSourceItemsDuplicates(ImportSource $importSource)
@@ -68,7 +67,7 @@ class Import extends Util
             $db->makeFromSQL(Item::getTable()),
             $db->makeWhereSQL(['import_source_id' => $importSource->getId()], $query->params),
             $db->makeGroupSQL('image', $query->params),
-            $db->makeHavingSQL(new Expression($db->quote('cnt') . ' > ?', 1), $query->params)
+            $db->makeHavingSQL(new Expression($db->quote('cnt') . ' > ?', 1), $query->params),
         ]);
 
         $tmp = $db->reqToArrays($query);
@@ -80,7 +79,7 @@ class Import extends Util
             $avs = explode(',', $item['is_in_stock']);
 
             //left first item only
-            unset($ids[(int)array_search(1, $avs)]);
+            unset($ids[(int) array_search(1, $avs)]);
 
             $copies += array_merge($copies, $ids);
         }
@@ -91,9 +90,7 @@ class Import extends Util
                 return array_slice($copies, ($page - 1) * $size, $size);
             })
             ->setFnDo(function ($items) use ($db) {
-                $db->deleteMany(Item::getTable(), [
-                    Item::getPk() => $items
-                ]);
+                $db->deleteMany(Item::getTable(), new Query(['params' => [], 'where' => [Item::getPk() => $items]]));
             })
             ->run();
 
