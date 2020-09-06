@@ -2,22 +2,35 @@
 
 namespace SNOWGIRL_SHOP\Util;
 
+use Exception;
 use pQuery\DomNode;
+use SNOWGIRL_CORE\Entity;
 use SNOWGIRL_CORE\Helper\Arrays;
+use SNOWGIRL_CORE\Helper\Classes;
 use SNOWGIRL_CORE\Helper\WalkChunk2;
 use SNOWGIRL_CORE\HtmlParser;
 use SNOWGIRL_CORE\Query;
 use SNOWGIRL_CORE\Query\Expression;
 use SNOWGIRL_CORE\Util;
 
+use SNOWGIRL_SHOP\Catalog\SEO;
+use SNOWGIRL_SHOP\Catalog\SRC;
 use SNOWGIRL_SHOP\Console\ConsoleApp;
+use SNOWGIRL_SHOP\Entity\Category;
+use SNOWGIRL_SHOP\Entity\Category\Child as CategoryChild;
+use SNOWGIRL_SHOP\Entity\Item;
+use SNOWGIRL_SHOP\Entity\Item\Attr as ItemAttr;
+use SNOWGIRL_SHOP\Entity\Item\Attr\Alias as ItemAttrAlias;
 use SNOWGIRL_SHOP\Entity\Page\Catalog as PageCatalog;
 use SNOWGIRL_SHOP\Entity\Page\Catalog\Custom as PageCatalogCustom;
 
 use Google\Cloud\Translate\TranslateClient;
 use SNOWGIRL_SHOP\Catalog\URI;
+use SNOWGIRL_SHOP\Entity\Size;
+use SNOWGIRL_SHOP\Entity\Tag;
 use SNOWGIRL_SHOP\Http\HttpApp;
 use SNOWGIRL_SHOP\Manager\Page\Catalog\IndexerHelper;
+use Throwable;
 
 /**
  * Class Catalog
@@ -26,17 +39,67 @@ use SNOWGIRL_SHOP\Manager\Page\Catalog\IndexerHelper;
  */
 class Catalog extends Util
 {
+    private const CATEGORY_CLOTHING = 2;
+    private const CATEGORY_LINGERIE = 1224;
+    private const CATEGORY_DRESSES = 413;
+    private const CATEGORY_SWEATERS = 1001;
+    private const CATEGORY_COATS = 401;
+    private const CATEGORY_JACKETS = 432;
+    private const CATEGORY_JEANS = 514;
+    private const CATEGORY_PAJAMAS = 461;
+    private const CATEGORY_PANTS = 512;
+    private const CATEGORY_SKIRTS = 467;
+    private const CATEGORY_SUITS = 720;
+    private const CATEGORY_JACKETS_AND_SUITS = 993;
+    private const CATEGORY_SWIMWEAR = 481;
+    private const CATEGORY_TOPS = 418;
+    private const CATEGORY_ACCESSORIES = 1;
+    private const CATEGORY_HANDBAGS = 69;
+    private const CATEGORY_UNDERWEAR = 1224;
+    private const CATEGORY_SHOES = 3;
+    private const CATEGORY_BOOTS = 701;
+    private const CATEGORY_BRAS = 499;
+    private const CATEGORY_PANTIES = 478;
+    private const CATEGORY_JEWELERY = 892;
+    private const CATEGORY_WATCHES = 83;
+    private const CATEGORY_BLOUSES_AND_SHIRTS = 692;
+    private const CATEGORY_HOODIES_AND_SWEATSHIRTS = 518;
+    private const CATEGORY_HOMEWEAR = 717;
+    private const CATEGORY_JUMPSUITS = 519;
+    private const CATEGORY_SHORTS = 513;
+    private const CATEGORY_TROUSERS = 512;
+    private const CATEGORY_TROUSERS_AND_JEANS = 965;
+    private const CATEGORY_MAKEUP = 1069;
+    private const CATEGORY_PERFUME = 748;
+    private const CATEGORY_BEAUTY = 735;
+    private const CATEGORY_SUITCASES = 1188;
+    private const CATEGORY_BACKPACKS = 78;
+
+    private const TAG_HEELS = 123;
+    private const TAG_OCCASION = 18;
+
+    private const BRAND_MICHAEL_KORS = 1202;
+    private const BRAND_LACOSTE = 1863;
+    private const BRAND_RIVER_ISLAND = 326;
+    private const BRAND_SUPERDRY = 4150;
+    private const BRAND_NIKE = 615;
+    private const BRAND_KURT_GEIGER = 14378;
+
+    private const MATERIAL_CASHMERE = 103;
+    private const MATERIAL_KNITWEAR = 50;
+
     /**
      * @var IndexerHelper
      */
     private $indexerHelper;
 
-    protected function initialize()
-    {
-        parent::initialize();
-
-        $this->indexerHelper = new IndexerHelper();
-    }
+    private $components;
+    private $mvaComponents;
+    private $types;
+    private $itemTable;
+    private $catalogTable;
+    private $andAliases;
+    private $inStockOnly;
 
     public function doMigrateCatalogToCustom()
     {
@@ -57,8 +120,6 @@ class Catalog extends Util
         return $this->app->utils->database->doMigrateDataFromTableToTable($tableFrom, $tableTo, $columns, $where);
     }
 
-    protected $translator;
-
     /**
      * @return TranslateClient
      */
@@ -72,11 +133,6 @@ class Catalog extends Util
         }
 
         return $this->trans;
-    }
-
-    protected function translate($text, $source = 'en', $target = 'ru')
-    {
-        return $this->translateRaw($text, $source, $target);
     }
 
     public function translateRaw($text, $source = 'en', $target = 'ru')
@@ -107,61 +163,130 @@ class Catalog extends Util
         return $link ? HtmlParser::factoryByLink($content) : HtmlParser::factoryByHtml($content);
     }
 
-    const CATEGORY_CLOTHING = 2;
-    const CATEGORY_LINGERIE = 1224;
-    const CATEGORY_DRESSES = 413;
-    const CATEGORY_SWEATERS = 1001;
-    const CATEGORY_COATS = 401;
-    const CATEGORY_JACKETS = 432;
-    const CATEGORY_JEANS = 514;
-    const CATEGORY_PAJAMAS = 461;
-    const CATEGORY_PANTS = 512;
-    const CATEGORY_SKIRTS = 467;
-    const CATEGORY_SUITS = 720;
-    const CATEGORY_JACKETS_AND_SUITS = 993;
-    const CATEGORY_SWIMWEAR = 481;
-    const CATEGORY_TOPS = 418;
-    const CATEGORY_ACCESSORIES = 1;
-    const CATEGORY_HANDBAGS = 69;
-    const CATEGORY_UNDERWEAR = 1224;
-    const CATEGORY_SHOES = 3;
-    const CATEGORY_BOOTS = 701;
-    const CATEGORY_BRAS = 499;
-    const CATEGORY_PANTIES = 478;
-    const CATEGORY_JEWELERY = 892;
-    const CATEGORY_WATCHES = 83;
-    const CATEGORY_BLOUSES_AND_SHIRTS = 692;
-    const CATEGORY_HOODIES_AND_SWEATSHIRTS = 518;
-    const CATEGORY_HOMEWEAR = 717;
-    const CATEGORY_JUMPSUITS = 519;
-    const CATEGORY_SHORTS = 513;
-    const CATEGORY_TROUSERS = 512;
-    const CATEGORY_TROUSERS_AND_JEANS = 965;
-    const CATEGORY_MAKEUP = 1069;
-    const CATEGORY_PERFUME = 748;
-    const CATEGORY_BEAUTY = 735;
-    const CATEGORY_SUITCASES = 1188;
-    const CATEGORY_BACKPACKS = 78;
+    public function doGenerateTexts()
+    {
+        $aff = 0;
+        $aff += $this->generateTextsMacys();
+        $aff += $this->generateTextsVery();
+        return $aff;
+    }
 
-    const TAG_HEELS = 123;
-    const TAG_OCCASION = 18;
+    public function doIndexIndexer(int $reindexDays = 0)
+    {
+        return $this->doIndexElastic(new Expression(implode(' OR ', [
+            $this->app->container->db->quote('created_at') . ' >= (CURDATE() - INTERVAL ? DAY)',
+            $this->app->container->db->quote('updated_at') . ' >= (CURDATE() - INTERVAL ? DAY)',
+        ]), $reindexDays, $reindexDays));
+    }
 
-    const BRAND_MICHAEL_KORS = 1202;
-    const BRAND_LACOSTE = 1863;
-    const BRAND_RIVER_ISLAND = 326;
-    const BRAND_SUPERDRY = 4150;
-    const BRAND_NIKE = 615;
-    const BRAND_KURT_GEIGER = 14378;
+    public function doRawIndexElastic(string $index, $where = null): int
+    {
+        $aff = 0;
 
-    const MATERIAL_CASHMERE = 103;
-    const MATERIAL_KNITWEAR = 50;
+        $this->indexerHelper->prepareData($this->app);
+
+        $manager = $this->app->managers->catalog->copy(true)
+            ->setColumns($this->indexerHelper->getColumns())
+            ->setOrders([$this->app->managers->catalog->getEntity()->getPk() => SORT_ASC]);
+
+        $where = Arrays::cast($where);
+
+        (new WalkChunk2(1000))
+            ->setFnGet(function ($lastId, $size) use ($manager, $where) {
+                if ($lastId) {
+                    $itemPk = $this->app->managers->catalog->getEntity()->getPk();
+                    $where[] = new Expression($this->app->container->db->quote($itemPk) . ' > ?', $lastId);
+                }
+
+                return $manager
+                    ->setWhere($where)
+                    ->setLimit($size)
+                    ->getArrays();
+            })
+            ->setFnDo(function ($items) use ($index, &$aff) {
+                $itemPk = $this->app->managers->catalog->getEntity()->getPk();
+
+                $documents = [];
+
+                foreach ($items as $item) {
+                    $documents[$item[$itemPk]] = $this->indexerHelper->getDocumentByArray($item);
+                }
+
+                $aff += $this->app->container->indexer->getManager()->indexMany($index, $documents);
+
+                return end($documents) ? key($documents) : false;
+            })
+            ->run();
+
+        return $aff;
+    }
+
+    public function doIndexElastic(): int
+    {
+        $manager = $this->app->container->indexer->getManager();
+        $alias = $this->app->managers->catalog->getEntity()->getTable();
+        $mappings = $this->getElasticMappings();
+
+        return $manager->switchAliasIndex($alias, $mappings, function ($newIndex) {
+            return $this->doRawIndexElastic($newIndex);
+        });
+    }
+
+    /**
+     * @todo add missing documents sync support
+     * @return int
+     */
+    public function doDeleteMissingElastic(): int
+    {
+        return 0;
+    }
+
+    public function doDeleteElastic(array $id)
+    {
+        //@todo
+    }
+
+    public function doGenerate(): int
+    {
+        $this->components = $this->app->managers->catalog->getComponentsOrderByDbKey();
+        $this->mvaComponents = $this->app->managers->catalog->getMvaComponents();
+        $this->types = URI::TYPE_PARAMS;
+        $this->itemTable = $this->app->managers->items->getEntity()->getTable();
+        $this->catalogTable = $this->app->managers->catalog->getEntity()->getTable();
+        $this->andAliases = !!$this->app->config('catalog.aliases', false);
+        $this->inStockOnly = !!$this->app->configMasterOrOwn('catalog.in_stock_only', false);
+
+        $aff = 0;
+
+        $this->app->container->db->getManager()->truncateTable($this->catalogTable);
+
+        $aff += $this->generateCatalogPages(false);
+
+        if ($this->andAliases) {
+            $aff += $this->generateCatalogPages(true);
+        }
+
+        return $aff;
+    }
+
+    protected function initialize()
+    {
+        parent::initialize();
+
+        $this->indexerHelper = new IndexerHelper();
+    }
+
+    private function translate($text, $source = 'en', $target = 'ru')
+    {
+        return $this->translateRaw($text, $source, $target);
+    }
 
     /**
      * Все ссылки которые содержат id=xxx там внизу есть сео-тексты
      * brands:
      * https://www.macys.com/shop/all-brands/womens?id=63539&cm_sp=intl_hdr-_-women-_-63539_all-women%27s-brands_COL4
      */
-    protected function generateTextsMacys()
+    private function generateTextsMacys()
     {
         $replaceWithSite = ['Macy\'s', 'Macys'];
         $language = 'en';
@@ -206,7 +331,7 @@ class Catalog extends Util
         ]);
     }
 
-    protected function generateTextsVery()
+    private function generateTextsVery()
     {
         $replaceWithSite = ['Very\'s', 'Very'];
         $language = 'en';
@@ -255,7 +380,7 @@ class Catalog extends Util
         ]);
     }
 
-    protected function generateTexts($replaceWithSite, $language, $selectorH1, $selectorBody, callable $bodyNodeFilter, $remoteUriToUriParams)
+    private function generateTexts($replaceWithSite, $language, $selectorH1, $selectorBody, callable $bodyNodeFilter, $remoteUriToUriParams)
     {
         $aff = 0;
 
@@ -350,27 +475,7 @@ class Catalog extends Util
         return $aff;
     }
 
-    public function doGenerateTexts()
-    {
-        $aff = 0;
-        $aff += $this->generateTextsMacys();
-        $aff += $this->generateTextsVery();
-        return $aff;
-    }
-
-    public function doIndexIndexer(int $reindexDays = 0)
-    {
-        return $this->doIndexElastic(new Expression(implode(' OR ', [
-            $this->app->container->db->quote('created_at') . ' >= (CURDATE() - INTERVAL ? DAY)',
-            $this->app->container->db->quote('updated_at') . ' >= (CURDATE() - INTERVAL ? DAY)',
-        ]), $reindexDays, $reindexDays));
-    }
-
-    protected $searchColumns;
-    protected $elasticColumns;
-    protected $elasticColumnsOptions;
-
-    protected function getElasticMappings(): array
+    private function getElasticMappings(): array
     {
         $this->indexerHelper->prepareData($this->app);
 
@@ -391,70 +496,444 @@ class Catalog extends Util
         return ['properties' => $properties];
     }
 
-    public function doRawIndexElastic(string $index, $where = null): int
+    /**
+     * @param bool $aliases
+     * @return int|null
+     */
+    private function generateCatalogPages(bool $aliases = false): ?int
     {
         $aff = 0;
 
-        $this->indexerHelper->prepareData($this->app);
+        $this->output(__FUNCTION__ . '...');
 
-        $manager = $this->app->managers->catalog->copy(true)
-            ->setColumns($this->indexerHelper->getColumns())
-            ->setOrders([$this->app->managers->catalog->getEntity()->getPk() => SORT_ASC]);
+        $this->app->managers->categories->syncTree();
 
-        $where = Arrays::cast($where);
+        $db = $this->app->container->db;
 
-        (new WalkChunk2(1000))
-            ->setFnGet(function ($lastId, $size) use ($manager, $where) {
-                if ($lastId) {
-                    $itemPk = $this->app->managers->catalog->getEntity()->getPk();
-                    $where[] = new Expression($this->app->container->db->quote($itemPk) . ' > ?', $lastId);
+        $components = $this->components;
+        $types = $this->types;
+
+        $mvaComponents = $this->mvaComponents;
+
+        if ($aliases) {
+            $components = $this->replaceWithAliases($components);
+
+            $tmp = array_filter($components, function ($component) {
+                return $this->isComponentAlias($component);
+            });
+
+            if (0 == count($tmp)) {
+                return null;
+            }
+
+            $mvaComponents = $this->replaceWithAliases($mvaComponents);
+        }
+
+        $typesColumns = SRC::getTypesToColumns();
+        $typesTexts = SEO::getTypesToTexts();
+
+        $componentsAndTypes = array_merge($components, $types);
+
+        $aliasPostfix = '\\Alias';
+
+        $combinations = array_filter(Arrays::getUniqueCombinations($componentsAndTypes), function ($combination) use ($aliasPostfix, $aliases, $types) {
+            if (in_array(Size::class, $combination) || in_array(Size::class . $aliasPostfix, $combination)) {
+                return false;
+            }
+
+            //if non-type and no have category
+            if (0 == count(array_intersect($combination, $types))) {
+                if (!in_array(Category::class, $combination) && !in_array(Category::class . $aliasPostfix, $combination)) {
+                    return false;
+                }
+            }
+
+            //if tag and no category
+            if (in_array(Tag::class, $combination) || in_array(Tag::class . $aliasPostfix, $combination)) {
+                if (!in_array(Category::class, $combination) && !in_array(Category::class . $aliasPostfix, $combination)) {
+                    return false;
+                }
+            }
+
+            //place new conditions here...
+
+            if ($aliases) {
+                //remove this when types have aliases too
+                if (0 == count(array_diff($combination, $types))) {
+                    return false;
                 }
 
-                return $manager
-                    ->setWhere($where)
-                    ->setLimit($size)
-                    ->getArrays();
-            })
-            ->setFnDo(function ($items) use ($index, &$aff) {
-                $itemPk = $this->app->managers->catalog->getEntity()->getPk();
-
-                $documents = [];
-
-                foreach ($items as $item) {
-                    $documents[$item[$itemPk]] = $this->indexerHelper->getDocumentByArray($item);
+                foreach ($combination as $componentOrComponentAliasOrType) {
+                    if ($this->isComponentAlias($componentOrComponentAliasOrType)) {
+                        return true;
+                    }
                 }
 
-                $aff += $this->app->container->indexer->getManager()->indexMany($index, $documents);
+                return false;
+            }
 
-                return end($documents) ? key($documents) : false;
-            })
-            ->run();
+            return true;
+        });
+
+        $combinations = array_values($combinations);
+
+        $columnsToInsert = [
+            'name',
+            'uri',
+//            'uri_hash',
+            'params',
+//            'params_hash',
+//            'meta',
+        ];
+
+        $add = [
+            'uri_hash' => 'MD5(' . $db->quote('uri') . ')',
+            'params_hash' => 'MD5(' . $db->quote('params') . ')',
+            'meta' => 'CONCAT(\'{"count":\', ' . $db->quote('cnt') . ', ' . $db->quote('meta_add') . ', \'}\')',
+        ];
+
+        $queryTmp = implode(', ', array_map(function ($column) use ($db) {
+            return $db->quote($column);
+        }, $columnsToInsert));
+
+        $queryColumnsToInsert = $queryTmp . ', ' . implode(', ', array_map(function ($column) use ($db) {
+                return $db->quote($column);
+            }, array_keys($add)));
+
+        $queryColumnsToSelect = $queryTmp . ', ' . implode(', ', $add);
+
+//        $combinations = [
+//            [Category::class . $classPostfix, Brand::class . $classPostfix, URI::SALES],
+//            [Category::class . $classPostfix, Brand::class . $classPostfix],
+//            [URI::SALES, URI::SIZE_PLUS]
+//        ];
+
+        $s = count($combinations);
+
+        $j = 1;
+
+        foreach ($combinations as $combination) {
+            $this->output('#' . $j . ' ouf of ' . $s . '...');
+            $j++;
+
+            $componentsAndTypesToSelect = array_values(array_filter($componentsAndTypes, function ($componentOrType) use ($combination) {
+                return in_array($componentOrType, $combination);
+            }));
+
+            $componentsToSelect = array_values(array_filter($componentsAndTypesToSelect, function ($componentOrType) use ($components) {
+                return in_array($componentOrType, $components);
+            }));
+
+            $checkCount = 0 == count($componentsToSelect);
+
+            $typesToSelect = array_filter($componentsAndTypesToSelect, function ($componentOrType) use ($types) {
+                return in_array($componentOrType, $types);
+            });
+
+            $queryParamsColumn = [];
+
+            foreach ($componentsAndTypesToSelect as $componentOrType) {
+                if (in_array($componentOrType, $components)) {
+                    /** @var $componentOrType ItemAttr|ItemAttrAlias */
+                    if ($aliases && $this->isComponentAlias($componentOrType)) {
+                        $attrPk = $componentOrType::getAttrPk();
+                        $attrTable = $componentOrType::getAttrTable();
+                    } else {
+                        $attrPk = $componentOrType::getPk();
+                        $attrTable = $componentOrType::getTable();
+                    }
+
+                    $tmp = '\'"' . $attrPk . '":\', ';
+
+                    if (in_array($componentOrType, $mvaComponents)) {
+                        $tmp .= $db->quote($attrPk, 'item_' . $attrTable);
+                    } elseif (Category::getTable() == $attrTable) {
+                        $tmp .= $db->quote($attrPk, CategoryChild::getTable());
+                    } else {
+                        $tmp .= $db->quote($attrPk, $componentOrType::getTable());
+                    }
+
+                    $queryParamsColumn[] = $tmp;
+                } elseif (in_array($componentOrType, $types)) {
+                    $queryParamsColumn[] = '\'"' . $componentOrType . '":1\'';
+                } else {
+                    new Exception('undefined component or type[' . $componentOrType . ']');
+                }
+            }
+
+            $mapName = function ($componentOrType) use ($combination, $db, $components, $types, $typesTexts) {
+                if (in_array($componentOrType, $components)) {
+                    /** @var $componentOrType ItemAttr|ItemAttrAlias */
+                    $table = $componentOrType::getTable();
+
+                    if (array_key_exists('name_multiply', $componentOrType::getColumns())) {
+                        $tmp = $db->quote('name_multiply', $table);
+                        return 'IF(' . $tmp . ' IS NULL OR ' . $tmp . ' = \'\', ' . $db->quote('name', $table) . ', ' . $tmp . ')';
+                    }
+
+                    return $db->quote('name', $table);
+                } elseif (in_array($componentOrType, $types)) {
+                    return '\'' . $typesTexts[$componentOrType] . '\'';
+                } else {
+                    throw new Exception('undefined component or type[' . $componentOrType . ']');
+                }
+            };
+
+            //do not change  this logic, coz of page_catalog_custom.uri_hash link
+            $mapUri = function ($componentOrType) use ($combination, $db, $components, $types) {
+                if (in_array($componentOrType, $components)) {
+                    /** @var $componentOrType ItemAttr|ItemAttrAlias */
+                    return $db->quote('uri', $componentOrType::getTable());
+                } elseif (in_array($componentOrType, $types)) {
+                    return '\'' . $componentOrType . '\'';
+                } else {
+                    throw new Exception('undefined component or type[' . $componentOrType . ']');
+                }
+            };
+
+            $expr = [
+                'name' => ((1 < count($componentsAndTypesToSelect))
+                    ? ('CONCAT(' . implode(', \' \', ', array_map($mapName, $componentsAndTypesToSelect)) . ')')
+                    : $mapName($componentsAndTypesToSelect[0])),
+                'uri' => (1 < count($componentsAndTypesToSelect)
+                    ? ('CONCAT(' . implode(', \'/\', ', array_map($mapUri, $this->orderAccordingPagePath($componentsAndTypesToSelect, $aliases))) . ')')
+                    : $mapUri($componentsAndTypesToSelect[0])),
+                'params' => 'CONCAT(\'{\', ' . implode(', \',\', ', $queryParamsColumn) . ', \'}\')',
+            ];
+
+            $baseColumnsToSelect = [];
+
+            foreach ($columnsToInsert as $column) {
+                if (isset($expr[$column])) {
+                    $baseColumnsToSelect[] = $expr[$column] . ' AS ' . $db->quote($column);
+                } else {
+                    new Exception('undefined column expr[' . $column . ']');
+                }
+            }
+
+            $baseColumnsToSelect[] = 'COUNT(*) AS ' . $db->quote('cnt');
+
+            if ($aliases) {
+                $queryAliasesColumn = [];
+
+                foreach ($componentsAndTypesToSelect as $componentOrType) {
+                    if (in_array($componentOrType, $components)) {
+                        /** @var $componentOrType ItemAttr|ItemAttrAlias */
+                        if ($this->isComponentAlias($componentOrType)) {
+                            $queryAliasesColumn[] = '\'"' . $componentOrType::getAttrPk() . '":\', ' . $db->quote($componentOrType::getPk());
+                        }
+                    }
+                }
+
+                $baseColumnsToSelect[] = 'CONCAT(\',"aliases":{\', ' . implode(', \',\', ', $queryAliasesColumn) . ', \'}\') AS ' . $db->quote('meta_add');
+            } else {
+                $baseColumnsToSelect[] = '\'\' AS ' . $db->quote('meta_add');
+            }
+
+            $queryBaseColumnsToSelect = implode(', ', $baseColumnsToSelect);
+
+            $queryTablesToSelect = [];
+            $queryTablesToSelect[] = $db->quote($this->itemTable);
+            $queryTablesToSelect = array_merge($queryTablesToSelect, array_map(function ($component) use ($db, $aliases) {
+                /** @var $component ItemAttr|ItemAttrAlias */
+                if ($aliases && $this->isComponentAlias($component)) {
+                    $attrTable = $component::getAttrTable();
+                    $table = $component::getTable();
+                } else {
+                    $attrTable = $component::getTable();
+                    $table = $attrTable;
+                }
+
+                if (Category::getTable() == $attrTable) {
+                    return $db->quote(CategoryChild::getTable()) . ', ' . $db->quote($table);
+                }
+
+                return $db->quote($table);
+            }, $componentsToSelect));
+
+            $mvaComponentsToSelect = array_filter($componentsToSelect, function ($component) use ($mvaComponents) {
+                return in_array($component, $mvaComponents);
+            });
+
+            $queryTablesToSelect = array_merge($queryTablesToSelect, array_map(function ($component) use ($db, $aliases) {
+                /** @var $component ItemAttr|ItemAttrAlias */
+                $attrTable = $aliases && $this->isComponentAlias($component) ? $component::getAttrTable() : $component::getTable();
+                return $db->quote('item_' . $attrTable);
+            }, $mvaComponentsToSelect));
+
+            $queryTablesToSelect = implode(', ', $queryTablesToSelect);
+
+            //sync with SRC::getWhere
+            $queryWhere = [];
+
+            if ($this->inStockOnly) {
+                $queryWhere[] = $db->quote('is_in_stock', $this->itemTable) . ' = ' . Entity::normalizeBool(true);
+            }
+
+            //sync with SRC::getWhere
+            if (!in_array(URI::SPORT, $typesToSelect) && !in_array(Tag::class, $componentsToSelect)) {
+                $queryWhere[] = $db->quote('is_sport', $this->itemTable) . ' = ' . Entity::normalizeBool(false);
+            }
+
+            if (!in_array(URI::SIZE_PLUS, $typesToSelect) && !in_array(Tag::class, $componentsToSelect)) {
+                $queryWhere[] = $db->quote('is_size_plus', $this->itemTable) . ' = ' . Entity::normalizeBool(false);
+            }
+
+            $queryWhere = array_merge($queryWhere, array_map(function ($type) use ($db, $typesColumns) {
+                if (URI::SALES === $type) {
+                    return $db->quote('old_price', $this->itemTable) . ' > 0';
+                }
+
+                return $db->quote($typesColumns[$type], $this->itemTable) . ' = ' . Entity::normalizeBool(true);
+            }, $typesToSelect));
+
+            $queryWhere = array_merge($queryWhere, array_map(function ($component) use ($db, $mvaComponents, $aliases) {
+                /** @var $component ItemAttr|ItemAttrAlias */
+                if ($aliases && $this->isComponentAlias($component)) {
+                    $attrPk = $component::getAttrPk();
+                    $attrTable = $component::getAttrTable();
+                    $table = $component::getTable();
+                } else {
+                    $attrPk = $component::getPk();
+                    $attrTable = $component::getTable();
+                    $table = $attrTable;
+                }
+
+                $itemPk = Item::getPk();
+
+                $where = [];
+
+                //@todo if alias and component has is_active column - join and make condition
+                if (array_key_exists('is_active', $component::getColumns())) {
+                    $where[] = $db->quote('is_active', $table) . ' = ' . $component::normalizeBool(true);
+                }
+
+                if (in_array($component, $mvaComponents)) {
+                    $where[] = $db->quote($itemPk, $this->itemTable) . ' = ' . $db->quote(Item::getPk(), 'item_' . $attrTable);
+                    $where[] = $db->quote($attrPk, 'item_' . $attrTable) . ' = ' . $db->quote($attrPk, $table);
+                    return implode(' AND ', $where);
+                }
+
+                if (Category::getTable() == $attrTable) {
+                    $where[] = $db->quote($attrPk, $this->itemTable) . ' = ' . $db->quote('child_category_id', CategoryChild::getTable());
+                    $where[] = $db->quote(Category::getPk(), CategoryChild::getTable()) . ' = ' . $db->quote(Category::getPk(), $table);
+                    return implode(' AND ', $where);
+                }
+
+                $where[] = $db->quote($attrPk, $this->itemTable) . ' = ' . $db->quote($attrPk, $table);
+
+                return implode(' AND ', $where);
+            }, $componentsToSelect));
+
+            $queryWhere = implode(' AND ', $queryWhere);
+
+            $queryGroup = [];
+
+            $queryGroup = array_merge($queryGroup, array_map(function ($component) use ($db, $aliases) {
+                /** @var $component ItemAttr|ItemAttrAlias */
+                if ($aliases && $this->isComponentAlias($component)) {
+                    $attrPk = $component::getAttrPk();
+                    $attrTable = $component::getAttrTable();
+                    $table = $component::getTable();
+                } else {
+                    $attrPk = $component::getPk();
+                    $attrTable = $component::getTable();
+                    $table = $attrTable;
+                }
+
+                if (Category::getTable() == $attrTable) {
+                    return $db->quote($attrPk, CategoryChild::getTable());
+                }
+
+                return $db->quote($attrPk, $table);
+            }, $componentsToSelect));
+
+            $queryGroup = implode(', ', $queryGroup);
+
+            $queryHaving = [];
+
+            if ($checkCount) {
+                $queryHaving[] = $db->quote('cnt') . ' > 0';
+            }
+
+            $queryHaving = implode(' ', $queryHaving);
+
+            $query = implode(' ', [
+                'INSERT IGNORE INTO',
+                $db->quote($this->catalogTable) . ' (' . $queryColumnsToInsert . ')',
+//                '(',
+                'SELECT ' . $queryColumnsToSelect,
+                'FROM (',
+                'SELECT ' . $queryBaseColumnsToSelect,
+                'FROM ' . $queryTablesToSelect,
+                $queryWhere ? ('WHERE ' . $queryWhere) : '',
+                $queryGroup ? ('GROUP BY ' . $queryGroup) : '',
+                $queryHaving ? ('HAVING ' . $queryHaving) : '',
+                ') AS ' . $db->quote('t'),
+            ]);
+
+            try {
+//                $this->app->container->logger->make($query);
+                $aff += $db->req($query)->affectedRows();
+            } catch (Throwable $e) {
+                $this->app->container->logger->error($e);
+            }
+        }
 
         return $aff;
     }
 
-    public function doIndexElastic(): int
+    /**
+     * @param array $componentsAndTypes
+     * @param bool $aliases
+     * @return array
+     */
+    private function orderAccordingPagePath(array $componentsAndTypes, $aliases = false)
     {
-        $manager = $this->app->container->indexer->getManager();
-        $alias = $this->app->managers->catalog->getEntity()->getTable();
-        $mappings = $this->getElasticMappings();
+        $output = [];
 
-        return $manager->switchAliasIndex($alias, $mappings, function ($newIndex) {
-            return $this->doRawIndexElastic($newIndex);
-        });
+        foreach (URI::getPagePath([], true) as $uri) {
+            foreach ($componentsAndTypes as $componentOrType) {
+                if ($componentOrType == $uri) {
+                    $output[] = $componentOrType;
+                } elseif (class_exists($componentOrType)) {
+                    /** @var $componentOrType ItemAttr|ItemAttrAlias */
+                    if ($aliases && $this->isComponentAlias($componentOrType)) {
+                        $table = $componentOrType::getAttrTable();
+                    } else {
+                        $table = $componentOrType::getTable();
+                    }
+
+                    if ($table == $uri) {
+                        $output[] = $componentOrType;
+                    }
+                }
+            }
+        }
+
+        return $output;
     }
 
     /**
-     * @todo add missing documents sync support
-     * @return int
+     * @param ItemAttr[] $components
+     * @return ItemAttr[]|ItemAttrAlias[]
      */
-    public function doDeleteMissingElastic(): int
+    private function replaceWithAliases(array $components)
     {
-        return 0;
+        $output = [];
+
+        foreach ($components as $component) {
+            $component = $component::getClass();
+            $componentAlias = $component . '\\Alias';
+
+            $output[] = Classes::isExists($componentAlias, $this->app) ? $componentAlias : $component;
+        }
+
+        return $output;
     }
 
-    public function doDeleteElastic(array $id)
+    private function isComponentAlias($componentOrComponentAliasOrType)
     {
-        //@todo
+        return false !== strpos($componentOrComponentAliasOrType, '\\Alias');
     }
 }

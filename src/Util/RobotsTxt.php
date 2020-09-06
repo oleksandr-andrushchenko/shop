@@ -1,11 +1,15 @@
 <?php
 
-namespace SNOWGIRL_SHOP\SEO;
+namespace SNOWGIRL_SHOP\Util;
 
 use SNOWGIRL_SHOP\Catalog\URI;
 use SNOWGIRL_SHOP\Manager\Page\Catalog;
 
-class RobotsTxt extends \SNOWGIRL_CORE\SEO\RobotsTxt
+/**
+ * Class RobotsTxt
+ * @package SNOWGIRL_SHOP\Util
+ */
+class RobotsTxt extends \SNOWGIRL_CORE\Util\RobotsTxt
 {
     protected function getDisallows()
     {
@@ -34,7 +38,7 @@ class RobotsTxt extends \SNOWGIRL_CORE\SEO\RobotsTxt
     protected function getCleanParams()
     {
         return array_merge(parent::getCleanParams(), Catalog::getComponentsPKs(), URI::DEFINED_PARAMS, [
-            URI::EVEN_NOT_STANDARD_PER_PAGE
+            URI::EVEN_NOT_STANDARD_PER_PAGE,
         ]);
     }
 }

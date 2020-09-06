@@ -1,27 +1,21 @@
 <?php
 
-namespace SNOWGIRL_SHOP\SEO;
+namespace SNOWGIRL_SHOP\Util;
 
-use SNOWGIRL_CORE\Sitemap as Generator;
 use SNOWGIRL_CORE\Helper\WalkChunk2;
 use SNOWGIRL_CORE\Query\Expression;
+use SNOWGIRL_CORE\Sitemap as Generator;
 use SNOWGIRL_SHOP\Catalog\URI;
 use SNOWGIRL_SHOP\Item\URI as ItemURI;
-use SNOWGIRL_SHOP\SEO;
 
-/**
- * Class Sitemap
- * @property SEO seo
- * @package SNOWGIRL_SHOP\SEO
- */
-class Sitemap extends \SNOWGIRL_CORE\SEO\Sitemap
+class Sitemap extends \SNOWGIRL_CORE\Util\Sitemap
 {
-    protected $noIndexBrands;
-    protected $catalogUriPrefix;
+    private $noIndexBrands;
+    private $catalogUriPrefix;
 
     protected function initialize()
     {
-        $this->noIndexBrands = $this->seo->getApp()->managers->brands->clear()
+        $this->noIndexBrands = $this->app->managers->brands->clear()
             ->setWhere(['no_index' => 1])
             ->getColumn('brand_id');
 
@@ -57,7 +51,7 @@ class Sitemap extends \SNOWGIRL_CORE\SEO\Sitemap
                 'stock' => '1.0'
             ];
 
-            $pages = $this->seo->getApp()->managers->pages;
+            $pages = $this->app->managers->pages;
 
             foreach ($pages->getMenu() as $key => $page) {
                 $sitemap->add($pages->getLink($page, [], false), $priorityMap[$key] ?? '1.0', 'weekly');
@@ -70,7 +64,7 @@ class Sitemap extends \SNOWGIRL_CORE\SEO\Sitemap
     protected function getCatalogCustomGenerator()
     {
         return function (Generator $sitemap) {
-            $app = $this->seo->getApp();
+            $app = $this->app;
 
             $catalog = $app->managers->catalog->clear();
             $customCatalog = $app->managers->catalogCustom->clear();
@@ -126,7 +120,7 @@ class Sitemap extends \SNOWGIRL_CORE\SEO\Sitemap
     protected function getCatalogGenerator()
     {
         return function (Generator $sitemap) {
-            $app = $this->seo->getApp();
+            $app = $this->app;
             $db = $app->container->db;
 
             $catalog = $app->managers->catalog->clear();
@@ -161,7 +155,7 @@ class Sitemap extends \SNOWGIRL_CORE\SEO\Sitemap
     protected function getItemsGenerator()
     {
         return function (Generator $sitemap) {
-            $app = $this->seo->getApp();
+            $app = $this->app;
             $db = $app->container->db;
             $items = $app->managers->items->clear();
             $pk = $items->getEntity()->getPk();

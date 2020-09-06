@@ -8,18 +8,12 @@ use SNOWGIRL_SHOP\Catalog\URI;
 use SNOWGIRL_SHOP\Console\ConsoleApp;
 use SNOWGIRL_SHOP\Http\HttpApp;
 use SNOWGIRL_SHOP\Item\URI as ItemURI;
-use SNOWGIRL_SHOP\SEO\Pages;
-use SNOWGIRL_SHOP\SEO\RobotsTxt;
-use SNOWGIRL_SHOP\SEO\Sitemap;
 
 /**
  * Class SEO
  *
  * @property HttpApp|ConsoleApp app
  * @method HttpApp|ConsoleApp getApp()
- * @method Pages getPages()
- * @method RobotsTxt getRobotsTxt()
- * @method Sitemap getSitemap()
  * @package SNOWGIRL_SHOP
  */
 class SEO extends \SNOWGIRL_CORE\SEO
