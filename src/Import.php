@@ -2719,6 +2719,6 @@ class Import
             }
         }
 
-        return $job();
+        return $job($metric);
     }
 }
