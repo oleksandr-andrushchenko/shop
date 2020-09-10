@@ -139,3 +139,6 @@ alter table `import_history` add `count_out_of_stock` int(5) unsigned DEFAULT NU
 alter table country_term drop CONSTRAINT country_term_ibfk_1;
 alter table country_term change country_id `country_id` smallint unsigned NOT NULL;
 alter table country change country_id `country_id` smallint unsigned NOT NULL AUTO_INCREMENT;
+
+alter table item change country_id country_id smallint(5) unsigned DEFAULT NULL;
+alter table item_archive change country_id country_id smallint(5) unsigned DEFAULT NULL;

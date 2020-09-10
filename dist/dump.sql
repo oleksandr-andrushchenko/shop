@@ -295,7 +295,7 @@ CREATE TABLE `item` (
   `rating` smallint(5) unsigned NOT NULL DEFAULT 0,
   `category_id` smallint(5) unsigned DEFAULT NULL,
   `brand_id` smallint(5) unsigned DEFAULT NULL,
-  `country_id` tinyint(3) unsigned DEFAULT NULL,
+  `country_id` country_id smallint(5) unsigned DEFAULT NULL,
   `vendor_id` tinyint(3) unsigned DEFAULT NULL,
   `is_sport` tinyint(1) unsigned NOT NULL DEFAULT 0,
   `is_size_plus` tinyint(1) unsigned NOT NULL DEFAULT 0,
