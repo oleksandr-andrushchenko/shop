@@ -97,7 +97,7 @@ class IndexerHelper
         foreach ($this->mva as $pk => $table) {
             if (isset($document[$pk])) {
                 if ($document[$pk]) {
-                    $document[$pk] = array_map('intval', explode(',', $document[$pk]));
+                    $document[$pk] = array_map('intval', is_array($document[$pk]) ? $document[$pk] : explode(',', $document[$pk]));
                 } else {
                     unset($document[$pk]);
                 }
@@ -116,7 +116,7 @@ class IndexerHelper
                         if (isset($this->injectAttrIdToName[$attrIdToInject][$id])) {
                             $document[$table][] = [
                                 'id' => $id,
-                                'name' => $this->injectAttrIdToName[$attrIdToInject][$id]
+                                'name' => $this->injectAttrIdToName[$attrIdToInject][$id],
                             ];
                         }
                     }
@@ -124,7 +124,7 @@ class IndexerHelper
                     if (isset($this->injectAttrIdToName[$attrIdToInject][$document[$attrIdToInject]])) {
                         $document[$table] = [
                             'id' => $document[$attrIdToInject],
-                            'name' => $this->injectAttrIdToName[$attrIdToInject][$document[$attrIdToInject]]
+                            'name' => $this->injectAttrIdToName[$attrIdToInject][$document[$attrIdToInject]],
                         ];
                     }
                 }
@@ -230,8 +230,12 @@ class IndexerHelper
         $this->prepared = true;
     }
 
-    public function getColumns(): array
+    public function getColumns(bool $skipMva = false): array
     {
+        if ($skipMva) {
+            return array_diff($this->columns, array_keys($this->getMva()));
+        }
+
         return $this->columns;
     }
 
