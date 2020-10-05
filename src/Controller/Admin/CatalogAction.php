@@ -22,7 +22,7 @@ class CatalogAction
 
         $content = $view->setContentByTemplate('@shop/admin/catalog.phtml', [
             'searchTerm' => $app->request->get('search_term'),
-            'maxArticleLength' => $app->config('catalog.seo_text_body_length', 2500),
+            'maxArticleLength' => 2500,
             'client' => $app->request->getClient()->getUser(),
             'searchPrefix' => 1 == $app->request->get('search_prefix'),
             'searchInDb' => 1 == $app->request->get('search_in_rdbms'),
