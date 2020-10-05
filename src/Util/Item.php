@@ -853,13 +853,13 @@ class Item extends Util
         return ['properties' => $properties];
     }
 
-    public function doRawIndexElastic(string $index, $where = null): int
+    public function doRawIndexElastic(string $index): int
     {
         $aff = 0;
 
         $this->indexerHelper->prepareData($this->app);
 
-        $where = Arrays::cast($where);
+        $where = [];
         $order = [];
 
         if ($this->inStockOnly) {
@@ -874,46 +874,56 @@ class Item extends Util
             'updated_at' => SORT_DESC,
         ]);
 
-        $tmpIndexElasticColumn = 'tmp_index_elastic';
-        $this->addOrderColumn($order, $tmpIndexElasticColumn, true);
+        // @todo speed up
+        $orderColumn = 'tmp_index_elastic';
+
+        $this->addOrderColumn($order, $orderColumn, array_merge(array_keys($where), [$orderColumn]));
 
         $itemTable = $this->app->managers->items->getEntity()->getTable();
         $itemPk = $this->app->managers->items->getEntity()->getPk();
-        $columns = array_merge($this->indexerHelper->getColumns(), [$tmpIndexElasticColumn]);
 
         (new WalkChunk2(1000))
-            ->setFnGet(function ($lastId, $size) use ($where, $order, $itemTable, $itemPk, $columns, $tmpIndexElasticColumn) {
-                $mva = $this->indexerHelper->getMva();
+            ->setFnGet(function ($lastId, $size) use ($itemPk, $where, $orderColumn) {
                 $mysql = $this->app->container->db;
 
-                $query = new Query(['params' => []]);
-
                 if ($lastId) {
-                    $where[] = new Expression($mysql->quote($tmpIndexElasticColumn, $itemTable) . ' > ?', $lastId);
+                    $where[] = new Expression($mysql->quote($orderColumn) . ' > ?', $lastId);
                 }
 
-                $query->text = implode(' ', [
-                    'SELECT ' . implode(', ', array_map(function ($column) use ($mysql, $mva, $itemTable) {
-                        if (array_key_exists($column, $mva)) {
-                            return 'GROUP_CONCAT(DISTINCT ' . $mysql->quote($column, 'item_' . $mva[$column]) . ') AS ' . $mysql->quote($column);
+                return $this->app->managers->items->clear()
+                    ->setColumns($this->indexerHelper->getColumns(true))
+                    ->addColumn($orderColumn)
+                    ->setWhere($where)
+                    ->setOrders([$orderColumn => SORT_ASC])
+                    ->setOffset(0)
+                    ->setLimit($size)
+                    ->getArrays($itemPk);
+            })
+            ->setFnDo(function ($items) use ($index, $itemPk, $orderColumn, &$aff) {
+                $mysql = $this->app->container->db;
+                $where = [$itemPk => array_map(function ($item) use ($itemPk) {
+                    return $item[$itemPk];
+                }, $items)];
+
+                // @todo test...
+                foreach ($this->indexerHelper->getMva() as $mvaColumn => $mvaTable) {
+                    $query = new Query();
+                    $query->params = [];
+                    $query->text = implode(' ', [
+                        'SELECT *',
+                        'FROM ' . $mysql->quote('item_' . $mvaTable),
+                        $mysql->makeWhereSQL($where, $query->params),
+                    ]);
+
+                    foreach ($mysql->reqToArrays($query) as $row) {
+                        if (!isset($items[$row[$itemPk]][$mvaColumn])) {
+                            $items[$row[$itemPk]][$mvaColumn] = [];
                         }
 
-                        return $mysql->quote($column, $itemTable);
-                    }, $columns)),
-                    'FROM ' . $mysql->quote($itemTable) . ' ' . implode(' ', array_map(function ($attrTable)
-                    use ($mysql, $itemTable, $itemPk) {
-                        $linkTable = 'item_' . $attrTable;
-                        return 'LEFT JOIN ' . $mysql->quote($linkTable) . ' ON' . $mysql->quote($itemPk, $itemTable) . ' = ' . $mysql->quote($itemPk, $linkTable);
-                    }, $mva)),
-                    $where ? $mysql->makeWhereSQL($where, $query->params, $itemTable) : '',
-                    $mysql->makeGroupSQL($itemPk, $query->params, $itemTable),
-                    $mysql->makeOrderSQL([$tmpIndexElasticColumn => SORT_ASC], $query->params, $itemTable),
-                    $mysql->makeLimitSQL(0, $size, $query->params),
-                ]);
+                        $items[$row[$itemPk]][$mvaColumn][] = $row[$mvaColumn];
+                    }
+                }
 
-                return $mysql->reqToArrays($query);
-            })
-            ->setFnDo(function ($items) use ($index, $itemPk, $tmpIndexElasticColumn, &$aff) {
                 $documents = [];
 
                 foreach ($items as $item) {
@@ -922,19 +932,25 @@ class Item extends Util
 
                 $aff += $this->app->container->indexer->getManager()->indexMany($index, $documents);
 
-                return end($documents) ? $documents[key($documents)][$tmpIndexElasticColumn] : false;
+                return end($documents) ? $documents[key($documents)][$orderColumn] : false;
             })
             ->run();
 
-        $this->app->container->db->getManager()->dropTableColumn($itemTable, $tmpIndexElasticColumn);
+        $this->app->container->db->getManager()->dropTableColumn($itemTable, $orderColumn);
 
         return $aff;
+    }
+
+    public function doRawReIndexElastic(string $index, $where = null): int
+    {
+        // @todo...
     }
 
     public function doIndexElastic(): int
     {
         $manager = $this->app->container->indexer->getManager();
         $alias = $this->app->managers->items->getEntity()->getTable();
+
         $mappings = $this->getElasticMappings();
 
         return $manager->switchAliasIndex($alias, $mappings, function ($newIndex) {
@@ -956,7 +972,7 @@ class Item extends Util
         //@todo
     }
 
-    private function addOrderColumn(array $order, string $column, bool $index = false): int
+    private function addOrderColumn(array $order, string $column, array $index = []): int
     {
         $table = $this->app->managers->items->getEntity()->getTable();
         $pk = $this->app->managers->items->getEntity()->getPk();
@@ -982,8 +998,12 @@ class Item extends Util
 
         $aff = $db->req($query)->affectedRows();
 
-        if ($index && !$dbManager->indexExists($table, $column)) {
-            $dbManager->addTableKey($table, $column);
+        if ($index) {
+            if ($dbManager->indexExists($table, $index)) {
+                $this->app->container->logger->warning('index for (' . implode(',', $index) . ') is already exists');
+            } else {
+                $dbManager->addTableKey($table, $index);
+            }
         }
 
         return $aff;
