@@ -104,8 +104,13 @@ class Source extends Manager
                     $modify = [];
 
                     foreach ($map['modify_from'] as $k => $v) {
+//                        if (!mb_strlen($v)) {
+//                            continue;
+//                        }
+
                         $modify[$v] = [
-                            'value' => $map['modify_to'][$k] ?: null,
+//                            'value' => $map['modify_to'][$k] ?: null,
+                            'value' => $map['modify_to'][$k],
                             'tags' => array_map(function ($v) {
                                 return (int) $v;
                             }, isset($map['tags']) && isset($map['tags'][$v]) ? (array) $map['tags'][$v] : []),
