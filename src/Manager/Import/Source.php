@@ -104,21 +104,19 @@ class Source extends Manager
                     $modify = [];
 
                     foreach ($map['modify_from'] as $k => $v) {
-                        if (mb_strlen($v)) {
-                            $modify[$v] = [
-                                'value' => $map['modify_to'][$k] ?: null,
-                                'tags' => array_map(function ($v) {
-                                    return (int) $v;
-                                }, isset($map['tags']) && isset($map['tags'][$v]) ? (array) $map['tags'][$v] : []),
-                            ];
+                        $modify[$v] = [
+                            'value' => $map['modify_to'][$k] ?: null,
+                            'tags' => array_map(function ($v) {
+                                return (int) $v;
+                            }, isset($map['tags']) && isset($map['tags'][$v]) ? (array) $map['tags'][$v] : []),
+                        ];
 
-                            if (isset($map['is_sport']) && isset($map['is_sport'][$v]) && 1 == $map['is_sport'][$v]) {
-                                $modify[$v][] = 'is_sport';
-                            }
+                        if (isset($map['is_sport']) && isset($map['is_sport'][$v]) && 1 == $map['is_sport'][$v]) {
+                            $modify[$v][] = 'is_sport';
+                        }
 
-                            if (isset($map['is_size_plus']) && isset($map['is_size_plus'][$v]) && 1 == $map['is_size_plus'][$v]) {
-                                $modify[$v][] = 'is_size_plus';
-                            }
+                        if (isset($map['is_size_plus']) && isset($map['is_size_plus'][$v]) && 1 == $map['is_size_plus'][$v]) {
+                            $modify[$v][] = 'is_size_plus';
                         }
                     }
 
