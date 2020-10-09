@@ -1,0 +1,75 @@
+<!---->
+<?php
+
+use SNOWGIRL_CORE\View;
+use SNOWGIRL_CORE\Query\Expression;
+use SNOWGIRL_SHOP\Catalog\URI;
+
+/** @var View $this */
+$this->getLayout()
+    ->setTitle($this->h1)
+    ->addHeadCss('@shop/error.css')
+    ->addHeadCss('@shop/error/404.css');
+
+try {
+    $categories = $this->app->managers->categories->clear()
+//                ->setWhere(new Expression('`image` IS NOT NULL'))
+        ->setOrders(['rating' => SORT_DESC])
+        ->setLimit(12)
+        ->cacheOutput(true)
+        ->getObjects();
+} catch (Throwable $e) {
+    if ($this->app->request->isAdminIp()) {
+        echo $e->getMessage();
+    }
+}
+
+try {
+    $brands = $this->app->managers->brands->clear()
+//                ->setWhere(new Expression('`image` IS NOT NULL'))
+        ->setOrders(['rating' => SORT_DESC])
+        ->setLimit(36)
+        ->cacheOutput(true)
+        ->getObjects();
+} catch (Throwable $e) {
+    if ($this->app->request->isAdminIp()) {
+        echo $e->getMessage();
+    }
+}
+?>
+
+<?php echo $this->banner ?>
+
+<h1><?php echo htmlspecialchars($this->h1) ?></h1>
+
+<div class="section">
+    <?php echo nl2br($this->text) ?>
+</div>
+
+<?php if (!empty($categories)) { ?>
+    <div class="section categories">
+        <div class="section-title h2">Категории</div>
+        <?php echo $this->app->views->categories([
+            'items' => $categories,
+            'padding' => 5,
+        ], $this) ?>
+    </div>
+<?php } ?>
+
+<section class="section">
+    <a href="<?php echo new URI() ?>" class="btn btn-primary btn-lg btn-block btn-catalog">Перейти в Каталог</a>
+</section>
+
+<?php if (!empty($brands)) { ?>
+    <div class="section brands">
+        <div class="section-title h2">Бренды</div>
+        <?php echo $this->app->views->brands([
+            'items' => $brands,
+            'padding' => 5,
+        ], $this) ?>
+    </div>
+<?php } ?>
+
+<section class="section">
+    <a href="/" class="btn btn-primary btn-lg btn-block btn-index">Перейти на главную</a>
+</section>
