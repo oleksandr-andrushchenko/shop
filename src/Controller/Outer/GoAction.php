@@ -94,13 +94,27 @@ class GoAction
             }
         }
 
-        /** @var PartnerLinkHolderInterface $holder */
+        /**
+         * @var PartnerLinkHolderInterface $holder
+         */
 
         if (!$link = $holder->getPartnerLink()) {
-            $app->container->logger->error('invalid partner link', compact('type', 'id'));
-            $app->views->getLayout()->addMessage('Предложение не доступно, извините за неудобства.',
-                Layout::MESSAGE_WARNING);
-            $app->request->redirect($app->request->getReferer(), 301);
+            if (('shop' == $type) && ($fallbackVendor = $app->config('catalog.fallback_vendor'))) {
+                if ($holder->getId() != $fallbackVendor) {
+                    $vendor = $app->managers->vendors->find($fallbackVendor);
+
+                    if ($vendor) {
+                        $link = $vendor->getPartnerLink();
+                    }
+                }
+            }
+
+            if (!$link) {
+                $app->container->logger->error('invalid partner link', compact('type', 'id'));
+                $app->views->getLayout()->addMessage('Предложение не доступно, извините за неудобства.',
+                    Layout::MESSAGE_WARNING);
+                $app->request->redirect($app->request->getReferer(), 301);
+            }
         }
 
         $tmp = <<<HTML
