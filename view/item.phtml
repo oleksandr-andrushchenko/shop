@@ -26,8 +26,7 @@ use SNOWGIRL_CORE\Image;
  */
 
 $item = $this->item;
-
-$vendor = $this->app->managers->items->getVendor($item);
+$vendor = $this->vendor;
 
 $vendorName = ucfirst($vendor->getName());
 
@@ -43,7 +42,7 @@ $this->getLayout()
     ->addJsConfig('deviceDesktop', $this->deviceDesktop)
     ->addJsConfig('typeOwn', $this->typeOwn)
     ->addJsConfig('isArchive', !!$item->get('archive'))
-    ->addJsConfig('isInStockCheck', $this->inStockCheck && $vendor->isInStockCheck())
+    ->addJsConfig('isInStockCheck', $this->inStockCheck)
     ->addJsConfig('isInStock', $item->isInStock())
     ->addJs('@shop/item.js');
 
@@ -139,21 +138,28 @@ if ((!$item->get('archive')) && $item->isInStock()) {
             <div class="item-buttons">
                 <?php if ($item->get('archive')) { ?>
                     <span class="btn btn-lg btn-inactive"></span>
-                <?php } else { ?>
-                    <?php if ($this->typeOwn) { ?>
-                        <?php if (isset($this->attrs['size_id']) && $this->attrs['size_id']) { ?>
-                            <span class="item-cart-sizes">
+
+                    <?php if ($this->fallbackActiveVendor) { ?>
+                        <a href="<?php echo $this->app->managers->vendors->getGoLink($this->fallbackActiveVendor) ?>"
+                           class="btn btn-lg btn-primary btn-details" target="_blank" rel="nofollow">
+                            <span class="fa fa-sign-in"></span>
+                            В магазин
+                        </a>
+                    <?php } ?>
+                <?php } elseif ($this->typeOwn) { ?>
+                    <?php if (isset($this->attrs['size_id']) && $this->attrs['size_id']) { ?>
+                        <span class="item-cart-sizes">
                                 <?php echo $this->noIndexOpen() ?>Размер<?php echo $this->noIndexClose() ?>
-                                <?php foreach ($this->attrs['size_id'] as $i => $size) { ?>
-                                    <button type="button" class="btn btn-default btn-size"
-                                            data-id="<?php echo $size->getId() ?>">
+                            <?php foreach ($this->attrs['size_id'] as $i => $size) { ?>
+                                <button type="button" class="btn btn-default btn-size"
+                                        data-id="<?php echo $size->getId() ?>">
                                         <?php echo $size->getName() ?>
                                     </button>
-                                <?php } ?>
+                            <?php } ?>
                             </span>
-                        <?php } ?>
+                    <?php } ?>
 
-                        <span class="item-cart-quantity">
+                    <span class="item-cart-quantity">
                             <?php echo $this->noIndexOpen() ?>Количество<?php echo $this->noIndexClose() ?>
                             <button type="button" class="btn btn-default btn-quantity-dec" disabled>-</button>
                             <?php echo $this->noIndexOpen() ?>
@@ -162,20 +168,26 @@ if ((!$item->get('archive')) && $item->isInStock()) {
                             <button type="button" class="btn btn-default btn-quantity-inc">+</button>
                         </span>
 
-                        <span class="item-cart-buttons">
+                    <span class="item-cart-buttons">
                             <button type="button" class="btn btn-lg btn-primary btn-add-to-cart">В корзину</button>
                         </span>
-                    <?php } elseif ($vendor->isActive() && ($this->outOfStockBuyButton || $item->isInStock())) { ?>
-                        <a href="<?php echo $tmp = $item->isInStock()
-                            ? $this->app->managers->items->getGoLink($item)
-                            : $this->app->managers->vendors->getGoLink($vendor) ?>"
+                <?php } else { ?>
+                    <?php if ($this->replacedActiveVendor || ($vendor && $vendor->isActive())) { ?>
+                        <?php if ($vendor->isActive() && ($this->outOfStockBuyButton || $item->isInStock())) { ?>
+                            <a href="<?php echo $this->app->managers->items->getGoLink($item) ?>"
+                               class="btn btn-lg btn-primary btn-buy" target="_blank"
+                               rel="nofollow">
+                                <span class="fa fa-shopping-basket"></span>
+                                Купить
+                            </a>
+                        <?php } else { ?>
+                            <span class="btn btn-lg btn-out-of-stock"></span>
+                        <?php } ?>
+
+                        <a href="<?php echo $this->app->managers->vendors->getGoLink($this->replacedActiveVendor ?: $vendor) ?>"
                            class="btn btn-lg btn-default btn-details" target="_blank" rel="nofollow">
-                            Еще детали
-                        </a>
-                        <a href="<?php echo $tmp ?>" class="btn btn-lg btn-primary btn-buy" target="_blank"
-                           rel="nofollow">
-                            <span class="fa fa-shopping-bag"></span>
-                            Купить
+                            <span class="fa fa-sign-in"></span>
+                            В магазин
                         </a>
                     <?php } else { ?>
                         <span class="btn btn-lg btn-out-of-stock"></span>
@@ -183,11 +195,12 @@ if ((!$item->get('archive')) && $item->isInStock()) {
                 <?php } ?>
 
                 <button type="button" class="btn btn-lg btn-default btn-related">
+                    <span class="fa fa-lightbulb-o"></span>
                     Похожие
                 </button>
             </div>
 
-            <?php if ($vendor->isActive() && !$this->typeOwn) { ?>
+            <?php if (!$this->typeOwn && !$this->replacedActiveVendor && $vendor->isActive()) { ?>
                 <div class="item-vendor">
                     Товар продает &mdash;
                     <a href="<?php echo $this->app->managers->vendors->getGoLink($vendor) ?>"
