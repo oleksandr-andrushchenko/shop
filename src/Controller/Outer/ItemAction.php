@@ -5,6 +5,7 @@ namespace SNOWGIRL_SHOP\Controller\Outer;
 use SNOWGIRL_CORE\Controller\Outer\PrepareServicesTrait;
 use SNOWGIRL_CORE\Helper;
 use SNOWGIRL_CORE\Http\Exception\NotFoundHttpException;
+use SNOWGIRL_SHOP\Entity\Vendor;
 use SNOWGIRL_SHOP\Http\HttpApp as App;
 use SNOWGIRL_SHOP\Catalog\SRC;
 use SNOWGIRL_SHOP\Catalog\URI;
@@ -68,8 +69,36 @@ class ItemAction
 
         $app->managers->items->clear();
 
+        /**
+         * @var Vendor $vendor
+         * @var Vendor $replacedActiveVendor
+         */
+
+        $vendor = $app->managers->items->getVendor($item);
+
+        if ($replaceVendor = $app->config('catalog.replace_vendor', [])) {
+            if (!empty($replaceVendor[$vendor->getId()])) {
+                $replacedActiveVendor = $app->managers->vendors->find($replaceVendor[$vendor->getId()]);
+
+                if (!$replacedActiveVendor->isActive()) {
+                    unset($replacedActiveVendor);
+                }
+            }
+        }
+
+        if ($fallbackVendor = $app->config('catalog.fallback_vendor', [])) {
+            $fallbackActiveVendor = $app->managers->vendors->find($fallbackVendor);
+
+            if (!$fallbackActiveVendor->isActive()) {
+                unset($fallbackActiveVendor);
+            }
+        }
+
         $content = $view->setContentByTemplate('@shop/item.phtml', [
             'item' => $item,
+            'vendor' => $vendor,
+            'replacedActiveVendor' => $replacedActiveVendor ?? null,
+            'fallbackActiveVendor' => $fallbackActiveVendor ?? null,
             'images' => $app->managers->items->getImages($item),
             'h1' => $uri->getSEO()->getParam('h1'),
             'currency' => $this->getCurrencyObject($app),
@@ -80,7 +109,8 @@ class ItemAction
             'archive' => $archive = $item->get('archive'),
             'typeOwn' => (!$archive) && ($source = $app->managers->items->getImportSource($item)) && (ImportSource::TYPE_OWN == $source->getType()),
             'outOfStockBuyButton' => $outOfStockBuyButton = !!$app->config('catalog.out_of_stock_buy_button', false),
-            'inStockCheck' => !$outOfStockBuyButton && !!$app->config('catalog.in_stock_check', false),
+            'inStockCheck' => !$outOfStockBuyButton && !!$app->config('catalog.in_stock_check', false) && $vendor->isInStockCheck(),
+            'fallbackVendor' => $app->config('catalog.fallback_vendor'),
         ]);
 
         $relatedUri = $app->managers->items->getRelatedCatalogURI($item)
