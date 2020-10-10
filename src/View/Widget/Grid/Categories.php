@@ -59,6 +59,9 @@ class Categories extends Widget
     protected function stringifyPrepare()
     {
         switch ($s = count($this->items)) {
+            case 12:
+                return $this->tmpMap = [4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4];
+//                return $this->tmpMap = [6, 6, 4, 4, 4, 6, 6, 4, 4, 4, 6, 6];
             case 6:
                 return $this->tmpMap = [4, 4, 4, 4, 4, 4];
             case 5:
