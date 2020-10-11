@@ -4,9 +4,11 @@ use SNOWGIRL_CORE\View;
 use SNOWGIRL_CORE\Entity\Banner;
 use SNOWGIRL_SHOP\Entity\Category;
 
-/** @var View $this */
-/** @var Banner $banner */
-/** @var Category $category */
+/**
+ * @var View $this
+ * @var Banner $banner
+ * @var Category $category
+ */
 
 $categoriesBlocks = array_chunk($this->categories, $this->categoriesPerBlock);
 $brandsBlocks = array_chunk($this->brands, $this->brandsPerBlock);
@@ -97,21 +99,21 @@ $facebookLike = $this->app->views->facebookLike($this)->stringify();
 
         <?php echo isset($itemsBlocks[$i]) ? $this->app->views->get('@shop/index/items.phtml', [
             'items' => $itemsBlocks[$i],
-            'currency' => $this->currency
+            'currency' => $this->currency,
         ], $this) : null ?>
 
         <?php echo isset($categoriesBlocks[$i]) ? $this->app->views->get('@shop/index/categories.phtml', [
             'grid' => $this->app->views->categories([
                 'items' => $categoriesBlocks[$i],
-                'right' => 1 == $i % 2
-            ], $this)
+                'right' => 1 == $i % 2,
+            ], $this),
         ], $this) : null ?>
 
         <?php echo isset($brandsBlocks[$i]) ? $this->app->views->get('@shop/index/brands.phtml', [
             'grid' => $this->app->views->brands([
                 'items' => $brandsBlocks[$i],
-                'padding' => 5
-            ], $this)
+                'padding' => 5,
+            ], $this),
         ], $this) : null ?>
 
         <?php if (0 == $i) { ?>
