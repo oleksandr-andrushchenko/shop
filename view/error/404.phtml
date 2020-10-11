@@ -50,7 +50,7 @@ try {
     <div class="section categories">
         <div class="section-title h2">Категории</div>
         <?php echo $this->app->views->categories([
-            'items' => $categories,
+            'items' => array_values($categories),
             'padding' => 5,
         ], $this) ?>
     </div>
