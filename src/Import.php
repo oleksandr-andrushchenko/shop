@@ -1054,13 +1054,12 @@ class Import
         try {
             $hash = $this->getHash();
 
-//            $history = $this->getLastOkImport();
+            $history = $this->getLastOkImport();
 
-//            if ($history && $history->getHash() == $hash) {
-            # @todo restore
-//                $this->logger->info('SKIPPED by hash');
-//                return null;
-//            }
+            if ($history && $history->getHash() == $hash) {
+                $this->logger->info('SKIPPED by hash');
+                return null;
+            }
 
             $this->createHistory($hash);
 
@@ -2321,13 +2320,10 @@ class Import
     private function getHash(): string
     {
         return md5(implode('', [
-//            (new Script($this->getDownloadedCsvFileName()))->getUniqueHash(),
-            $this->getDownloadedCsvFileName(),
-            implode('', [
-                $this->getFilename(),
-                $this->source->getFileFilter(),
-                $this->source->getFileMapping(),
-            ]),
+            md5_file($this->getDownloadedCsvFileName()),
+            $this->getFilename(),
+            $this->source->getFileFilter(),
+            $this->source->getFileMapping(),
         ]));
     }
 
