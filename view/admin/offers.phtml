@@ -29,15 +29,14 @@ $this->getLayout()
                         <form action="<?php echo $this->makeLink('admin', ['action' => 'row', 'table' => $vendor->getTable()]) ?>"
                               method="post" class="form-inline form-vendor item">
                             <input type="hidden" name="id" value="<?php echo $vendor->getId() ?>">
-                            <input type="hidden" name="is_active" value="0">
 
-                            <a href="<?php echo $this->app->managers->vendors->getLink($vendor) ?>"
-                               target="_blank"><span
-                                        class="fa fa-share"></span></a>
-
-                            <label><input name="is_active" value="1"
-                                          type="checkbox" <?php echo $vendor->isActive() ? 'checked' : '' ?>>
-                            </label>
+                            <?php if ($vendor->isFake()) { ?>
+                                <span class="badge badge-error">fake</span>
+                            <?php } else { ?>
+                                <a href="<?php echo $this->app->managers->vendors->getLink($vendor) ?>"
+                                   target="_blank"><span
+                                            class="fa fa-share"></span></a>
+                            <?php } ?>
 
                             <label><select name="class_name" class="form-control" required>
                                     <option value="">&mdash; Класс</option>
@@ -76,16 +75,16 @@ $this->getLayout()
                 <div class="col-md-10">
                     <input type="text" name="name" id="vendor-name" placeholder="Уникальное имя"
                            class="form-control" required>
-                    <span class="help-block">Например: "lamoda.ru" или "gold.ua"</span>
+                    <span class="help-block">Например: "Lamoda" или "Almea"</span>
                 </div>
             </div>
             <div class="form-group">
-                <label for="vendor-partner-link" class="col-md-2 control-label">Партнерская ссылка</label>
+                <label for="vendor-partner-link" class="col-md-2 control-label">Партнерская ссылка *</label>
 
                 <div class="col-md-10">
                     <input type="text" name="partner_link" id="vendor-partner-link"
                            placeholder="Партнерская ссылка на основной каталог"
-                           class="form-control">
+                           class="form-control" required>
                 </div>
             </div>
             <div class="form-group">
@@ -109,15 +108,6 @@ $this->getLayout()
                                 </option>
                             <?php } ?>
                         </select></label>
-                </div>
-            </div>
-            <div class="form-group">
-                <div class="col-md-offset-2 col-md-10">
-                    <div class="checkbox">
-                        <label>
-                            <input type="checkbox" name="is_active" value="1"> Активный
-                        </label>
-                    </div>
                 </div>
             </div>
             <div class="form-group">
@@ -271,21 +261,9 @@ $this->getLayout()
                             <?php foreach ($this->vendors as $vendor) { ?>
                                 <option value="<?php echo $vendor->getId() ?>">
                                     <?php echo $vendor->getName() ?>
-                                </option>
-                            <?php } ?>
-                        </select></label>
-                </div>
-            </div>
-            <div class="form-group">
-                <label for="<?php echo $tmp = 'type' ?>"
-                       class="col-md-2 control-label">Тип*</label>
-
-                <div class="col-md-10">
-                    <label><select name="<?php echo $tmp ?>" id="<?php echo $tmp ?>"
-                                   class="form-control">
-                            <?php foreach ($this->sourceTypes as $label => $value) { ?>
-                                <option value="<?php echo $value ?>">
-                                    <?php echo $label ?>
+                                    <?php if ($vendor->isFake()) { ?>
+                                        *fake
+                                    <?php } ?>
                                 </option>
                             <?php } ?>
                         </select></label>

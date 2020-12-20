@@ -105,7 +105,7 @@ class DbDataProvider extends DataProvider
             $db->makeSelectSQL($columns, false, $query->params),
             $db->makeFromSQL($table),
             implode(' ', $joins),
-            $db->makeWhereSQL($where, $query->params),
+            $db->makeWhereSQL($where, $query->params, null, $query->placeholders),
             $joins ? $db->makeGroupSQL($pk, $query->params, $table) : '',
             $db->makeOrderSQL($order, $query->params),
             $db->makeLimitSQL($offset, $limit, $query->params),
@@ -116,11 +116,9 @@ class DbDataProvider extends DataProvider
 
     public function getWhere(bool $raw = false): array
     {
-        $output = [];
-
-        if ($this->inStockOnly) {
-            $output['is_in_stock'] = 1;
-        }
+        $output = [
+            'is_in_stock' => 1,
+        ];
 
         $params = $this->src->getURI()->getParamsByTypes('filter');
 
@@ -206,10 +204,6 @@ class DbDataProvider extends DataProvider
         if ($cache) {
             $output[$info->cache_column] = SORT_ASC;
             return $output;
-        }
-
-        if (!$this->inStockOnly) {
-            $output['is_in_stock'] = SORT_DESC;
         }
 
 //        $output['created_at'] = SORT_DESC;

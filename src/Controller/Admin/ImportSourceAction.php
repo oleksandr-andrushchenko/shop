@@ -51,7 +51,6 @@ class ImportSourceAction
             'dbRequiredColumns' => $import->getRequiredItemColumns(),
             'svaValues' => $import->getSvaValues($app),
             'importClasses' => $app->managers->sources->getImportClasses(true),
-            'sourceTypes' => $app->managers->sources->getEntity()->getColumns()['type']['range'],
             'deliveryNotes' => $app->request->get('delivery_notes', $source->getDeliveryNotes()),
             'salesNotes' => $app->request->get('sales_notes', $source->getSalesNotes()),
             'techNotes' => $app->request->get('tech_notes', $source->getTechNotes()),

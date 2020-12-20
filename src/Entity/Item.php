@@ -322,7 +322,7 @@ class Item extends Entity
 
     public function setCreatedAt($v)
     {
-        return $this->setRequiredRawAttr('created_at', self::normalizeInt($v));
+        return $this->setRawAttr('created_at', self::normalizeTime($v));
     }
 
     public function getCreatedAt($datetime = false)
@@ -338,5 +338,10 @@ class Item extends Entity
     public function getUpdatedAt($datetime = false)
     {
         return $datetime ? self::timeToDatetime($this->getRawAttr('updated_at')) : $this->getRawAttr('updated_at');
+    }
+
+    public function belongsToVendor(Vendor $vendor): bool
+    {
+        return $this->getVendorId() == $vendor->getId();
     }
 }

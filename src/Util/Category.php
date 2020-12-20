@@ -165,7 +165,7 @@ class Category extends Util
                     '(' . $db->quote('item_id') . ', ' . $db->quote('tag_id') . ')',
                     'SELECT ' . $db->quote(Item::getPk()) . ', ' . $tagId,
                     $db->makeFromSQL(Item::getTable()),
-                    $db->makeWhereSQL(['category_id' => $categoryId], $query->params)
+                    $db->makeWhereSQL(['category_id' => $categoryId], $query->params, null, $query->placeholders)
                 ]);
 
                 $db->req($query);
@@ -321,7 +321,7 @@ class Category extends Util
                     '(' . $db->quote('item_id') . ', ' . $db->quote('tag_id') . ')',
                     'SELECT ' . $db->quote(Item::getPk()) . ', ' . $targetTag->getId(),
                     $db->makeFromSQL(Item::getTable()),
-                    $db->makeWhereSQL(['category_id' => $sourceCategory->getId()], $query->params)
+                    $db->makeWhereSQL(['category_id' => $sourceCategory->getId()], $query->params, null, $query->placeholders)
                 ]);
 
                 $db->req($query);
@@ -354,7 +354,7 @@ class Category extends Util
                             }
                         }, $columns)),
                         'FROM ' . $db->quote(Catalog::getTable()),
-                        $db->makeWhereSQL($where, $query->params)
+                        $db->makeWhereSQL($where, $query->params, null, $query->placeholders)
                     ]);
 
                     $db->req($query);

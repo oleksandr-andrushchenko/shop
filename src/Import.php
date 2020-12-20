@@ -29,7 +29,6 @@ use Throwable;
 
 /**
  * Class Import (for ImportSource::TYPE_PARTNER)
- * @todo for ImportSource::TYPE_OWN create separate class
  * @todo use compose instead of extend
  * @package SNOWGIRL_SHOP
  */
@@ -122,6 +121,11 @@ class Import
     private $countOutOfStock;
 
     /**
+     * @var bool
+     */
+    private $forceOutOfStock;
+
+    /**
      * @var LoggerInterface
      */
     private $logger;
@@ -155,6 +159,8 @@ class Import
 
         $this->filters = $this->getFilters();
         $this->mappings = $this->getMappings();
+
+        $this->forceOutOfStock = $this->app->managers->sources->getVendor($source)->isFake();
 
         if ($this->profile = $profile) {
             foreach ($this->logger->getHandlers() as $handler) {
@@ -645,11 +651,7 @@ class Import
 
         foreach ($importSources as $importSource) {
             try {
-                if ($app->managers->sources->getVendor($importSource)->isActive()) {
-                    $app->managers->sources->getImport($importSource, $debug, $profile)->run();
-                } else {
-                    $app->container->logger->debug('vendor "' . $app->managers->sources->getVendor($importSource)->getName() . '" is disabled');
-                }
+                $app->managers->sources->getImport($importSource, $debug, $profile)->run();
             } catch (Throwable $e) {
                 $app->container->logger->error($e);
                 $app->container->logger->debug('import failed!');
@@ -2149,6 +2151,10 @@ class Import
 
     private function getIsInStockByRow($row): int
     {
+        if ($this->forceOutOfStock) {
+            return 0;
+        }
+
         if (isset($this->mappings['is_in_stock'])) {
             $map = $this->mappings['is_in_stock'];
 
@@ -2537,7 +2543,7 @@ class Import
             ]], $query->params),
             $db->makeWhereSQL([
                 'import_source_id' => $this->source->getId(),
-            ], $query->params),
+            ], $query->params, null, $query->placeholders),
             $db->makeHavingSQL([
                 'image_id' => $images,
             ], $query->params),
@@ -2629,10 +2635,6 @@ class Import
      */
     private function check(): Import
     {
-        if (!$this->app->managers->sources->getVendor($this->source)->isActive()) {
-            throw new Exception('vendor [import_source_id=' . $this->source->getName() . '] is disabled');
-        }
-
         if ('cli' == PHP_SAPI && !$this->source->isCron()) {
             throw new Exception('[import_source_id=' . $this->source->getName() . '] is out of cron');
         }

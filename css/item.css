@@ -331,34 +331,6 @@
         float: right
     }
 
-    .type-own .item-buttons {
-        float: none;
-        display: table;
-        width: 100%
-    }
-
-    .type-own .item-cart-sizes,
-    .type-own .item-cart-quantity,
-    .type-own .item-cart-buttons {
-        display: table-cell;
-        width: 33.33333333%;
-        vertical-align: middle
-    }
-
-    .type-own .item-cart-sizes,
-    .type-own .item-cart-quantity {
-        text-align: left
-    }
-
-    .type-own .item-cart-buttons {
-        text-align: right
-    }
-
-    .type-own .item-cart-buttons .btn {
-        display: block;
-        width: 100%
-    }
-
     .item-meta .old-price {
         position: relative;
         top: -10px;

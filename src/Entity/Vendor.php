@@ -7,7 +7,6 @@ use SNOWGIRL_CORE\Entity;
 
 /**
  * Class Vendor
- *
  * @package SNOWGIRL_SHOP\Entity
  * @method Vendor setName($name)
  * @method Vendor setUri($name)
@@ -24,11 +23,10 @@ class Vendor extends Attr implements PartnerLinkHolderInterface
         'uri' => ['type' => self::COLUMN_TEXT, self::REQUIRED],
         'image' => ['type' => self::COLUMN_TEXT, self::IMAGE],
         'class_name' => ['type' => self::COLUMN_TEXT],
-//        'sales_notes' => ['type' => self::COLUMN_TEXT],
         'is_in_stock_check' => ['type' => self::COLUMN_INT, self::REQUIRED, self::BOOL, 'default' => 0],
-        'is_active' => ['type' => self::COLUMN_INT, self::REQUIRED, self::BOOL, 'default' => 0],
+        'target_vendor_id' => ['type' => self::COLUMN_INT, 'default' => null, 'entity' => __CLASS__],
         'created_at' => ['type' => self::COLUMN_TIME, self::REQUIRED],
-        'updated_at' => ['type' => self::COLUMN_TIME, 'default' => null]
+        'updated_at' => ['type' => self::COLUMN_TIME, 'default' => null],
     ];
 
     public function setId($v): Entity
@@ -99,19 +97,19 @@ class Vendor extends Attr implements PartnerLinkHolderInterface
         return 1 == $this->getIsInStockCheck();
     }
 
-    public function setIsActive($v)
+    public function setTargetVendorId($v)
     {
-        return $this->setRawAttr('is_active', $v ? 1 : 0);
+        return $this->setRawAttr('target_vendor_id', ($v = (int) $v) ? $v : null);
     }
 
-    public function getIsActive(): int
+    public function getTargetVendorId(): ?int
     {
-        return (int) $this->getRawAttr('is_active');
+        return ($v = (int) $this->getRawAttr('target_vendor_id')) ? $v : null;
     }
 
-    public function isActive(): bool
+    public function isFake(): bool
     {
-        return 1 == $this->getIsActive();
+        return 0 < $this->getTargetVendorId();
     }
 
     public function setCreatedAt($v)

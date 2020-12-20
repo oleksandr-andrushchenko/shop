@@ -152,10 +152,6 @@ class IndexerDataProvider extends DataProvider
             return $output;
         }
 
-        if (!$this->inStockOnly) {
-            $output[] = 'is_in_stock:desc';
-        }
-
 //        $output[] = 'created_at:desc';
 //        $output[] = 'partner_updated_at:desc';
 

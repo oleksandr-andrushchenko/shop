@@ -7,12 +7,10 @@ use SNOWGIRL_SHOP\Catalog\SRC;
 abstract class DataProvider
 {
     protected $src;
-    protected $inStockOnly;
 
     public function __construct(SRC $src)
     {
         $this->src = $src;
-        $this->inStockOnly = !!$src->getURI()->getApp()->configMasterOrOwn('catalog.in_stock_only', false);
     }
 
     abstract public function getItemsAttrs(): array;

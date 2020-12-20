@@ -153,11 +153,7 @@ class Manager
     protected function checkRedirectWithItemTable($id, HttpRequest $request)
     {
         if ($id = $this->managers->itemRedirects->getByIdFrom($id)) {
-            if (!$item = $this->managers->items->find($id)) {
-                $item = $this->managers->archiveItems->find($id);
-            }
-
-            if ($item) {
+            if ($item = $this->managers->items->find($id)) {
                 $request->redirect($this->managers->items->getLink($item), 301);
 
                 return true;

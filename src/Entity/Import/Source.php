@@ -3,7 +3,6 @@
 namespace SNOWGIRL_SHOP\Entity\Import;
 
 use DateTime;
-use SNOWGIRL_CORE\Exception;
 use SNOWGIRL_CORE\Entity;
 
 /**
@@ -28,9 +27,6 @@ use SNOWGIRL_CORE\Entity;
  */
 class Source extends Entity
 {
-    public const TYPE_PARTNER = 0;
-    public const TYPE_OWN = 1;
-
     protected static $table = 'import_source';
     protected static $pk = 'import_source_id';
 
@@ -47,10 +43,6 @@ class Source extends Entity
         'delivery_notes' => ['type' => self::COLUMN_TEXT],
         'sales_notes' => ['type' => self::COLUMN_TEXT],
         'tech_notes' => ['type' => self::COLUMN_TEXT],
-        'type' => ['type' => self::COLUMN_INT, 'range' => [
-            'Партнерские предложения' => self::TYPE_PARTNER,
-            'Свои предложения' => self::TYPE_OWN
-        ], 'default' => self::TYPE_PARTNER],
         'created_at' => ['type' => self::COLUMN_TIME, self::REQUIRED],
         'updated_at' => ['type' => self::COLUMN_TIME, 'default' => null]
     ];
@@ -184,16 +176,6 @@ class Source extends Entity
     public function getClassName()
     {
         return $this->getRawAttr('class_name');
-    }
-
-    public function setType($v)
-    {
-        return $this->setRawAttr('type', self::normalizeInt($v));
-    }
-
-    public function getType()
-    {
-        return (int)$this->getRawAttr('type');
     }
 
     public function setDeliveryNotes($v)

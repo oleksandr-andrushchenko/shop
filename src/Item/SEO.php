@@ -141,7 +141,7 @@ class SEO
         }
 
         $view
-            ->addMetaProperty('product:availability', (!$item->get('archive')) && $item->isInStock() ? 'in stock' : 'out of stock')
+            ->addMetaProperty('product:availability', $item->isInStock() ? 'in stock' : 'out of stock')
             ->addMetaProperty('product:condition', 'new')
             ->addMetaProperty('product:age_group', 'adult')
             ->addMetaProperty('product:brand', $this->uri->getApp()->managers->items->getBrand($item)->getName())

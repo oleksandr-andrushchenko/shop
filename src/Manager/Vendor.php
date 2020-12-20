@@ -8,11 +8,9 @@ use SNOWGIRL_SHOP\Manager\Item\Attr;
 use SNOWGIRL_SHOP\Entity\Vendor as VendorEntity;
 use SNOWGIRL_SHOP\Vendor as VendorAdapter;
 use SNOWGIRL_CORE\Helper\Classes;
-use SNOWGIRL_SHOP\Util\Item as ItemUtil;
 
 /**
  * Class Vendor
- *
  * @property VendorEntity $entity
  * @method static VendorEntity getItem($id)
  * @method Vendor clear()
@@ -23,26 +21,6 @@ use SNOWGIRL_SHOP\Util\Item as ItemUtil;
  */
 class Vendor extends Attr implements GoLinkBuilderInterface
 {
-    public function onUpdated(Entity $entity)
-    {
-        /** @var VendorEntity $entity */
-
-        $output = parent::onUpdated($entity);
-
-        if ($entity->isAttrChanged('is_active')) {
-            $util = new ItemUtil($this->app);
-            $where = [$entity->getPk() => $entity->getId()];
-
-            if ($entity->isActive()) {
-                $util->doOutArchiveTransfer($where);
-            } else {
-                $util->doInArchiveTransfer($where);
-            }
-        }
-
-        return $output;
-    }
-
     protected function getNonEmptyCacheKey()
     {
         return $this->entity->getTable() . '-non-empty';
@@ -140,7 +118,22 @@ class Vendor extends Attr implements GoLinkBuilderInterface
             'action' => 'go',
             'type' => 'shop',
             'id' => $entity->getId(),
-            'source' => $source
+            'source' => $source,
         ]);
+    }
+
+    public function findFallback(): ?VendorEntity
+    {
+        if ($fallbackVendorId = $this->app->config('catalog.fallback_vendor')) {
+            if ($fallbackVendor = $this->find($fallbackVendorId)) {
+                return $fallbackVendor;
+            }
+
+            $this->app->container->logger->error('invalid fallback vendor', [
+                'fallback_vendor_id' => $fallbackVendorId,
+            ]);
+        }
+
+        return null;
     }
 }

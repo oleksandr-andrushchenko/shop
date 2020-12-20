@@ -23,7 +23,6 @@ class CatalogAction
 
     /**
      * @param App $app
-     *
      * @return bool
      * @throws Throwable
      */
@@ -89,13 +88,12 @@ class CatalogAction
             'sortValuesNames' => SEO::getOrderValuesToTexts(true),
             'typesNames' => SEO::getTypesToTexts(true),
             'types' => $types = array_keys($uri->getParamsByNames(URI::TYPE_PARAMS)),
-//            'hasAppliedFilters' => $hasAppliedFilters = $uriParams[URI::QUERY] || count($filters) > 0 || count($prices) > 0 || count($types) > 0,
             'hasAppliedFilters' => $hasAppliedFilters = count($filters) > 0 || count($prices) > 0 || count($types) > 0,
             'hasAppliedSorting' => $hasAppliedSorting = !!$uriParams[URI::ORDER],
             'orFiltersKeys' => $uri->getOrParamsKeysByNames($filtersNames),
             'hasItems' => $total > 0,
             'totalCount' => $total,
-            'siteName' => $app->getSite()
+            'siteName' => $app->getSite(),
         ]);
 
         //@todo...
@@ -110,7 +108,7 @@ class CatalogAction
                 'propName' => $content->title,
                 'propUrl' => (new URI($uriParams))->_unset(URI::PAGE_NUM)->output(),
                 'propTotal' => $content->totalCount,
-                'banner' => isset($gridBanner) ? $gridBanner : null
+                'banner' => isset($gridBanner) ? $gridBanner : null,
             ], $view);
 
             $pagerUri = $uri->copy();
@@ -123,39 +121,52 @@ class CatalogAction
                 'per_set' => 5,
                 'param' => URI::PAGE_NUM,
 //                'attrs' => 'rel="nofollow"',
-                'statistic' => false
+                'statistic' => false,
             ], $view);
 
             if ($pager->isOk() && !$mobile) {
-                $content->itemsPager = (string)$pager;
+                $content->itemsPager = (string) $pager;
             }
 
             $content->addParams([
 //                'showAjaxPager' => !$pager->isLastPage(),
-                'showAjaxPager' => $pager->isOk()
+                'showAjaxPager' => $pager->isOk(),
             ]);
 
             $app->seo->manageCatalogPager($pagerUri, $pager, $view);
         } else {
             $content->itemsEmptyVariants = $uriManager->getOtherVariants($uri, function ($uri) use ($app, $view) {
                 /** @var URI $uri */
-                return (object)[
+                return (object) [
                     'href' => $href = $uri->output(),
                     'text' => $text = $uri->getSEO()->getParam('h1', [
                         'category' => ($tmp = $uri->get(Category::getPk()))
                             ? $app->managers->categories->find($tmp)->getName()
-                            : $app->trans->makeText('catalog.catalog')
+                            : $app->trans->makeText('catalog.catalog'),
                     ]),
                     'grid' => $app->views->items([
                         'items' => array_slice($uri->getSRC()->getItems($total), 0, 4),
                         'itemTemplate' => 'catalog',
                         'propName' => $text,
                         'propUrl' => $href,
-                        'propTotal' => $total
+                        'propTotal' => $total,
                     ], $view),
-                    'count' => $total
+                    'count' => $total,
                 ];
             });
+
+            if (2 > count($content->itemsEmptyVariants)) {
+                $content->itemsEmptyVariantsCategories = $app->managers->categories->clear()
+                    ->setOrders(['rating' => SORT_DESC])
+                    ->setLimit(12)
+                    ->cacheOutput(true)
+                    ->getObjects();
+                $content->itemsEmptyVariantsBrands = $app->managers->brands->clear()
+                    ->setOrders(['rating' => SORT_DESC])
+                    ->setLimit(36)
+                    ->cacheOutput(true)
+                    ->getObjects();
+            }
 
             $content->itemsPager = '';
         }
@@ -174,7 +185,7 @@ class CatalogAction
             'category' => $category,
             'hasApplied' => $categoryId || $hasAppliedFilters || $hasAppliedSorting,
             'showTags' => $categoryId && $app->managers->categories->isLeaf($category),
-            'asyncFilters' => $app->config('catalog.async_filters', false)
+            'asyncFilters' => $app->config('catalog.async_filters', false),
         ]);
 
         if ($content->hasItems) {
@@ -228,7 +239,7 @@ class CatalogAction
                         $content->categoriesGrid = $app->views->categories([
                             //hidden coz: 1) items counts 2) increase clicks
 //                        'uri' => $tmpUri->copy()->_unset('category_id'),
-                            'items' => array_slice($popularCategories, 0, 6)
+                            'items' => array_slice($popularCategories, 0, 6),
                         ], $content);
                     }
 
@@ -240,7 +251,7 @@ class CatalogAction
                             : $app->managers->brands->clear()
                                 ->setOrders(['rating' => SORT_DESC])
                                 ->setLimit(12)
-                                ->getObjectsByUri($tmpUri)
+                                ->getObjectsByUri($tmpUri),
                     ], $content);
                 }
             }

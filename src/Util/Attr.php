@@ -63,7 +63,7 @@ class Attr extends Util
                 'DELETE ' . $db->quote('ia'),
                 'FROM ' . $db->quote($linkTable) . ' ' . $db->quote('ia'),
                 'LEFT JOIN ' . $db->quote($itemTable) . ' USING (' . $db->quote($itemPk) . ')',
-                $db->makeWhereSQL($where, $query->params)
+                $db->makeWhereSQL($where, $query->params, null, $query->placeholders)
             ]);
 
             $affTmp2 = $db->req($query)->affectedRows();

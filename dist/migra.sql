@@ -142,3 +142,8 @@ alter table country change country_id `country_id` smallint unsigned NOT NULL AU
 
 alter table item change country_id country_id smallint(5) unsigned DEFAULT NULL;
 alter table item_archive change country_id country_id smallint(5) unsigned DEFAULT NULL;
+
+
+alter table vendor drop column is_active, add column target_vendor_id tinyint(3) unsigned null after is_in_stock_check;
+drop table item_archive;
+alter table import_source drop column `type`;

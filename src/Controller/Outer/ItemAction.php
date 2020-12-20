@@ -5,14 +5,12 @@ namespace SNOWGIRL_SHOP\Controller\Outer;
 use SNOWGIRL_CORE\Controller\Outer\PrepareServicesTrait;
 use SNOWGIRL_CORE\Helper;
 use SNOWGIRL_CORE\Http\Exception\NotFoundHttpException;
-use SNOWGIRL_SHOP\Entity\Vendor;
 use SNOWGIRL_SHOP\Http\HttpApp as App;
 use SNOWGIRL_SHOP\Catalog\SRC;
 use SNOWGIRL_SHOP\Catalog\URI;
 use SNOWGIRL_SHOP\Item\URI\Manager as ItemUriManager;
 use SNOWGIRL_SHOP\View\Widget\Grid\Items as ItemsGrid;
 use SNOWGIRL_CORE\View\Widget\Ad\LargeRectangle as LargeRectangleAd;
-use SNOWGIRL_SHOP\Entity\Import\Source as ImportSource;
 use Throwable;
 
 class ItemAction
@@ -64,60 +62,46 @@ class ItemAction
         $app->analytics->logItemPageHit($uri);
 
         if (!$item = $uri->getSRC()->getItem()) {
-            throw new NotFoundHttpException();
+            if ($fallbackVendor = $app->managers->vendors->findFallback()) {
+                $app->request->redirect($app->managers->vendors->getGoLink($fallbackVendor), 301);
+            }
+
+            throw new NotFoundHttpException('item has not been found');
         }
 
         $app->managers->items->clear();
 
-        /**
-         * @var Vendor $vendor
-         * @var Vendor $replacedActiveVendor
-         */
-
-        $vendor = $app->managers->items->getVendor($item);
-
-        if ($replaceVendor = $app->config('catalog.replace_vendor', [])) {
-            if (!empty($replaceVendor[$vendor->getId()])) {
-                $replacedActiveVendor = $app->managers->vendors->find($replaceVendor[$vendor->getId()]);
-
-                if (!$replacedActiveVendor->isActive()) {
-                    unset($replacedActiveVendor);
-                }
-            }
-        }
-
-        if ($fallbackVendor = $app->config('catalog.fallback_vendor', [])) {
-            $fallbackActiveVendor = $app->managers->vendors->find($fallbackVendor);
-
-            if (!$fallbackActiveVendor->isActive()) {
-                unset($fallbackActiveVendor);
-            }
+        if (!$vendor = $app->managers->items->findVendor($item)) {
+            throw new NotFoundHttpException('item vendor has not been found');
         }
 
         $content = $view->setContentByTemplate('@shop/item.phtml', [
             'item' => $item,
             'vendor' => $vendor,
-            'replacedActiveVendor' => $replacedActiveVendor ?? null,
-            'fallbackActiveVendor' => $fallbackActiveVendor ?? null,
+            'isNativeVendor' => $isNativeVendor = $item->belongsToVendor($vendor),
             'images' => $app->managers->items->getImages($item),
             'h1' => $uri->getSEO()->getParam('h1'),
             'currency' => $this->getCurrencyObject($app),
             'tags' => $app->managers->items->getTagsURI($item),
             'types' => $app->managers->items->getTypes($item),
             'attrs' => $app->managers->items->getAttrs($item),
-            'deviceDesktop' => $app->request->getDevice()->isDesktop(),
-            'archive' => $archive = $item->get('archive'),
-            'typeOwn' => (!$archive) && ($source = $app->managers->items->getImportSource($item)) && (ImportSource::TYPE_OWN == $source->getType()),
-            'outOfStockBuyButton' => $outOfStockBuyButton = !!$app->config('catalog.out_of_stock_buy_button', false),
-            'inStockCheck' => !$outOfStockBuyButton && !!$app->config('catalog.in_stock_check', false) && $vendor->isInStockCheck(),
-            'fallbackVendor' => $app->config('catalog.fallback_vendor'),
+            'isDeviceDesktop' => $app->request->getDevice()->isDesktop(),
+            'isOutOfStockBuyButton' => $isOutOfStockBuyButton = !!$app->config('catalog.out_of_stock_buy_button', false),
+            'isInStockCheck' => !$isOutOfStockBuyButton
+                && !!$app->config('catalog.in_stock_check', false)
+                && $isNativeVendor
+                && $vendor->isInStockCheck(),
+            'isInStock' => $isNativeVendor && $item->isInStock(),
         ]);
 
         $relatedUri = $app->managers->items->getRelatedCatalogURI($item)
             ->set(URI::PER_PAGE, Helper::roundUpToAny(SRC::getDefaultShowValue($app), 5))
             ->set(URI::EVEN_NOT_STANDARD_PER_PAGE, true);
 
-        if ((!$app->request->getDevice()->isMobile()) && $gridBanner = $app->ads->findBanner(LargeRectangleAd::class, 'item-catalog-grid', [], $view)) {
+        if (
+            !$app->request->getDevice()->isMobile()
+            && $gridBanner = $app->ads->findBanner(LargeRectangleAd::class, 'item-catalog-grid', [], $view)
+        ) {
             $relatedUri->getSRC()->setLimit($relatedUri->getSRC()->getLimit() - ItemsGrid::getBannerCellsCount());
         }
 

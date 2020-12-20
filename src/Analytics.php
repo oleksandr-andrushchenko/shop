@@ -76,7 +76,6 @@ class Analytics extends \SNOWGIRL_CORE\Analytics
 
         return $this->logHit(self::ITEM_PAGE_HIT, implode(' ', [
             $item->getId(),
-            $item->get('archive') ? 0 : 1,
             $item->isInStock() ? 1 : 0
         ]));
     }
@@ -154,10 +153,9 @@ class Analytics extends \SNOWGIRL_CORE\Analytics
 
         $isOk = $this->walkFile(self::ITEM_PAGE_HIT, function ($tmp) use (&$counts) {
             $id = $tmp[0];
-            $isActive = 1 == $tmp[1];
-            $isInStock = 1 == $tmp[2];
+            $isInStock = 1 == $tmp[1];
 
-            if ($isActive && $isInStock) {
+            if ($isInStock) {
                 if (!isset($counts[$id])) {
                     $counts[$id] = 0;
                 }

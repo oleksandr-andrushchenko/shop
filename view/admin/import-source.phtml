@@ -10,7 +10,6 @@ use SNOWGIRL_SHOP\Entity\Import\History as ImportSourceHistory;
 /** @var View $this */
 /** @var ImportSource $source */
 /** @var Vendor $vendor */
-/** @var Vendor $vendor */
 /** @var ImportSourceHistory $lastImport */
 $source = $this->source;
 $lastImport = $this->lastImport;
@@ -186,21 +185,9 @@ $this->getLayout()
                                         <option
                                                 value="<?php echo $vendor->getId() ?>"<?php echo $vendor->getId() == $this->vendorId ? ' selected' : '' ?>>
                                             <?php echo $vendor->getName() ?>
-                                        </option>
-                                    <?php } ?>
-                                </select></label>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label for="<?php echo $tmp = 'type' ?>"
-                               class="col-md-2 control-label">Тип*</label>
-
-                        <div class="col-md-10">
-                            <label><select name="<?php echo $tmp ?>" id="<?php echo $tmp ?>"
-                                           class="form-control">
-                                    <?php foreach ($this->sourceTypes as $label => $value) { ?>
-                                        <option value="<?php echo $value ?>">
-                                            <?php echo $label ?>
+                                            <?php if ($vendor->isFake()) { ?>
+                                                *fake
+                                            <?php } ?>
                                         </option>
                                     <?php } ?>
                                 </select></label>

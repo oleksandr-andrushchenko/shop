@@ -19,7 +19,6 @@ use SNOWGIRL_SHOP\Manager\Item\IndexerHelper;
 use SNOWGIRL_SHOP\Manager\Page\Catalog as PageCatalogManager;
 
 use SNOWGIRL_SHOP\Entity\Item as ItemEntity;
-use SNOWGIRL_SHOP\Entity\Item\Archive as ItemArchiveEntity;
 use SNOWGIRL_SHOP\Entity\Tag as TagEntity;
 use SNOWGIRL_SHOP\Entity\Material as MaterialEntity;
 use SNOWGIRL_SHOP\Entity\Brand as BrandEntity;
@@ -73,7 +72,7 @@ class Item extends Manager implements GoLinkBuilderInterface
             [CategoryEntity::class, TagEntity::class],
             [CategoryEntity::class, MaterialEntity::class],
             [CategoryEntity::class, ColorEntity::class],
-            [BrandEntity::class]
+            [BrandEntity::class],
         ];
 
         $components = PageCatalogManager::getComponentsOrderByDbKey();
@@ -144,7 +143,7 @@ class Item extends Manager implements GoLinkBuilderInterface
     protected function getProviderClasses(): array
     {
         return [
-            self::class
+            self::class,
         ];
     }
 
@@ -245,44 +244,38 @@ class Item extends Manager implements GoLinkBuilderInterface
             }, ARRAY_FILTER_USE_KEY);
         }
 
-        if ($item->get('archive')) {
-            $output = array_filter($item->getVars(), function ($attr) use ($mva) {
-                return isset($mva[$attr]);
-            }, ARRAY_FILTER_USE_KEY);
-        } else {
-            $key = $this->getMvaCacheKey($item, array_keys($mva));
+        $key = $this->getMvaCacheKey($item, array_keys($mva));
 
-            if (!$this->getCache()->has($key, $output)) {
-                $pk = $this->entity->getPk();
-                $table = $this->entity->getTable();
+        if (!$this->getCache()->has($key, $output)) {
+            $pk = $this->entity->getPk();
+            $table = $this->entity->getTable();
 
-                $db = $this->app->container->db($this->masterServices);
+            $db = $this->app->container->db($this->masterServices);
 
-                $columns = [];
-                $joins = [];
-                $where = [new Expression($db->quote($pk, $table) . ' = ?', $item->getId())];
+            $columns = [];
+            $joins = [];
+            $where = [new Expression($db->quote($pk, $table) . ' = ?', $item->getId())];
 
-                foreach ($mva as $attrPk => $attrEntity) {
-                    /** @var Entity $attrEntity */
+            foreach ($mva as $attrPk => $attrEntity) {
+                /** @var Entity $attrEntity */
 
-                    /** @var Entity $entity */
-                    $table2 = 'item_' . $attrEntity::getTable();
-                    $joins[] = 'LEFT JOIN ' . $db->quote($table2) . ' ON ' . $db->quote($pk, $table) . ' = ' . $db->quote('item_id', $table2);
-                    $columns[] = new Expression('GROUP_CONCAT(DISTINCT ' . $db->quote($attrPk) . ') AS ' . $db->quote($attrPk));
-                }
-
-                $query = new Query(['params' => []]);
-                $query->text = implode(' ', [
-                    $db->makeSelectSQL($columns, false, $query->params),
-                    $db->makeFromSQL($table),
-                    implode(' ', $joins),
-                    $db->makeWhereSQL($where, $query->params)
-                ]);
-
-                $output = $db->reqToArray($query);
-
-                $this->getCache()->set($key, $output);
+                /** @var Entity $entity */
+                $table2 = 'item_' . $attrEntity::getTable();
+                $joins[] = 'LEFT JOIN ' . $db->quote($table2) . ' ON ' . $db->quote($pk, $table) . ' = ' . $db->quote('item_id', $table2);
+                $columns[] = new Expression('GROUP_CONCAT(DISTINCT ' . $db->quote($attrPk) . ') AS ' . $db->quote($attrPk));
             }
+
+            $query = new Query(['params' => []]);
+            $query->text = implode(' ', [
+                $db->makeSelectSQL($columns, false, $query->params),
+                $db->makeFromSQL($table),
+                implode(' ', $joins),
+                $db->makeWhereSQL($where, $query->params, null, $query->placeholders),
+            ]);
+
+            $output = $db->reqToArray($query);
+
+            $this->getCache()->set($key, $output);
         }
 
         $tmp = array_map(function ($attrId) {
@@ -428,7 +421,7 @@ class Item extends Manager implements GoLinkBuilderInterface
                 $uri->getParamsByTypes('filter'),
 //                $this->getPriceRanges()
             ])),
-            'price-range'
+            'price-range',
         ]);
     }
 
@@ -452,7 +445,7 @@ class Item extends Manager implements GoLinkBuilderInterface
                         $items[] = (object) [
                             'from' => (int) $tmp2[1],
                             'to' => (int) $tmp2[2],
-                            'cnt' => $row['cnt']
+                            'cnt' => $row['cnt'],
                         ];
                     }
                 }
@@ -478,15 +471,14 @@ class Item extends Manager implements GoLinkBuilderInterface
             $this->entity->getTable(),
             md5(serialize([
                 $this->getParams(),
-                $uri->getParamsByTypes('filter')
+                $uri->getParamsByTypes('filter'),
             ])),
-            'ids'
+            'ids',
         ]);
     }
 
     /**
      * Keep category and types (in links)
-     *
      * @param URI $uri
      * @return array|bool|mixed
      */
@@ -527,7 +519,7 @@ class Item extends Manager implements GoLinkBuilderInterface
                     $output[$type] = (object) [
                         'name' => $type,
                         'count' => $count,
-                        'active' => !!$uri->get($type)
+                        'active' => !!$uri->get($type),
                     ];
                 }
             }
@@ -559,10 +551,10 @@ class Item extends Manager implements GoLinkBuilderInterface
             'FROM (',
             'SELECT ' . implode(', ', array_merge($columns, ['@n := IF(@g = ' . $db->quote($groupColumn) . ', @n + 1, 1) AS ' . $db->quote('n'), '@g := ' . $db->quote($groupColumn)])),
             'FROM ' . implode(', ', [$db->quote($table), '(SELECT @n := 0, @g := 0) ' . $db->quote('t')]),
-            $db->makeWhereSQL($where, $query->params),
+            $db->makeWhereSQL($where, $query->params, null, $query->placeholders),
             $db->makeOrderSQL([$groupColumn => SORT_ASC, 'created_at' => SORT_DESC, 'partner_updated_at' => SORT_DESC], $query->params),
             ') ' . $db->quote('t2'),
-            $db->makeWhereSQL(new Expression($db->quote('n') . ' < ?', $countPerGroup + 1), $query->params)
+            $db->makeWhereSQL(new Expression($db->quote('n') . ' < ?', $countPerGroup + 1), $query->params, null, $query->placeholders),
         ]);
 
         $output = [];
@@ -647,19 +639,34 @@ class Item extends Manager implements GoLinkBuilderInterface
         return $vendor;
     }
 
+    public function findVendor(ItemEntity $item): ?VendorEntity
+    {
+        $vendor = $this->getVendor($item);
+
+        while ($vendor && $vendor->isFake()) {
+            $vendor = $this->app->managers->vendors->find($vendor->getTargetVendorId());
+        }
+
+        if ($vendor) {
+            return $vendor;
+        }
+
+        return $this->app->managers->vendors->findFallback();
+    }
+
     public function getGoLink(Entity $entity, $source = null)
     {
         return $this->app->router->makeLink('default', [
             'action' => 'go',
             'type' => 'item',
             'id' => $entity->getId(),
-            'source' => $source
+            'source' => $source,
         ]);
     }
 
     public function getLink(Entity $entity, array $params = [], $domain = false)
     {
-        /** @var ItemEntity|ItemArchiveEntity $entity */
+        /** @var ItemEntity $entity */
         $params['uri'] = ItemURI::buildPath($entity->get('name'), $entity->getId());
 
         return $this->app->router->makeLink('item', $params, $domain);

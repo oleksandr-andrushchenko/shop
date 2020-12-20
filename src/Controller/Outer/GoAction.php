@@ -27,56 +27,50 @@ class GoAction
             throw (new BadRequestHttpException)->setInvalidParam('id');
         }
 
+        $holder = null;
+
         if ('item' == $type) {
-            if (!$holder = $app->managers->items->find($id)) {
-                if ($archive = $app->managers->archiveItems->find($id)) {
-                    $app->views->getLayout()
-                        ->addMessage(implode(' ', [
-                            'Товар снят с продажи, извините за неудобства.',
-                            'Пожалуйста, обратите внимание на похожие модели',
-                        ]), Layout::MESSAGE_WARNING);
-
-                    $app->request->redirect($app->managers->items->getLink($archive), 301);
-                } elseif ($idTo = $app->managers->itemRedirects->getByIdFrom($id)) {
-                    if ($itemTo = $app->managers->items->find($idTo)) {
-                        $app->request->redirect($app->managers->items->getLink($itemTo), 301);
+            if ($holder = $app->managers->items->find($id)) {
+                if ($vendor = $app->managers->items->getVendor($holder)) {
+                    if ($vendor->isFake()) {
+                        if ($targetVendor = $app->managers->vendors->find($vendor->getTargetVendorId())) {
+                            $app->request->redirect($app->managers->vendors->getGoLink($targetVendor), 301);
+                        } else {
+                            $holder = null;
+                        }
                     }
-
-                    throw (new NotFoundHttpException)->setNonExisting('item');
                 } else {
-                    throw (new NotFoundHttpException)->setNonExisting('item');
+                    $holder = null;
+                }
+            } elseif ($idTo = $app->managers->itemRedirects->getByIdFrom($id)) {
+                if ($itemTo = $app->managers->items->find($idTo)) {
+                    $app->request->redirect($app->managers->items->getGoLink($itemTo), 301);
                 }
             }
         } elseif ('shop' == $type) {
-            if (!$holder = $app->managers->vendors->find($id)) {
-                throw (new NotFoundHttpException)->setNonExisting('vendor');
-            }
-
-            if (!$holder->isActive()) {
-                $app->views->getLayout()
-                    ->addMessage(implode(' ', [
-                        'Магазин более не доступен, извините за неудобства.',
-                        'Пожалуйста, обратите внимание на другие магазины',
-                    ]), Layout::MESSAGE_WARNING);
-
-                $app->request->redirect($app->router->makeLink('default', ['action' => 'shops']), 301);
+            if ($holder = $app->managers->vendors->find($id)) {
+                if ($holder->isFake()) {
+                    if ($targetVendor = $app->managers->vendors->find($holder->getTargetVendorId())) {
+                        $app->request->redirect($app->managers->vendors->getGoLink($targetVendor), 301);
+                    } else {
+                        $holder = null;
+                    }
+                }
             }
         } elseif ('stock' == $type) {
-            if (!$holder = $app->managers->stock->find($id)) {
-                throw (new NotFoundHttpException)->setNonExisting('stock');
+            if ($holder = $app->managers->stock->find($id)) {
+                if (!$holder->isActive()) {
+                    $holder = null;
+                }
             }
+        }
 
-            if (!$holder->isActive()) {
-                $app->views->getLayout()
-                    ->addMessage(implode(' ', [
-                        'Акция более не доступна, извините за неудобства.',
-                        'Пожалуйста, обратите внимание на другие акционные предложения',
-                    ]), Layout::MESSAGE_WARNING);
-
-                $app->request->redirect($app->router->makeLink('default', ['action' => 'stock']), 301);
+        if (!$holder) {
+            if ($fallbackVendor = $app->managers->vendors->findFallback()) {
+                $holder = $fallbackVendor;
+            } else {
+                throw new NotFoundHttpException('fallback vendor has not been found');
             }
-        } else {
-            throw (new NotFoundHttpException)->setNonExisting('type');
         }
 
         if ($app->configMaster) {
@@ -99,14 +93,10 @@ class GoAction
          */
 
         if (!$link = $holder->getPartnerLink()) {
-            if (('shop' == $type) && ($fallbackVendor = $app->config('catalog.fallback_vendor'))) {
-                if ($holder->getId() != $fallbackVendor) {
-                    $vendor = $app->managers->vendors->find($fallbackVendor);
-
-                    if ($vendor) {
-                        $link = $vendor->getPartnerLink();
-                    }
-                }
+            if ($fallbackVendor = $app->managers->vendors->findFallback()) {
+                $link = $fallbackVendor->getPartnerLink();
+            } else {
+                throw new NotFoundHttpException('fallback vendor has not been found');
             }
 
             if (!$link) {

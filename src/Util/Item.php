@@ -17,9 +17,7 @@ use SNOWGIRL_SHOP\Entity\Item as ItemEntity;
 use SNOWGIRL_SHOP\Item\FixWhere;
 use SNOWGIRL_SHOP\Item\URI as ItemUri;
 use SNOWGIRL_SHOP\Entity\Brand;
-use SNOWGIRL_CORE\Helper\Arrays;
 use SNOWGIRL_SHOP\Manager\Item\Attr as ItemAttrManager;
-use SNOWGIRL_SHOP\Entity\Item\Archive as ItemArchive;
 use SNOWGIRL_SHOP\Manager\Item\IndexerHelper;
 use Throwable;
 
@@ -34,14 +32,12 @@ class Item extends Util
      * @var IndexerHelper
      */
     private $indexerHelper;
-    private $inStockOnly;
 
     protected function initialize()
     {
         parent::initialize();
 
         $this->indexerHelper = new IndexerHelper();
-        $this->inStockOnly = !!$this->app->configMasterOrOwn('catalog.in_stock_only', false);
     }
 
     public function doFixSeoNames()
@@ -206,7 +202,7 @@ class Item extends Util
             'DELETE ' . $db->quote($it),
             'FROM ' . $db->quote($it),
             'LEFT JOIN ' . $db->quote($ct) . ' ON ' . $db->quote($ck, $ct) . ' = ' . $db->quote($ck, $it),
-            $db->makeWhereSQL($where, $query->params),
+            $db->makeWhereSQL($where, $query->params, null, $query->placeholders),
         ]);
 
         return $this->app->container->db->req($query)->affectedRows();
@@ -228,7 +224,7 @@ class Item extends Util
             'DELETE ' . $db->quote($it),
             'FROM ' . $db->quote($it),
             'LEFT JOIN ' . $db->quote($bt) . ' ON ' . $db->quote($bk, $bt) . ' = ' . $db->quote($bk, $it),
-            $db->makeWhereSQL($where, $query->params),
+            $db->makeWhereSQL($where, $query->params, null, $query->placeholders),
         ]);
 
         return $this->app->container->db->req($query)->affectedRows();
@@ -263,253 +259,6 @@ class Item extends Util
         return $aff;
     }
 
-    protected $archiveIgnore = [
-        'rating',
-        'is_active',
-
-//        'order_desc_relevance',
-//        'order_desc_rating',
-//        'order_asc_price',
-//        'order_desc_price'
-    ];
-
-    public function doCreateArchiveTable()
-    {
-        $db = $this->app->container->db;
-
-        $itemTable = $this->app->managers->items->getEntity()->getTable();
-        $showCreate = $db->getManager()->showCreateTable($itemTable, true);
-
-        foreach ($this->archiveIgnore as $column) {
-            $showCreate = preg_replace('/' . $db->quote($column) . ' [^\,]+\,/', '', $showCreate);
-        }
-
-        $showCreate = preg_replace('/[\r\n]  (UNIQUE )?KEY `[^`]+` \([^\(]+\),?/', '', $showCreate);
-        $showCreate = preg_replace('/ COMMENT=\'[^\']+\'/', '', $showCreate);
-
-        $showCreate = str_replace($db->quote($itemTable), $db->quote(ItemEntity\Archive::getTable()), $showCreate);
-
-        $mva = [];
-
-        foreach ($this->app->managers->catalog->getMvaComponents() as $entity) {
-            $mva[] = $db->quote($entity::getPk()) . ' VARCHAR(128) DEFAULT NULL';
-        }
-
-        $mva = implode(",\r\n", $mva);
-
-        $showCreate = str_replace('), ENGINE=', '), ' . $mva . ') ENGINE=', $showCreate);
-
-        $db->req($showCreate);
-
-        return true;
-    }
-
-    public function doInArchiveTransfer(array $where): int
-    {
-        $aff = 0;
-
-        $this->doCreateArchiveTable();
-
-        $db = $this->app->container->db;
-
-        $itemTable = $this->app->managers->items->getEntity()->getTable();
-        $itemPk = $this->app->managers->items->getEntity()->getPk();
-
-        $archiveTable = $this->app->managers->archiveItems->getEntity()->getTable();
-        $archiveColumns = $db->getManager()->getColumns($archiveTable);
-
-        $mva = $this->app->managers->catalog->getMvaPkToTable();
-        $mva['image_id'] = 'image';
-
-        $query = new Query(['params' => []]);
-        $query->text = implode(' ', [
-            'INSERT IGNORE INTO',
-            $db->quote($archiveTable),
-            '(' . implode(', ', array_map(function ($column) use ($db) {
-                return $db->quote($column);
-            }, $archiveColumns)) . ')',
-            'SELECT ' . implode(', ', array_map(function ($column) use ($db, $mva, $itemTable) {
-                if (isset($mva[$column])) {
-                    $table = 'item_' . $mva[$column];
-                    return 'GROUP_CONCAT(' . $db->quote($column, $table) . ')';
-                }
-
-                if ('is_in_stock' == $column) {
-                    return 0;
-                }
-
-                return $db->quote($column, $itemTable);
-            }, $archiveColumns)),
-            'FROM ' . $db->quote($itemTable),
-            implode(' ', array_map(function ($table) use ($db, $itemTable, $itemPk) {
-                $table = 'item_' . $table;
-                return 'LEFT JOIN ' . $db->quote($table) . ' ON' . $db->quote($itemPk, $itemTable) . ' = ' . $db->quote($itemPk, $table);
-            }, $mva)),
-            $db->makeWhereSQL($where, $query->params, $itemTable),
-            $db->makeGroupSQL($itemPk, $query->params, $itemTable),
-        ]);
-
-        $affTmp = $db->req($query)->affectedRows();
-        $this->output('Copied to item_archive: ' . $affTmp);
-
-        $aff += $affTmp;
-
-        foreach ($mva as $pk => $table) {
-            $table = 'item_' . $table;
-
-            $query = new Query(['params' => []]);
-            $query->text = implode(' ', [
-                'DELETE ' . $db->quote($table),
-                'FROM ' . $db->quote($table),
-                'INNER JOIN ' . $db->quote($itemTable) . ' USING(' . $db->quote($itemPk) . ')',
-                $db->makeWhereSQL($where, $query->params, $itemTable),
-            ]);
-
-            $affTmp = $db->req($query)->affectedRows();
-            $this->output('Deleted from ' . $table . ': ' . $affTmp);
-
-            $aff += $affTmp;
-        }
-
-        $affTmp = $this->app->managers->items->deleteMany($where);
-        $this->output('Deleted from item: ' . $affTmp);
-
-        $aff += $affTmp;
-
-        return $aff;
-    }
-
-    public function doOutArchiveTransfer(array $where): int
-    {
-        $aff = 0;
-
-        $db = $this->app->container->db;
-
-        $itemTable = $this->app->managers->items->getEntity()->getTable();
-        $itemPk = $this->app->managers->items->getEntity()->getPk();
-
-        $archiveTable = $this->app->managers->archiveItems->getEntity()->getTable();
-        $archiveColumns = $db->getManager()->getColumns($archiveTable);
-
-        $mva = $this->app->managers->catalog->getMvaPkToTable();
-        $mva['image_id'] = 'image';
-
-        $tmpArchiveColumns = array_diff($archiveColumns, array_keys($mva));
-
-        $query = new Query(['params' => []]);
-        $query->text = implode(' ', [
-            'INSERT IGNORE INTO',
-            $db->quote($itemTable) . ' (' . implode(', ', array_map(function ($column) use ($db) {
-                return $db->quote($column);
-            }, $tmpArchiveColumns)) . ')',
-            '(',
-            'SELECT ' . implode(', ', array_map(function ($column) use ($db) {
-                if ('is_in_stock' == $column) {
-                    return 0;
-                }
-
-                return $db->quote($column);
-            }, $tmpArchiveColumns)),
-            'FROM ' . $db->quote($archiveTable),
-            $db->makeWhereSQL($where, $query->params),
-            ')',
-        ]);
-
-        $affTmp = $db->req($query)->affectedRows();
-        $this->output('Copied to item: ' . $affTmp);
-
-        $aff += $affTmp;
-
-        $db->getManager()->dropTable('numbers');
-        $db->getManager()->createTable('numbers', [
-            ($qv = $db->quote('value')) . ' TINYINT(1) UNSIGNED NOT NULL',
-            'PRIMARY KEY (' . $qv . ')',
-        ], 'MyISAM');
-
-        $db->insertMany('numbers', array_map(function ($value) {
-            return ['value' => $value];
-        }, range(1, 5)));
-
-        foreach ($mva as $pk => $table) {
-            $affTmp = $db->req(implode(' ', [
-                'INSERT IGNORE INTO',
-                $db->quote('item_' . $table),
-                '(' . $db->quote($itemPk) . ', ' . $db->quote($pk) . ')',
-                'SELECT ' . $db->quote($itemPk) . ', SUBSTRING_INDEX(SUBSTRING_INDEX(' . $db->quote($pk) . ', \',\', ' . $db->quote('value') . '), \',\', -1)',
-                'FROM ' . $db->quote('numbers'),
-                'INNER JOIN ' . $db->quote($archiveTable) . ' ON CHAR_LENGTH(' . $db->quote($pk) . ') - CHAR_LENGTH(REPLACE(' . $db->quote($pk) . ', \',\', \'\')) >= ' . $db->quote('value') . ' - 1',
-                'ORDER BY ' . $db->quote($itemPk) . ', ' . $db->quote($pk),
-            ]))->affectedRows();
-            $this->output('Copied to item_' . $table . ': ' . $affTmp);
-
-            $aff += $affTmp;
-        }
-
-        $affTmp = $this->app->managers->archiveItems->deleteMany($where);
-        $this->output('Deleted from item_archive: ' . $affTmp);
-
-        $aff += $affTmp;
-
-        return $aff;
-    }
-
-    public function doFixArchiveMvaValues()
-    {
-        $aff = 0;
-
-        $entity = $this->app->managers->archiveItems->getEntity();
-
-        $itemPk = $entity->getPk();
-
-        $mva = $this->app->managers->catalog->getMvaPkToTable();
-
-        $mvaIds = [];
-
-        foreach ($mva as $pk => $table) {
-            $mvaIds[$pk] = $this->app->managers->getByTable($table)->getList();
-        }
-
-        $mysql = $this->app->container->db;
-
-        (new WalkChunk2(1000))
-            ->setFnGet(function ($lastId, $size) use ($mysql, $itemPk) {
-                $where = [];
-
-                if ($lastId) {
-                    $where[] = new Expression($mysql->quote($itemPk) . ' > ?', $lastId);
-                }
-
-                return $this->app->managers->archiveItems
-                    ->setWhere($where)
-                    ->setOrders([$itemPk => SORT_ASC])
-                    ->setLimit($size)
-                    ->getObjects();
-            })
-            ->setFnDo(function ($items) use ($itemPk, $mva, $mvaIds, &$aff) {
-                /** @var ItemArchive[] $items */
-
-                foreach ($items as $item) {
-                    foreach ($mva as $pk => $table) {
-                        $ids = explode(',', $item->get($pk));
-                        $ids = array_map('intval', $ids);
-                        $ids = array_unique($ids);
-                        $possibleIds = $mvaIds[$pk];
-                        $ids = array_filter($ids, function ($id) use ($possibleIds) {
-                            return $id && in_array($id, $possibleIds);
-                        });
-                        $item->set($pk, $ids ? implode(',', $ids) : null);
-                    }
-
-                    $aff += $this->app->managers->archiveItems->updateOne($item) ? 1 : 0;
-                }
-
-                return isset($item) ? $item->getId() : false;
-            })
-            ->run();
-
-        return $aff;
-    }
-
     /**
      * @return bool
      */
@@ -521,27 +270,6 @@ class Item extends Util
 
         foreach ($this->app->managers->sources->getObjects() as $source) {
             $aff += $this->app->managers->items->updateMany(
-                ['import_source_id' => $source->getId()],
-                ['vendor_id' => $source->getVendorId()]
-            );
-        }
-
-        $this->output('DONE[aff=' . $aff . ']');
-
-        return true;
-    }
-
-    /**
-     * @return bool
-     */
-    public function doAddArchiveImportSourceId()
-    {
-        $aff = 0;
-
-        $this->output('archive items total count: ' . $this->app->managers->archiveItems->getCount());
-
-        foreach ($this->app->managers->sources->getObjects() as $source) {
-            $aff += $this->app->managers->archiveItems->updateMany(
                 ['import_source_id' => $source->getId()],
                 ['vendor_id' => $source->getVendorId()]
             );
@@ -811,10 +539,6 @@ class Item extends Util
 //            'order_desc_price' => 'integer'
         ];
 
-        if (!$this->inStockOnly) {
-            $properties['is_in_stock'] = 'boolean';
-        }
-
         foreach ($this->getSearchColumns() as $column) {
             $properties[$column] = 'text';
             $properties[$column . '_length'] = 'short';
@@ -859,14 +583,10 @@ class Item extends Util
 
         $this->indexerHelper->prepareData($this->app);
 
-        $where = [];
+        $where = [
+            'is_in_stock' => 1,
+        ];
         $order = [];
-
-        if ($this->inStockOnly) {
-            $where['is_in_stock'] = 1;
-        } else {
-            $order['is_in_stock'] = SORT_DESC;
-        }
 
         $order = array_merge($order, [
             'partner_updated_at' => SORT_DESC,
@@ -912,7 +632,7 @@ class Item extends Util
                     $query->text = implode(' ', [
                         'SELECT *',
                         'FROM ' . $mysql->quote('item_' . $mvaTable),
-                        $mysql->makeWhereSQL($where, $query->params),
+                        $mysql->makeWhereSQL($where, $query->params, null, $query->placeholders),
                     ]);
 
                     foreach ($mysql->reqToArrays($query) as $row) {

@@ -3,7 +3,6 @@
 namespace SNOWGIRL_SHOP\Controller\Outer;
 
 use Elasticsearch\Common\Exceptions\Missing404Exception;
-use Exception;
 use SNOWGIRL_CORE\Controller\Outer\PrepareServicesTrait;
 use SNOWGIRL_CORE\Http\Exception\BadRequestHttpException;
 use SNOWGIRL_CORE\Http\Exception\MethodNotAllowedHttpException;
@@ -66,11 +65,7 @@ class CheckItemIsInStockAction
                     if ($app->managers->items->updateOne($item)) {
                         try {
                             // @todo create elastic upsert method
-                            if ($app->configMasterOrOwn('catalog.in_stock_only', false)) {
-                                $app->managers->items->deleteFromIndex($item);
-                            } else {
-                                $app->managers->items->addToIndex($item);
-                            }
+                            $app->managers->items->deleteFromIndex($item);
                         } catch (Missing404Exception $e) {
                             $app->container->logger->error($e);
                         }

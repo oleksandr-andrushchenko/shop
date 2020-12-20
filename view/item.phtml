@@ -39,11 +39,9 @@ $this->getLayout()
     ->addJsConfig('itemId', $item->getId())
     ->addJsConfig('vendorId', $vendor->getId())
     ->addJsConfig('vendorName', $vendorName)
-    ->addJsConfig('deviceDesktop', $this->deviceDesktop)
-    ->addJsConfig('typeOwn', $this->typeOwn)
-    ->addJsConfig('isArchive', !!$item->get('archive'))
-    ->addJsConfig('isInStockCheck', $this->inStockCheck)
-    ->addJsConfig('isInStock', $item->isInStock())
+    ->addJsConfig('deviceDesktop', $this->isDeviceDesktop)
+    ->addJsConfig('isInStockCheck', $this->isInStockCheck)
+    ->addJsConfig('isInStock', $this->isInStock)
     ->addJs('@shop/item.js');
 
 $sharer = $this->app->views->sharer($this)->stringify();
@@ -59,12 +57,12 @@ $attrToName = [
     'country_id' => 'Производитель',
 ];
 
-if ((!$item->get('archive')) && $item->isInStock()) {
+if ($this->isInStock) {
     $attrToName['vendor_id'] = 'Магазин';
 }
 ?>
 
-<div class="row vs<?php echo $this->typeOwn ? ' type-own' : '' ?>" itemscope itemtype="http://schema.org/Product">
+<div class="row vs<" itemscope itemtype="http://schema.org/Product">
     <h1 class="col-xs-12 vs title item-name" itemprop="name">
         <?php echo htmlspecialchars($this->h1) ?>
         <?php echo $id = $item->getPartnerItemId() ?>
@@ -103,10 +101,6 @@ if ((!$item->get('archive')) && $item->isInStock()) {
                 <span class="lab item-discount"><?php echo $v ?></span>
             <?php } ?>
 
-            <?php if ($item->get('archive')) { ?>
-                <span class="lab item-inactive"></span>
-            <?php } ?>
-
             <div class="item-image-zoom easyzoom easyzoom--overlay">
                 <a href="<?php echo $this->app->images->getLinkByFile($item->getImage()) ?>">
                     <?php echo $this->app->views->image($item->getImage(), Images::FORMAT_NONE, 0, [
@@ -136,88 +130,42 @@ if ((!$item->get('archive')) && $item->isInStock()) {
             </div>
 
             <div class="item-buttons">
-                <?php if ($item->get('archive')) { ?>
-                    <span class="btn btn-lg btn-inactive"></span>
-
-                    <?php if ($this->fallbackActiveVendor) { ?>
-                        <a href="<?php echo $this->app->managers->vendors->getGoLink($this->fallbackActiveVendor) ?>"
-                           class="btn btn-lg btn-primary btn-details" target="_blank" rel="nofollow">
-                            <span class="fa fa-sign-in"></span>
-                            В магазин
-                        </a>
-                    <?php } ?>
-                <?php } elseif ($this->typeOwn) { ?>
-                    <?php if (isset($this->attrs['size_id']) && $this->attrs['size_id']) { ?>
-                        <span class="item-cart-sizes">
-                                <?php echo $this->noIndexOpen() ?>Размер<?php echo $this->noIndexClose() ?>
-                            <?php foreach ($this->attrs['size_id'] as $i => $size) { ?>
-                                <button type="button" class="btn btn-default btn-size"
-                                        data-id="<?php echo $size->getId() ?>">
-                                        <?php echo $size->getName() ?>
-                                    </button>
-                            <?php } ?>
-                            </span>
-                    <?php } ?>
-
-                    <span class="item-cart-quantity">
-                            <?php echo $this->noIndexOpen() ?>Количество<?php echo $this->noIndexClose() ?>
-                            <button type="button" class="btn btn-default btn-quantity-dec" disabled>-</button>
-                            <?php echo $this->noIndexOpen() ?>
-                            <span class="inp-quantity-value">1</span>
-                            <?php echo $this->noIndexClose() ?>
-                            <button type="button" class="btn btn-default btn-quantity-inc">+</button>
-                        </span>
-
-                    <span class="item-cart-buttons">
-                            <button type="button" class="btn btn-lg btn-primary btn-add-to-cart">В корзину</button>
-                        </span>
+                <?php if ($buyButtonShowed = $this->isOutOfStockBuyButton || $this->isInStock) { ?>
+                    <a href="<?php echo $this->app->managers->items->getGoLink($item) ?>"
+                       class="btn btn-lg btn-primary btn-buy" target="_blank"
+                       rel="nofollow">
+                        Купить
+                    </a>
                 <?php } else { ?>
-                    <?php if ($this->replacedActiveVendor || ($vendor && $vendor->isActive())) { ?>
-                        <?php if ($vendor->isActive() && ($this->outOfStockBuyButton || $item->isInStock())) { ?>
-                            <a href="<?php echo $this->app->managers->items->getGoLink($item) ?>"
-                               class="btn btn-lg btn-primary btn-buy" target="_blank"
-                               rel="nofollow">
-                                <span class="fa fa-shopping-basket"></span>
-                                Купить
-                            </a>
-                        <?php } else { ?>
-                            <span class="btn btn-lg btn-out-of-stock"></span>
-                        <?php } ?>
-
-                        <a href="<?php echo $this->app->managers->vendors->getGoLink($this->replacedActiveVendor ?: $vendor) ?>"
-                           class="btn btn-lg btn-default btn-details" target="_blank" rel="nofollow">
-                            <span class="fa fa-sign-in"></span>
-                            В магазин
-                        </a>
-                    <?php } else { ?>
-                        <span class="btn btn-lg btn-out-of-stock"></span>
-                    <?php } ?>
+                    <span class="btn btn-lg btn-out-of-stock"></span>
                 <?php } ?>
 
+                <a href="<?php echo $this->app->managers->vendors->getGoLink($vendor) ?>"
+                   class="btn btn-lg btn-<?php echo $buyButtonShowed ? 'default' : 'primary' ?> btn-details" target="_blank" rel="nofollow">
+                    В магазин
+                </a>
+
                 <button type="button" class="btn btn-lg btn-default btn-related">
-                    <span class="fa fa-lightbulb-o"></span>
                     Похожие
                 </button>
             </div>
 
-            <?php if (!$this->typeOwn && !$this->replacedActiveVendor && $vendor->isActive()) { ?>
-                <div class="item-vendor">
-                    Товар продает &mdash;
-                    <a href="<?php echo $this->app->managers->vendors->getGoLink($vendor) ?>"
-                       rel="nofollow" target="_blank">
-                        <?php if ($vendorImage = $vendor->getImage()) { ?>
-                            <?php echo $this->app->views->getImage($vendorImage, Images::FORMAT_HEIGHT, 50, [
-                                'alt' => $vendor->getName(),
-                                'title' => 'Предоставляет ' . $vendor->getName(),
-                                'height' => 40,
-                                'width' => false,
-                            ]) ?>
-                        <?php } else { ?>
-                            <?php echo $vendorName ?>
-                        <?php } ?>
-                    </a>
-                </div>
-            <?php } ?>
+            <div class="item-vendor">
+                Товар продает &mdash;
+                <a href="<?php echo $this->app->managers->vendors->getGoLink($vendor) ?>"
+                   rel="nofollow" target="_blank">
+                    <?php if ($vendorImage = $vendor->getImage()) { ?>
+                        <?php echo $this->app->views->getImage($vendorImage, Images::FORMAT_HEIGHT, 50, [
+                            'alt' => $vendor->getName(),
+                            'title' => 'Предоставляет ' . $vendor->getName(),
+                            'height' => 40,
+                            'width' => false,
+                        ]) ?>
+                    <?php } else { ?>
+                        <?php echo $vendorName ?>
+                    <?php } ?>
+                </a>
+            </div>
         </div>
         <div class="item-description">
             <?php if ($description = $item->getDescription()) { ?>

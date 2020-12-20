@@ -264,7 +264,6 @@ CREATE TABLE `import_source` (
   `delivery_notes` text DEFAULT NULL,
   `sales_notes` text DEFAULT NULL,
   `tech_notes` text DEFAULT NULL,
-  `type` tinyint(1) unsigned NOT NULL DEFAULT 0,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NULL DEFAULT NULL ON UPDATE current_timestamp(),
   PRIMARY KEY (`import_source_id`),
@@ -309,45 +308,6 @@ CREATE TABLE `item` (
   KEY `ix_catalog_category_brand` (`is_sport`,`is_size_plus`,`category_id`,`brand_id`),
   KEY `ix_category_source_updated` (`category_id`,`import_source_id`,`partner_updated_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Страницы всех предложений';
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `item_archive`
---
-
-DROP TABLE IF EXISTS `item_archive`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `item_archive` (
-  `item_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `name` varchar(512) NOT NULL,
-  `partner_item_id` varchar(32) NOT NULL,
-  `partner_link` varchar(1024) DEFAULT NULL,
-  `partner_link_hash` varchar(32) NOT NULL,
-  `image` char(32) NOT NULL,
-  `price` decimal(8,2) DEFAULT NULL,
-  `old_price` decimal(8,2) DEFAULT NULL,
-  `entity` tinytext NOT NULL,
-  `description` text DEFAULT NULL,
-  `category_id` smallint(5) unsigned DEFAULT NULL,
-  `brand_id` smallint(5) unsigned DEFAULT NULL,
-  `country_id` tinyint(3) unsigned DEFAULT NULL,
-  `vendor_id` tinyint(3) unsigned DEFAULT NULL,
-  `is_sport` tinyint(1) unsigned NOT NULL DEFAULT 0,
-  `is_size_plus` tinyint(1) unsigned NOT NULL DEFAULT 0,
-  `is_in_stock` tinyint(1) unsigned NOT NULL DEFAULT 0,
-  `import_source_id` tinyint(3) unsigned NOT NULL,
-  `tag_id` varchar(128) DEFAULT NULL,
-  `color_id` varchar(128) DEFAULT NULL,
-  `material_id` varchar(128) DEFAULT NULL,
-  `size_id` varchar(128) DEFAULT NULL,
-  `season_id` varchar(128) DEFAULT NULL,
-  `image_id` varchar(164) DEFAULT NULL,
-  `partner_updated_at` int(5) unsigned NOT NULL,
-  `created_at` timestamp NOT NULL,
-  `updated_at` timestamp NULL DEFAULT NULL
-  PRIMARY KEY (`item_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -748,7 +708,7 @@ CREATE TABLE `vendor` (
   `image` char(32) DEFAULT NULL,
   `class_name` text DEFAULT NULL,
   `is_in_stock_check` tinyint(1) NOT NULL DEFAULT 0,
-  `is_active` tinyint(1) unsigned NOT NULL DEFAULT 0,
+  `target_vendor_id` tinyint(3) unsigned DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NULL DEFAULT NULL ON UPDATE current_timestamp(),
   PRIMARY KEY (`vendor_id`),

@@ -29,7 +29,8 @@ class Sitemap extends \SNOWGIRL_CORE\Util\Sitemap
         $output = array_merge(parent::getGenerators(), [
             'catalog_custom' => $this->getCatalogCustomGenerator(),
             'catalog' => $this->getCatalogGenerator(),
-            'items' => $this->getItemsGenerator()
+            'in_stock_items' => $this->getItemsGenerator(true),
+            'out_of_stock_items' => $this->getItemsGenerator(false),
         ]);
 
         if (isset($output['pages'])) {
@@ -48,7 +49,7 @@ class Sitemap extends \SNOWGIRL_CORE\Util\Sitemap
                 'brands' => '1.0',
                 'vendors' => '0.1',
                 'contacts' => '0.1',
-                'stock' => '1.0'
+                'stock' => '1.0',
             ];
 
             $pages = $this->app->managers->pages;
@@ -152,19 +153,17 @@ class Sitemap extends \SNOWGIRL_CORE\Util\Sitemap
         };
     }
 
-    protected function getItemsGenerator()
+    protected function getItemsGenerator(bool $inStock)
     {
-        return function (Generator $sitemap) {
+        return function (Generator $sitemap) use ($inStock) {
             $app = $this->app;
             $db = $app->container->db;
             $items = $app->managers->items->clear();
             $pk = $items->getEntity()->getPk();
 
-            $where = [];
-
-            if ($app->configMasterOrOwn('catalog.in_stock_only', false)) {
-                $where['is_in_stock'] = 1;
-            }
+            $where = [
+                'is_in_stock' => $inStock ? 1 : 0,
+            ];
 
             (new WalkChunk2(1000))
                 ->setFnGet(function ($lastId, $size) use ($db, $items, $pk, $where) {
@@ -173,18 +172,18 @@ class Sitemap extends \SNOWGIRL_CORE\Util\Sitemap
                     }
 
                     return $items
-                        ->setColumns([$pk, 'name', 'image', 'is_in_stock', 'brand_id', 'created_at', 'updated_at'])
+                        ->setColumns([$pk, 'name', 'image', 'brand_id', 'created_at', 'updated_at'])
                         ->setWhere($where)
                         ->setOrders([$pk => SORT_ASC])
                         ->setLimit($size)
                         ->getArrays();
                 })
-                ->setFnDo(function ($items) use ($sitemap, $pk) {
+                ->setFnDo(function ($items) use ($sitemap, $pk, $inStock) {
                     foreach ($items as $item) {
                         if (!in_array($item['brand_id'], $this->noIndexBrands)) {
                             $sitemap->add(
                                 '/' . $this->catalogUriPrefix . ItemURI::buildPath($item['name'], $item[$pk]),
-                                (1 == $item['is_in_stock']) ? '0.8' : '0.5',
+                                $inStock ? '0.9' : '0.8',
                                 'weekly',
                                 $this->getAddLastModParamByTimes($item['updated_at'], $item['created_at']),
                                 $this->getAddImageParam($item['image'], $item['name'])

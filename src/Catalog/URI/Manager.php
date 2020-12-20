@@ -314,7 +314,7 @@ class Manager
                         $this->db->quote($componentsTableToPk[$table]) . ' AS ' . $this->db->quote('id')
                     ])), false, $req->params),
                     $this->db->makeFromSQL($table),
-                    $this->db->makeWhereSQL($where, $req->params)
+                    $this->db->makeWhereSQL($where, $req->params, null, $req->placeholders)
                 ]);
             }, $table)) . ') AS ' . $this->db->quote('t') . ' GROUP BY ' . $this->db->quote('uri');
 

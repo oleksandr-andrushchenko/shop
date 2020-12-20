@@ -22,16 +22,7 @@ class SRC
 
     private static function getById(int $id, Managers $managers): ?Item
     {
-        if (!$item = $managers->items->find($id)) {
-            if (!$archive = $managers->archiveItems->find($id)) {
-                return null;
-            }
-
-            $item = new Item($archive->getAttrs());
-            $item->set('archive', true);
-        }
-
-        return $item;
+        return $managers->items->find($id);
     }
 
     public function getItem(): ?Item

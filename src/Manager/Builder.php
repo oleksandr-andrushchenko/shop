@@ -14,7 +14,6 @@ use SNOWGIRL_SHOP\Manager\Item\Material as ItemToMaterial;
 use SNOWGIRL_SHOP\Manager\Item\Tag as ItemToTag;
 use SNOWGIRL_SHOP\Manager\Item\Season as ItemToSeason;
 use SNOWGIRL_SHOP\Manager\Item\Attr as ItemAttr;
-use SNOWGIRL_SHOP\Manager\Item\Archive as ItemArchive;
 use SNOWGIRL_SHOP\Manager\Item\Redirect as ItemRedirect;
 use SNOWGIRL_SHOP\Manager\Import\History as ImportHistory;
 use SNOWGIRL_SHOP\Manager\Item\Image as ItemImage;
@@ -43,7 +42,6 @@ use SNOWGIRL_SHOP\Manager\Item\Image as ItemImage;
  * @property ItemToTag         itemsToTags
  * @property ItemToSeason      itemsToSeasons
  * @property Stock             stock
- * @property ItemArchive       archiveItems
  * @property ItemRedirect      itemRedirects
  * @property ImportHistory     importHistory
  * @property ItemImage         itemImages
@@ -99,8 +97,6 @@ class Builder extends \SNOWGIRL_CORE\Manager\Builder
                 return $this->get(ItemToSeason::class);
             case 'stock':
                 return $this->get(Stock::class);
-            case 'archiveItems':
-                return $this->get(ItemArchive::class);
             case 'itemRedirects':
                 return $this->get(ItemRedirect::class);
             case 'itemImages':

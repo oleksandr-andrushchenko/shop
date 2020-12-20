@@ -19,16 +19,6 @@ snowgirlApp.prototype.initArgs = function () {
     this.btnDetailsSelector = this.btnsSelector + ' .btn-details';
     this.btnBuySelector = this.btnsSelector + ' .btn-buy';
     this.relatedSelector = '.related-items';
-
-    if (this.core.getConfig('typeOwn', false)) {
-        this.typeOwnSelector = '.type-own';
-        this.btnCartSizeSelector = this.typeOwnSelector + ' .item-cart-sizes .btn-size';
-        var tmp = this.typeOwnSelector + ' .item-cart-quantity';
-        this.btnCartQuantityDecSelector = tmp + ' .btn-quantity-dec';
-        this.inpCartQuantityValSelector = tmp + ' .inp-quantity-value';
-        this.btnCartQuantityIncSelector = tmp + ' .btn-quantity-inc';
-        this.btnCartAddSelector = this.typeOwnSelector + ' .item-cart-buttons .btn-add-to-cart';
-    }
 };
 snowgirlApp.prototype.initCallbacks = function () {
     if (this.core.getConfig('deviceDesktop', false)) {
@@ -44,71 +34,13 @@ snowgirlApp.prototype.initCallbacks = function () {
         .on('click', this.thumbnailsLinksSelector, $.proxy(this.onImageThumbnailClick, this))
         .on('click', this.ajaxLoaderButtonSelector, $.proxy(this.onAjaxLoaderClick, this));
 
-    if (this.core.getConfig('typeOwn', false)) {
-        this.core.$document
-            .on('click', this.btnCartSizeSelector, $.proxy(this.onCartSizeButtonClick, this))
-            .on('click', this.btnCartQuantityDecSelector, $.proxy(this.onCartQuantityDecButtonClick, this))
-            .on('click', this.btnCartQuantityIncSelector, $.proxy(this.onCartQuantityIncButtonClick, this))
-            .on('click', this.btnCartAddSelector, $.proxy(this.onCartAddButtonClick, this));
-
-        $(this.btnCartSizeSelector + ':first').trigger('click');
-    }
-
-    if (!this.core.getConfig('isArchive', false) &&
-        this.core.getConfig('isInStockCheck', false) &&
+    if (this.core.getConfig('isInStockCheck', false) &&
         this.core.getConfig('isInStock', false)) {
         this.checkIsInStock();
     }
 };
-snowgirlApp.prototype.onCartSizeButtonClick = function (ev) {
-    var $btn = $(ev.target).getButton();
-
-    $(this.btnCartSizeSelector).removeClass('active');
-    $btn.addClass('active');
-};
-snowgirlApp.prototype.onCartQuantityDecButtonClick = function (ev) {
-    var $btn = $(ev.target).getButton();
-    var value = parseInt($(this.inpCartQuantityValSelector).text());
-
-    $(this.inpCartQuantityValSelector).text(--value);
-
-    if (1 === value) {
-        $btn.attr('disabled', true);
-    }
-
-    $btn.blur();
-};
-snowgirlApp.prototype.onCartQuantityIncButtonClick = function (ev) {
-    var $btn = $(ev.target).getButton();
-    var value = parseInt($(this.inpCartQuantityValSelector).text());
-
-    $(this.inpCartQuantityValSelector).text(++value);
-
-    if (value > 1) {
-        $(this.btnCartQuantityDecSelector).attr('disabled', false);
-    }
-
-    $btn.blur();
-};
 snowgirlApp.prototype.getItemId = function () {
     return this.core.getConfig('itemId');
-};
-snowgirlApp.prototype.getSizeId = function () {
-    return $(this.btnCartSizeSelector + '.active').data('id');
-};
-snowgirlApp.prototype.getQuantity = function () {
-    return parseInt($(this.inpCartQuantityValSelector).text());
-};
-snowgirlApp.prototype.onCartAddButtonClick = function (ev) {
-    window.location.href = this.core.getUriByRoute('default', {
-        action: 'contacts',
-        item_id: this.getItemId(),
-        size_id: this.getSizeId(),
-        quantity: this.getQuantity()
-    });
-    var $btn = $(ev.target).getButton();
-
-    $btn.blur();
 };
 snowgirlApp.prototype.checkIsInStock = function () {
     this.core.makeRequestByRoute('default', {action: 'check-item-is-in-stock', id: this.itemId})

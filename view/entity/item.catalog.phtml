@@ -14,7 +14,6 @@ $item = $this->entity;
 /** @var Vendor $vendor */
 
 $brand = $this->app->managers->items->getBrand($item);
-$vendor = $this->app->managers->items->getVendor($item);
 
 $buyLinkAttr = implode(' ', [
     'href="' . $this->app->managers->items->getGoLink($item) . '"',
@@ -53,16 +52,6 @@ $brandName = htmlspecialchars($brand->getName());
     <meta itemprop="description" content="<?php echo trim(implode(' ', [$entityName, $brandName])) ?>">
 
     <a <?php echo $linkAttr ?> itemprop="url" class="link-image">
-        <?php if ($vendorImage = $vendor->getImage()) { ?>
-            <?php echo $this->app->views->getImage($vendorImage, Images::FORMAT_HEIGHT, 25, [
-                'alt' => $vendor->getName(),
-                'title' => 'Предоставляет ' . $vendor->getName(),
-                'class' => 'll vendor',
-                'height' => 25,
-                'width' => false,
-            ]) ?>
-        <?php } ?>
-
         <?php if ($item->isNewly()) { ?>
             <span class="lr newly"></span>
         <?php } ?>

@@ -388,38 +388,50 @@ $typeColors = [
                 ->addDomClass('col-lg-10')
                 ->addDomClass('right') ?>
         <?php } ?>
-    <?php } elseif ($this->itemsEmptyVariants) { ?>
+    <?php } else { ?>
         <div class="col-md-9 col-lg-10 right items-empty-set">
-            <div class="items-empty-set-head">
+            <div class="items-empty-set-title alert alert-info">
                 <?php $this->noIndexOpen() ?>
-                Извините, предложения "<?php echo $this->h1 ?>" не найдены,<br/>
-                возможно Вас заинтересует:
+                Предложения "<b><?php echo $this->h1 ?></b>" не найдены,<br/>
+                возможно Вы найдете здесь
+                <a href="<?php echo new URI() ?>" class="btn btn-primary">Каталог</a>
+                <a href="<?php echo new URI([URI::SALES => 1]) ?>" class="btn btn-info">Скидки</a>
                 <?php $this->noIndexClose() ?>
             </div>
-            <div class="items-empty-set-body">
-                <?php foreach ($this->itemsEmptyVariants as $variant) { ?>
-                    <a href="<?php echo $variant->href ?>" class="btn btn-default btn-variant">
-                        <?php echo $variant->text ?> - <?php echo Helper::makeNiceNumber($variant->count) ?>
-                    </a>
+            <?php if ($this->itemsEmptyVariants) { ?>
+                <div class="items-empty-set-variants">
+                    <?php foreach ($this->itemsEmptyVariants as $variant) { ?>
+                        <?php echo $variant->grid ?>
 
-                    <?php echo $variant->grid ?>
-
-                    <?php if (false) { ?>
-                        <div class="clearfix">
-                            <div class="items" itemscope itemtype="http://schema.org/ItemList">
-                                <meta itemprop="name" content="<?php echo $variant->text ?>">
-                                <link itemprop="url" href="<?php echo $variant->href ?>">
-                                <meta itemprop="numberOfItems" content="<?php echo $variant->count ?>">
-                                <div class="row">
-                                    <?php foreach ($variant->items as $item) { ?>
-                                        <?php echo $item ?>
-                                    <?php } ?>
-                                </div>
-                            </div>
-                        </div>
+                        <a href="<?php echo $variant->href ?>" class="btn btn-info btn-variant">
+                            Смотреть все "<?php echo $variant->text ?>" - <?php echo Helper::makeNiceNumber($variant->count) ?>
+                        </a>
                     <?php } ?>
-                <?php } ?>
-            </div>
+                </div>
+            <?php } ?>
+            <?php if ($this->itemsEmptyVariantsCategories) { ?>
+                <div class="items-empty-set-categories">
+                    <?php echo $this->app->views->categories([
+                        'items' => array_values($this->itemsEmptyVariantsCategories),
+                        'padding' => 5,
+                    ], $this) ?>
+                    <a href="<?php echo new URI() ?>" class="btn btn-info btn-variant">
+                        Смотреть все Категории
+                    </a>
+                </div>
+            <?php } ?>
+            <?php if ($this->itemsEmptyVariantsBrands) { ?>
+                <div class="items-empty-set-brands">
+                    <div class="section-title h2">Бренды</div>
+                    <?php echo $this->app->views->brands([
+                        'items' => $this->itemsEmptyVariantsBrands,
+                        'padding' => 5,
+                    ], $this) ?>
+                    <a href="<?php echo $this->app->managers->pages->getLinkByKey('brands') ?>" class="btn btn-info btn-variant">
+                        Смотреть все Бренды
+                    </a>
+                </div>
+            <?php } ?>
         </div>
     <?php } ?>
 

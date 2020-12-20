@@ -2,11 +2,8 @@
 
 namespace SNOWGIRL_SHOP\Controller\Admin;
 
-use SNOWGIRL_CORE\Entity\User;
-use SNOWGIRL_CORE\Exception\HTTP\Forbidden;
 use SNOWGIRL_SHOP\Http\HttpApp as App;
 use SNOWGIRL_CORE\Controller\Admin\PrepareServicesTrait;
-use SNOWGIRL_SHOP\Entity\Import\Source as ImportSource;
 use SNOWGIRL_SHOP\RBAC;
 
 class OffersAction
@@ -22,10 +19,9 @@ class OffersAction
         $view = $app->views->getLayout(true);
 
         $content = $view->setContentByTemplate('@shop/admin/offers.phtml', [
-            'vendors' => $app->managers->vendors->clear()->addOrder(['is_active' => SORT_DESC])->getObjects(),
+            'vendors' => $app->managers->vendors->clear()->addOrder(['target_vendor_id' => SORT_ASC])->getObjects(),
             'vendorClasses' => $app->managers->vendors->getAdapterClasses(true),
             'importClasses' => $app->managers->sources->getImportClasses(true),
-            'sourceTypes' => ImportSource::getColumns()['type']['range'],
             'importSources' => $app->managers->sources->clear()->addOrder(['is_cron' => SORT_DESC])->getObjects()
         ]);
 

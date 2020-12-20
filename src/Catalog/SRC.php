@@ -38,7 +38,6 @@ class SRC
     private $catalogPage;
     private $catalogCustomPage;
     private $useCache;
-    private $inStockOnly;
     private $providerName;
 
     /**
@@ -51,7 +50,6 @@ class SRC
         $this->uri = $uri;
         $this->entities = Manager::mapEntitiesAddPksAsKeys($entities);
         $this->useCache = !!$uri->getApp()->config('catalog.cache', false);
-        $this->inStockOnly = !!$uri->getApp()->configMasterOrOwn('catalog.in_stock_only', false);
         $this->providerName = $this->getURI()->getApp()->config('data.provider.src', 'db');
     }
 
@@ -98,7 +96,6 @@ class SRC
         return implode('-', [
             $this->getURI()->getApp()->managers->items->getEntity()->getTable(),
             $this->getItemsRawCacheKey(),
-            $this->inStockOnly,
             $this->providerName,
             'ids',
         ]);
@@ -109,7 +106,6 @@ class SRC
         return implode('-', [
             $this->getURI()->getApp()->managers->items->getEntity()->getTable(),
             $this->getItemsRawCacheKey(),
-            $this->inStockOnly,
             $this->providerName,
             'total',
         ]);

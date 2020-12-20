@@ -65,7 +65,7 @@ class Import extends Util
             'GROUP_CONCAT(' . $db->quote(Item::getPk()) . ' SEPARATOR \',\') AS ' . $db->quote(Item::getPk()) . ',',
             'GROUP_CONCAT(' . $db->quote('is_in_stock') . ' SEPARATOR \',\')  AS ' . $db->quote('is_in_stock'),
             $db->makeFromSQL(Item::getTable()),
-            $db->makeWhereSQL(['import_source_id' => $importSource->getId()], $query->params),
+            $db->makeWhereSQL(['import_source_id' => $importSource->getId()], $query->params, null, $query->placeholders),
             $db->makeGroupSQL('image', $query->params),
             $db->makeHavingSQL(new Expression($db->quote('cnt') . ' > ?', 1), $query->params),
         ]);
