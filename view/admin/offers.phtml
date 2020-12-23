@@ -111,6 +111,24 @@ $this->getLayout()
                 </div>
             </div>
             <div class="form-group">
+                <label for="<?php echo $tmp = 'target_vendor_id' ?>"
+                       class="col-md-2 control-label">Fake? Целевой поставщик</label>
+
+                <div class="col-md-10">
+                    <label><select name="<?php echo $tmp ?>" id="<?php echo $tmp ?>"
+                                   class="form-control">
+                            <option value="" disabled>&mdash; Выбрать</option>
+                            <?php foreach ($this->vendors as $vendor) { ?>
+                                <?php if (!$vendor->isFake()) { ?>
+                                    <option value="<?php echo $vendor->getId() ?>">
+                                        <?php echo $vendor->getName() ?>
+                                    </option>
+                                <?php } ?>
+                            <?php } ?>
+                        </select></label>
+                </div>
+            </div>
+            <div class="form-group">
                 <div class="col-lg-offset-2  col-lg-10 col-md-offset-2 col-md-10">
                     <button type="submit" class="btn btn-default">Создать</button>
                 </div>
