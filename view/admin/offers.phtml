@@ -117,7 +117,7 @@ $this->getLayout()
                 <div class="col-md-10">
                     <label><select name="<?php echo $tmp ?>" id="<?php echo $tmp ?>"
                                    class="form-control">
-                            <option value="" disabled>&mdash; Выбрать</option>
+                            <option value="">&mdash; Выбрать</option>
                             <?php foreach ($this->vendors as $vendor) { ?>
                                 <?php if (!$vendor->isFake()) { ?>
                                     <option value="<?php echo $vendor->getId() ?>">
