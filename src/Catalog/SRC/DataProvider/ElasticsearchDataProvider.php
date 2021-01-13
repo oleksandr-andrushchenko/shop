@@ -64,11 +64,11 @@ class ElasticsearchDataProvider extends DataProvider
                             $tmp2 = $tmp2[$peace];
                         } else {
                             $tmp2 = null;
-                            $this->src->getURI()->getApp()->container->logger->warning("'$peace' peace key not found", [
-                                'item' => $item,
-                                'column_key' => $k,
-                                'column_value' => $v,
-                            ]);
+//                            $this->src->getURI()->getApp()->container->logger->warning("'$peace' peace key not found", [
+//                                'item' => $item,
+//                                'column_key' => $k,
+//                                'column_value' => $v,
+//                            ]);
                             break;
                         }
                     }
