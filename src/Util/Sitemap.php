@@ -3,7 +3,7 @@
 namespace SNOWGIRL_SHOP\Util;
 
 use SNOWGIRL_CORE\Helper\WalkChunk2;
-use SNOWGIRL_CORE\Query\Expression;
+use SNOWGIRL_CORE\Mysql\MysqlQueryExpression;
 use SNOWGIRL_CORE\Sitemap as Generator;
 use SNOWGIRL_SHOP\Catalog\URI;
 use SNOWGIRL_SHOP\Item\URI as ItemURI;
@@ -70,14 +70,14 @@ class Sitemap extends \SNOWGIRL_CORE\Util\Sitemap
             $catalog = $app->managers->catalog->clear();
             $customCatalog = $app->managers->catalogCustom->clear();
 
-            $db = $app->managers->catalogCustom->getDb();
+            $mysql = $app->managers->catalogCustom->getDb();
 
             $pk = $customCatalog->getEntity()->getPk();
 
             (new WalkChunk2(1000))
-                ->setFnGet(function ($lastId, $size) use ($db, $pk, $catalog, $customCatalog) {
+                ->setFnGet(function ($lastId, $size) use ($mysql, $pk, $catalog, $customCatalog) {
                     if ($lastId) {
-                        $customCatalog->setWhere(new Expression($db->quote($pk) . ' > ?', $lastId));
+                        $customCatalog->setWhere(new MysqlQueryExpression($mysql->quote($pk) . ' > ?', $lastId));
                     }
 
                     $customs = $customCatalog
@@ -122,7 +122,7 @@ class Sitemap extends \SNOWGIRL_CORE\Util\Sitemap
     {
         return function (Generator $sitemap) {
             $app = $this->app;
-            $db = $app->container->db;
+            $mysql = $app->container->mysql;
 
             $catalog = $app->managers->catalog->clear();
 
@@ -131,9 +131,9 @@ class Sitemap extends \SNOWGIRL_CORE\Util\Sitemap
             $now = date('c');
 
             (new WalkChunk2(1000))
-                ->setFnGet(function ($lastId, $size) use ($db, $catalog, $pk) {
+                ->setFnGet(function ($lastId, $size) use ($mysql, $catalog, $pk) {
                     if ($lastId) {
-                        $catalog->setWhere(new Expression($db->quote($pk) . ' > ?', $lastId));
+                        $catalog->setWhere(new MysqlQueryExpression($mysql->quote($pk) . ' > ?', $lastId));
                     }
 
                     return $catalog
@@ -157,7 +157,7 @@ class Sitemap extends \SNOWGIRL_CORE\Util\Sitemap
     {
         return function (Generator $sitemap) use ($inStock) {
             $app = $this->app;
-            $db = $app->container->db;
+            $mysql = $app->container->db;
             $items = $app->managers->items->clear();
             $pk = $items->getEntity()->getPk();
 
@@ -166,9 +166,9 @@ class Sitemap extends \SNOWGIRL_CORE\Util\Sitemap
             ];
 
             (new WalkChunk2(1000))
-                ->setFnGet(function ($lastId, $size) use ($db, $items, $pk, $where) {
+                ->setFnGet(function ($lastId, $size) use ($mysql, $items, $pk, $where) {
                     if ($lastId) {
-                        $where[] = new Expression($db->quote($pk) . ' > ?', $lastId);
+                        $where[] = new MysqlQueryExpression($mysql->quote($pk) . ' > ?', $lastId);
                     }
 
                     return $items

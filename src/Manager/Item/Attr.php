@@ -39,7 +39,7 @@ abstract class Attr extends Manager
         parent::__construct($app);
 
         $this->useCache = !!$app->config('catalog.cache', false);
-        $this->providerName = $app->config('data.provider.src', 'db');
+        $this->providerName = $app->config('data_provider.src', 'mysql');
     }
 
     public function checkUri($checkUri)
@@ -231,8 +231,8 @@ abstract class Attr extends Manager
         if ($this->useCache) {
             $key = $this->getItemsCountsListByUriCacheKey($uri, $query, $prefix);
 
-            if (!$this->app->container->cache->has($key, $output)) {
-                $this->app->container->cache->set($key, $output = $fn($uri, $query, $prefix));
+            if (!$this->app->container->memcache->has($key, $output)) {
+                $this->app->container->memcache->set($key, $output = $fn($uri, $query, $prefix));
             }
 
             return $output;

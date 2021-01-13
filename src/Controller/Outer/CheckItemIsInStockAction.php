@@ -39,7 +39,7 @@ class CheckItemIsInStockAction
 
         if ($item->isInStock()) {
             $checkedCacheKey = $this->getCheckedCacheKey($item);
-            $app->container->cache->has($checkedCacheKey, $checkedCacheValue);
+            $app->container->memcache->has($checkedCacheKey, $checkedCacheValue);
 
             if ($checkedCacheValue) {
                 $answer = true;
@@ -75,7 +75,7 @@ class CheckItemIsInStockAction
                         'item_id' => $item->getId(),
                     ]);
                 } else {
-                    $app->container->cache->set($checkedCacheKey, true, self::CACHE_LIFETIME_CHECKED);
+                    $app->container->memcache->set($checkedCacheKey, true, self::CACHE_LIFETIME_CHECKED);
                     $app->container->logger->info('Confirmed is in stock item status', [
                         'item_id' => $item->getId(),
                     ]);

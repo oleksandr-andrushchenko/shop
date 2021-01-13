@@ -29,7 +29,7 @@ class ImportAllAction
         Import::factoryAndRun($app, $importSource, $debug, $profile);
 
         if ($rotate) {
-            (new IndexElasticAction)($app);
+            (new IndexElasticsearchAction)($app);
             (new FlushCacheAction)($app);
         }
     }

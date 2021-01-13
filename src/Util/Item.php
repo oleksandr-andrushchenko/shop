@@ -2,13 +2,13 @@
 
 namespace SNOWGIRL_SHOP\Util;
 
-use SNOWGIRL_CORE\Db\DbInterface;
 use SNOWGIRL_CORE\Entity;
 use SNOWGIRL_CORE\Helper\WalkChunk;
 use SNOWGIRL_CORE\Helper\WalkChunk2;
 use SNOWGIRL_CORE\Manager;
-use SNOWGIRL_CORE\Query\Expression;
-use SNOWGIRL_CORE\Query;
+use SNOWGIRL_CORE\Mysql\Mysql;
+use SNOWGIRL_CORE\Mysql\MysqlQueryExpression;
+use SNOWGIRL_CORE\Mysql\MysqlQuery;
 use SNOWGIRL_CORE\Util;
 use SNOWGIRL_SHOP\Console\ConsoleApp as App;
 use SNOWGIRL_SHOP\Catalog\SRC;
@@ -22,9 +22,7 @@ use SNOWGIRL_SHOP\Manager\Item\IndexerHelper;
 use Throwable;
 
 /**
- * Class Item
  * @property App app
- * @package SNOWGIRL_SHOP\Util
  */
 class Item extends Util
 {
@@ -42,19 +40,19 @@ class Item extends Util
 
     public function doFixSeoNames()
     {
-        $db = $this->app->container->db;
+        $mysql = $this->app->container->mysql;
 
         (new WalkChunk(1000))
-            ->setFnGet(function ($page, $size) use ($db) {
-                return $db->reqToArrays(implode(' ', [
-                    'SELECT ' . $db->quote('b') . '.*, COUNT(*) AS ' . $db->quote('cnt'),
-                    'FROM ' . $db->quote(Brand::getTable()) . ' AS ' . $db->quote('b'),
-                    'INNER JOIN ' . $db->quote(ItemEntity::getTable()) . ' AS ' . $db->quote('i') . ' USING(' . $db->quote(Brand::getPk()) . ')',
-                    'GROUP BY ' . $db->quote(Brand::getPk(), 'b'),
+            ->setFnGet(function ($page, $size) use ($mysql) {
+                return $mysql->reqToArrays(implode(' ', [
+                    'SELECT ' . $mysql->quote('b') . '.*, COUNT(*) AS ' . $mysql->quote('cnt'),
+                    'FROM ' . $mysql->quote(Brand::getTable()) . ' AS ' . $mysql->quote('b'),
+                    'INNER JOIN ' . $mysql->quote(ItemEntity::getTable()) . ' AS ' . $mysql->quote('i') . ' USING(' . $mysql->quote(Brand::getPk()) . ')',
+                    'GROUP BY ' . $mysql->quote(Brand::getPk(), 'b'),
                     'LIMIT ' . (($page - 1) * $size) . ', ' . $size,
                 ]));
             })
-            ->setFnDo(function ($items) use ($db) {
+            ->setFnDo(function ($items) use ($mysql) {
                 foreach ($items as $item) {
                     try {
                         $cnt = $item['cnt'];
@@ -86,15 +84,15 @@ class Item extends Util
                                 $isNeedDelete = false;
 
                                 if ($currentUri != $brand->getUri()) {
-                                    $this->output('...trying to update ' . $db->quote(Brand::getPk()) . ' that relates to our new ' . $db->quote('uri') . '...');
+                                    $this->output('...trying to update ' . $mysql->quote(Brand::getPk()) . ' that relates to our new ' . $mysql->quote('uri') . '...');
 
-                                    $aff = $db->req(implode(' ', [
-                                        'UPDATE ' . $db->quote(ItemEntity::getTable()),
-                                        'SET ' . $db->quote(Brand::getPk()) . ' =',
-                                        '(SELECT ' . $db->quote(Brand::getPk()),
-                                        'FROM ' . $db->quote(Brand::getTable()),
-                                        'WHERE ' . $db->quote('uri') . ' = \'' . $brand->getUri() . '\')',
-                                        'WHERE ' . $db->quote(Brand::getPk()) . ' = ' . $brand->getId(),
+                                    $aff = $mysql->req(implode(' ', [
+                                        'UPDATE ' . $mysql->quote(ItemEntity::getTable()),
+                                        'SET ' . $mysql->quote(Brand::getPk()) . ' =',
+                                        '(SELECT ' . $mysql->quote(Brand::getPk()),
+                                        'FROM ' . $mysql->quote(Brand::getTable()),
+                                        'WHERE ' . $mysql->quote('uri') . ' = \'' . $brand->getUri() . '\')',
+                                        'WHERE ' . $mysql->quote(Brand::getPk()) . ' = ' . $brand->getId(),
                                     ]))->affectedRows();
 
                                     $this->output('...' . $aff . ' affected');
@@ -109,15 +107,15 @@ class Item extends Util
                                 }
 
                                 if ($currentName != $brand->getName()) {
-                                    $this->output('...trying to update ' . $db->quote(Brand::getPk()) . ' that relates to our new ' . $db->quote('name') . '...');
+                                    $this->output('...trying to update ' . $mysql->quote(Brand::getPk()) . ' that relates to our new ' . $mysql->quote('name') . '...');
 
-                                    $aff = $db->req(implode(' ', [
-                                        'UPDATE ' . $db->quote(ItemEntity::getTable()),
-                                        'SET ' . $db->quote(Brand::getPk()) . ' =',
-                                        '(SELECT ' . $db->quote(Brand::getPk()),
-                                        'FROM ' . $db->quote(Brand::getTable()),
-                                        'WHERE ' . $db->quote('name') . ' = \'' . $brand->getName() . '\')',
-                                        'WHERE ' . $db->quote(Brand::getPk()) . ' = ' . $brand->getId(),
+                                    $aff = $mysql->req(implode(' ', [
+                                        'UPDATE ' . $mysql->quote(ItemEntity::getTable()),
+                                        'SET ' . $mysql->quote(Brand::getPk()) . ' =',
+                                        '(SELECT ' . $mysql->quote(Brand::getPk()),
+                                        'FROM ' . $mysql->quote(Brand::getTable()),
+                                        'WHERE ' . $mysql->quote('name') . ' = \'' . $brand->getName() . '\')',
+                                        'WHERE ' . $mysql->quote(Brand::getPk()) . ' = ' . $brand->getId(),
                                     ]))->affectedRows();
 
                                     $this->output('...' . $aff . ' affected');
@@ -176,7 +174,7 @@ class Item extends Util
 
             $info = $src->getOrderInfo();
 
-            $affTmp = $this->addOrderColumn($src->getDataProvider('db')->getOrder(), $info->cache_column);
+            $affTmp = $this->addOrderColumn($src->getDataProvider('mysql')->getOrder(), $info->cache_column);
 
             $aff += $affTmp;
 
@@ -188,57 +186,57 @@ class Item extends Util
 
     public function doDeleteWithNonExistingCategories(FixWhere $fixWhere = null, array $params = [])
     {
-        $db = $this->app->container->db;
+        $mysql = $this->app->container->mysql;
         $it = $this->app->managers->items->getEntity()->getTable();
         $ck = $this->app->managers->categories->getEntity()->getPk();
         $ct = $this->app->managers->categories->getEntity()->getTable();
 
         $where = $fixWhere ? $fixWhere->get() : [];
-        $where[] = new Expression($db->quote($ck, $ct) . ' IS NULL');
+        $where[] = new MysqlQueryExpression($mysql->quote($ck, $ct) . ' IS NULL');
 
-        $query = new Query($params);
+        $query = new MysqlQuery($params);
         $query->params = [];
         $query->text = implode(' ', [
-            'DELETE ' . $db->quote($it),
-            'FROM ' . $db->quote($it),
-            'LEFT JOIN ' . $db->quote($ct) . ' ON ' . $db->quote($ck, $ct) . ' = ' . $db->quote($ck, $it),
-            $db->makeWhereSQL($where, $query->params, null, $query->placeholders),
+            'DELETE ' . $mysql->quote($it),
+            'FROM ' . $mysql->quote($it),
+            'LEFT JOIN ' . $mysql->quote($ct) . ' ON ' . $mysql->quote($ck, $ct) . ' = ' . $mysql->quote($ck, $it),
+            $mysql->makeWhereSQL($where, $query->params, null, $query->placeholders),
         ]);
 
-        return $this->app->container->db->req($query)->affectedRows();
+        return $this->app->container->mysql->req($query)->affectedRows();
     }
 
     public function doDeleteWithNonExistingBrands(FixWhere $fixWhere = null, array $params = [])
     {
-        $db = $this->app->container->db;
+        $mysql = $this->app->container->mysql;
         $it = $this->app->managers->items->getEntity()->getTable();
         $bk = $this->app->managers->brands->getEntity()->getPk();
         $bt = $this->app->managers->brands->getEntity()->getTable();
 
         $where = $fixWhere ? $fixWhere->get() : [];
-        $where[] = new Expression($db->quote($bk, $bt) . ' IS NULL');
+        $where[] = new MysqlQueryExpression($mysql->quote($bk, $bt) . ' IS NULL');
 
-        $query = new Query($params);
+        $query = new MysqlQuery($params);
         $query->params = [];
         $query->text = implode(' ', [
-            'DELETE ' . $db->quote($it),
-            'FROM ' . $db->quote($it),
-            'LEFT JOIN ' . $db->quote($bt) . ' ON ' . $db->quote($bk, $bt) . ' = ' . $db->quote($bk, $it),
-            $db->makeWhereSQL($where, $query->params, null, $query->placeholders),
+            'DELETE ' . $mysql->quote($it),
+            'FROM ' . $mysql->quote($it),
+            'LEFT JOIN ' . $mysql->quote($bt) . ' ON ' . $mysql->quote($bk, $bt) . ' = ' . $mysql->quote($bk, $it),
+            $mysql->makeWhereSQL($where, $query->params, null, $query->placeholders),
         ]);
 
-        return $this->app->container->db->req($query)->affectedRows();
+        return $this->app->container->mysql->req($query)->affectedRows();
     }
 
     public function doFixWithNonExistingCountries(FixWhere $fixWhere = null, array $params = [])
     {
-        $db = $this->app->container->db;
+        $mysql = $this->app->container->mysql;
         $pk = $this->app->managers->countries->getEntity()->getPk();
 
         $id = $this->app->managers->countries->getList($pk);
 
         $where = $fixWhere ? $fixWhere->get() : [];
-        $where[] = new Expression($db->quote($pk) . ' NOT IN (' . implode(',', $id) . ')');
+        $where[] = new MysqlQueryExpression($mysql->quote($pk) . ' NOT IN (' . implode(',', $id) . ')');
 
         return $this->app->managers->items->updateMany([$pk => null], $where, $params);
     }
@@ -282,28 +280,28 @@ class Item extends Util
 
     public function doFixDuplicates($importSourceId)
     {
-        $db = $this->app->container->db;
+        $mysql = $this->app->container->mysql;
         $table = $this->app->managers->items->getEntity()->getTable();
         $pk = $this->app->managers->items->getEntity()->getPk();
 
         (new WalkChunk(1000))
-            ->setFnGet(function ($page, $size) use ($importSourceId, $db, $table, $pk) {
-                return $db->reqToArrays(implode(' ', [
+            ->setFnGet(function ($page, $size) use ($importSourceId, $mysql, $table, $pk) {
+                return $mysql->reqToArrays(implode(' ', [
                     'SELECT ' . implode(', ', [
-                        $db->quote('image'),
-                        'GROUP_CONCAT(' . $db->quote($pk) . ') AS ' . $db->quote($pk),
-                        'GROUP_CONCAT(' . $db->quote('name') . ') AS ' . $db->quote('name'),
-                        'COUNT(*) AS ' . $db->quote('cnt'),
+                        $mysql->quote('image'),
+                        'GROUP_CONCAT(' . $mysql->quote($pk) . ') AS ' . $mysql->quote($pk),
+                        'GROUP_CONCAT(' . $mysql->quote('name') . ') AS ' . $mysql->quote('name'),
+                        'COUNT(*) AS ' . $mysql->quote('cnt'),
                     ]),
-                    'FROM ' . $db->quote($table),
-                    'WHERE ' . $db->quote('import_source_id') . ' = ' . $importSourceId,
-                    'GROUP BY ' . $db->quote('image'),
-                    'HAVING ' . $db->quote('cnt') . ' > 1',
+                    'FROM ' . $mysql->quote($table),
+                    'WHERE ' . $mysql->quote('import_source_id') . ' = ' . $importSourceId,
+                    'GROUP BY ' . $mysql->quote('image'),
+                    'HAVING ' . $mysql->quote('cnt') . ' > 1',
 //                    'LIMIT ' . (($page - 1) * $size) . ', ' . $size
                     'LIMIT ' . $size,
                 ]));
             })
-            ->setFnDo(function ($rows) use ($db, $pk) {
+            ->setFnDo(function ($rows) use ($mysql, $pk) {
                 $insert = [];
                 $delete = [];
 
@@ -357,7 +355,7 @@ class Item extends Util
     {
         if ($categoryIds = $this->app->managers->categories->clear()->getList()) {
             $where = $fixWhere ? $fixWhere->get() : [];
-            $where[] = new Expression($this->app->container->db->quote('category_id') . ' NOT IN (' . implode(', ', $categoryIds) . ')');
+            $where[] = new MysqlQueryExpression($this->app->container->mysql->quote('category_id') . ' NOT IN (' . implode(', ', $categoryIds) . ')');
 
             $aff = $this->app->managers->items->deleteMany($where);
 
@@ -424,7 +422,7 @@ class Item extends Util
 
     public function doTransferByAttrs($source, $target)
     {
-        return $this->app->container->db->makeTransaction(function (DbInterface $db) use ($target, $source) {
+        return $this->app->container->mysql->makeTransaction(function (Mysql $mysql) use ($target, $source) {
             $affGlobal = 0;
 
             $mva = Manager::mapEntitiesAddPksAsKeys($this->app->managers->catalog->getMvaComponents());
@@ -442,7 +440,7 @@ class Item extends Util
             }, ARRAY_FILTER_USE_KEY);
 
             (new WalkChunk(1000))
-                ->setFnGet(function ($page, $size) use ($source, $db) {
+                ->setFnGet(function ($page, $size) use ($source, $mysql) {
                     $tmp = $source;
                     $tmp[URI::EVEN_NOT_STANDARD_PER_PAGE] = 1;
                     $tmp[URI::PAGE_NUM] = $page;
@@ -511,12 +509,9 @@ class Item extends Util
         });
     }
 
-    public function doIndexIndexer(int $reindexDays = 0)
+    public function doIndexIndexer()
     {
-        return $this->doIndexElastic(new Expression(implode(' OR ', [
-            $this->app->container->db->quote('created_at') . ' >= (CURDATE() - INTERVAL ? DAY)',
-            $this->app->container->db->quote('updated_at') . ' >= (CURDATE() - INTERVAL ? DAY)',
-        ]), $reindexDays, $reindexDays));
+        return $this->doIndexElastic();
     }
 
     protected function getSearchColumns(): array
@@ -604,10 +599,10 @@ class Item extends Util
 
         (new WalkChunk2(1000))
             ->setFnGet(function ($lastId, $size) use ($itemPk, $where, $orderColumn) {
-                $mysql = $this->app->container->db;
+                $mysql = $this->app->container->mysql;
 
                 if ($lastId) {
-                    $where[] = new Expression($mysql->quote($orderColumn) . ' > ?', $lastId);
+                    $where[] = new MysqlQueryExpression($mysql->quote($orderColumn) . ' > ?', $lastId);
                 }
 
                 return $this->app->managers->items->clear()
@@ -620,14 +615,14 @@ class Item extends Util
                     ->getArrays($itemPk);
             })
             ->setFnDo(function ($items) use ($index, $itemPk, $orderColumn, &$aff) {
-                $mysql = $this->app->container->db;
+                $mysql = $this->app->container->mysql;
                 $where = [$itemPk => array_map(function ($item) use ($itemPk) {
                     return $item[$itemPk];
                 }, $items)];
 
                 // @todo test...
                 foreach ($this->indexerHelper->getMva() as $mvaColumn => $mvaTable) {
-                    $query = new Query();
+                    $query = new MysqlQuery();
                     $query->params = [];
                     $query->text = implode(' ', [
                         'SELECT *',
@@ -650,13 +645,13 @@ class Item extends Util
                     $documents[$item[$itemPk]] = $this->indexerHelper->getDocumentByArray($item);
                 }
 
-                $aff += $this->app->container->indexer->getManager()->indexMany($index, $documents);
+                $aff += $this->app->container->elasticsearch->indexMany($index, $documents);
 
                 return end($documents) ? $documents[key($documents)][$orderColumn] : false;
             })
             ->run();
 
-        $this->app->container->db->getManager()->dropTableColumn($itemTable, $orderColumn);
+        $this->app->container->mysql->dropTableColumn($itemTable, $orderColumn);
 
         return $aff;
     }
@@ -668,12 +663,11 @@ class Item extends Util
 
     public function doIndexElastic(): int
     {
-        $manager = $this->app->container->indexer->getManager();
         $alias = $this->app->managers->items->getEntity()->getTable();
 
         $mappings = $this->getElasticMappings();
 
-        return $manager->switchAliasIndex($alias, $mappings, function ($newIndex) {
+        return $this->app->container->elasticsearch->switchAliasIndex($alias, $mappings, function ($newIndex) {
             return $this->doRawIndexElastic($newIndex);
         });
     }
@@ -696,33 +690,32 @@ class Item extends Util
     {
         $table = $this->app->managers->items->getEntity()->getTable();
         $pk = $this->app->managers->items->getEntity()->getPk();
-        $db = $this->app->container->db;
-        $dbManager = $db->getManager();
+        $mysql = $this->app->container->mysql;
 
-        if (!$dbManager->columnExists($table, $column)) {
-            $dbManager->addTableColumn($table, $column, 'int(11) NOT NULL DEFAULT \'0\'');
+        if (!$mysql->columnExists($table, $column)) {
+            $mysql->addTableColumn($table, $column, 'int(11) NOT NULL DEFAULT \'0\'');
         }
 
-        $db->req('SET @num=0');
+        $mysql->req('SET @num=0');
 
-        $query = new Query(['params' => []]);
+        $query = new MysqlQuery(['params' => []]);
         $query->text = implode(' ', [
-            'UPDATE ' . $db->quote($table) . ' AS ' . $db->quote('i'),
+            'UPDATE ' . $mysql->quote($table) . ' AS ' . $mysql->quote('i'),
             'INNER JOIN (',
-            'SELECT ' . $db->quote($pk) . ', @num:=@num+1 AS ' . $db->quote('num'),
-            'FROM ' . $db->quote($table),
-            $db->makeOrderSQL($order, $query->params),
-            ') AS ' . $db->quote('i2') . ' USING(' . $db->quote($pk) . ')',
-            'SET ' . $db->quote($column, 'i') . ' = ' . $db->quote('num', 'i2'),
+            'SELECT ' . $mysql->quote($pk) . ', @num:=@num+1 AS ' . $mysql->quote('num'),
+            'FROM ' . $mysql->quote($table),
+            $mysql->makeOrderSQL($order, $query->params),
+            ') AS ' . $mysql->quote('i2') . ' USING(' . $mysql->quote($pk) . ')',
+            'SET ' . $mysql->quote($column, 'i') . ' = ' . $mysql->quote('num', 'i2'),
         ]);
 
-        $aff = $db->req($query)->affectedRows();
+        $aff = $mysql->req($query)->affectedRows();
 
         if ($index) {
-            if ($dbManager->indexExists($table, $index)) {
+            if ($mysql->indexExists($table, $index)) {
                 $this->app->container->logger->warning('index for (' . implode(',', $index) . ') is already exists');
             } else {
-                $dbManager->addTableKey($table, $index);
+                $mysql->addTableKey($table, $index);
             }
         }
 

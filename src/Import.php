@@ -10,9 +10,9 @@ use SNOWGIRL_CORE\Entity;
 use SNOWGIRL_CORE\Exception;
 use SNOWGIRL_CORE\Helper\Strings;
 use SNOWGIRL_CORE\Helper\FileSystem;
-use SNOWGIRL_CORE\Query;
+use SNOWGIRL_CORE\Mysql\MysqlQuery;
 use SNOWGIRL_CORE\AbstractApp as App;
-use SNOWGIRL_CORE\Query\Expression;
+use SNOWGIRL_CORE\Mysql\MysqlQueryExpression;
 use SNOWGIRL_SHOP\Console\ConsoleApp;
 use SNOWGIRL_SHOP\Entity\Category;
 use SNOWGIRL_SHOP\Entity\Item;
@@ -1486,7 +1486,7 @@ class Import
 
     private function getDbItems(): iterable
     {
-        $imageQuoted = $this->app->container->db->quote('image');
+        $imageQuoted = $this->app->container->mysql->quote('image');
 
         return $this->app->managers->items->clear()
             ->setColumns([
@@ -1494,7 +1494,7 @@ class Import
                 'partner_item_id',
                 'category_id',
                 'partner_link_hash',
-                new Expression('SUBSTR(' . $imageQuoted . ', 1, ' . $this->app->images->getHashLength() . ') AS ' . $imageQuoted),
+                new MysqlQueryExpression('SUBSTR(' . $imageQuoted . ', 1, ' . $this->app->images->getHashLength() . ') AS ' . $imageQuoted),
             ])
             ->setWhere([
                 'import_source_id' => $this->source->getId(),
@@ -1975,7 +1975,7 @@ class Import
                                     $this->logger->error($e);
 
                                     if (Exception::_check($e, 'Duplicate entry')) {
-                                        $tmp = $this->app->container->db->selectOne($table, new Query([
+                                        $tmp = $this->app->container->mysql->selectOne($table, new MysqlQuery([
                                             'columns' => $entityPk,
                                             'where' => ['uri' => $newUri],
                                         ]));
@@ -2266,18 +2266,18 @@ class Import
 
             $editableColumns = $this->isForceUpdate ? [] : self::getPostEditableColumns();
 
-            $db = $this->app->container->db;
+            $mysql = $this->app->container->mysql;
 
-            $onDuplicateClosure = function ($column, $value) use ($db) {
-                return $db->quote($column) . ' = ' . $value;
+            $onDuplicateClosure = function ($column, $value) use ($mysql) {
+                return $mysql->quote($column) . ' = ' . $value;
             };
 
-            $query = new Query;
+            $query = new MysqlQuery();
             $query->text = implode(' ', [
                 'INSERT INTO',
-                $db->quote($this->app->managers->items->getEntity()->getTable()),
-                '(' . implode(', ', array_map(function ($i) use ($db) {
-                    return $db->quote($i);
+                $mysql->quote($this->app->managers->items->getEntity()->getTable()),
+                '(' . implode(', ', array_map(function ($i) use ($mysql) {
+                    return $mysql->quote($i);
                 }, $this->keys)) . ') VALUES ' . implode(', ', array_map(function ($i) {
                     return '(' . $i . ')';
                 }, $tmp)),
@@ -2285,23 +2285,23 @@ class Import
 
                 //@todo next code overwrites all items fixes... (+add fixWhere clauses maybe?! +take into account "updated_at" in this query)
 
-                implode(', ', array_map(function ($column) use ($onDuplicateClosure, $db) {
-                    return $onDuplicateClosure($column, 'VALUES(' . $db->quote($column) . ')');
+                implode(', ', array_map(function ($column) use ($onDuplicateClosure, $mysql) {
+                    return $onDuplicateClosure($column, 'VALUES(' . $mysql->quote($column) . ')');
                 }, array_diff($this->keys, $onDuplicateIgnoreColumns, $editableColumns))) . ',',
 
-                implode(', ', array_map(function ($column) use ($onDuplicateClosure, $db, $columnsOptions) {
+                implode(', ', array_map(function ($column) use ($onDuplicateClosure, $mysql, $columnsOptions) {
                     $options = $columnsOptions[$column];
 
                     return $onDuplicateClosure($column, 'IF(' . implode(', ', [
                             implode(' OR ', array_filter([
-                                !in_array(Entity::REQUIRED, $options) ? ($db->quote($column) . ' IS NULL') : null,
-                                Entity::COLUMN_INT == $options['type'] ? ($db->quote($column) . ' = 0') : null,
-                                Entity::COLUMN_TEXT == $options['type'] ? ($db->quote($column) . ' = \'\'') : null,
+                                !in_array(Entity::REQUIRED, $options) ? ($mysql->quote($column) . ' IS NULL') : null,
+                                Entity::COLUMN_INT == $options['type'] ? ($mysql->quote($column) . ' = 0') : null,
+                                Entity::COLUMN_TEXT == $options['type'] ? ($mysql->quote($column) . ' = \'\'') : null,
                             ], function ($v) {
                                 return null !== $v;
                             })),
-                            'VALUES(' . $db->quote($column) . ')',
-                            $db->quote($column),
+                            'VALUES(' . $mysql->quote($column) . ')',
+                            $mysql->quote($column),
                         ]) . ')');
                 }, $editableColumns)) . ($editableColumns ? ',' : ''),
                 $onDuplicateClosure('updated_at', 'NOW()'),
@@ -2309,7 +2309,7 @@ class Import
             $query->params = $this->bindValues;
             $query->log = $this->debug;
 
-            $aff = $db->req($query)->affectedRows();
+            $aff = $mysql->req($query)->affectedRows();
 
             $this->logger->info('AFF item: ' . $aff);
             return $aff;
@@ -2503,12 +2503,12 @@ class Import
             }
         }
 
-        $db = $this->app->container->db;
+        $mysql = $this->app->container->db;
 
         foreach ($this->app->managers->items->clear()
                      ->setColumns([
                          'partner_item_id',
-                         new Expression('SUBSTR(' . $db->quote('image') . ', 1, ' . $this->app->images->getHashLength() . ') AS ' . $db->quote('image')),
+                         new MysqlQueryExpression('SUBSTR(' . $mysql->quote('image') . ', 1, ' . $this->app->images->getHashLength() . ') AS ' . $mysql->quote('image')),
                      ])
                      ->setWhere([
                          'import_source_id' => $this->source->getId(),
@@ -2529,29 +2529,29 @@ class Import
         $images = $output;
         $output = [];
 
-        $query = new Query(['params' => []]);
+        $query = new MysqlQuery(['params' => []]);
         $query->text = implode(' ', [
-            $db->makeSelectSQL([
+            $mysql->makeSelectSQL([
                 'partner_item_id',
-                new Expression('SUBSTR(' . $db->quote('image_id') . ', 1, ' . $this->app->images->getHashLength() . ') AS ' . $db->quote('image_id')),
+                new MysqlQueryExpression('SUBSTR(' . $mysql->quote('image_id') . ', 1, ' . $this->app->images->getHashLength() . ') AS ' . $mysql->quote('image_id')),
             ], false, $query->params),
-            $db->makeFromSQL($this->app->managers->items->getEntity()->getTable()),
-            $db->makeJoinSQL([[
+            $mysql->makeFromSQL($this->app->managers->items->getEntity()->getTable()),
+            $mysql->makeJoinSQL([[
                 $this->app->managers->items->getEntity()->getTable(),
                 $this->app->managers->itemImages->getEntity()->getTable(),
                 $this->app->managers->items->getEntity()->getPk(),
             ]], $query->params),
-            $db->makeWhereSQL([
+            $mysql->makeWhereSQL([
                 'import_source_id' => $this->source->getId(),
             ], $query->params, null, $query->placeholders),
-            $db->makeHavingSQL([
+            $mysql->makeHavingSQL([
                 'image_id' => $images,
             ], $query->params),
         ]);
         $query->placeholders = false;
         $query->log = $this->debug;
 
-        foreach ($db->reqToArrays($query) as $row) {
+        foreach ($mysql->reqToArrays($query) as $row) {
             $output[] = $row['image_id'];
         }
 

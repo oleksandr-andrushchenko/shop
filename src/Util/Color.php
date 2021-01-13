@@ -3,14 +3,12 @@
 namespace SNOWGIRL_SHOP\Util;
 
 use SNOWGIRL_CORE\Util;
-use SNOWGIRL_CORE\AbstractApp;
+use SNOWGIRL_SHOP\Console\ConsoleApp;
 use SNOWGIRL_SHOP\Entity\Color as ColorEntity;
+use SNOWGIRL_SHOP\Http\HttpApp;
 
 /**
- * Class Color
- *
- * @property App app
- * @package SNOWGIRL_SHOP\Util
+ * @property HttpApp|ConsoleApp app
  */
 class Color extends Util
 {

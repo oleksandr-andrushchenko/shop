@@ -39,7 +39,7 @@ class DeleteAttrsWithoutItemsAction
     {
         $aff = 0;
 
-        $db = $app->container->db;
+        $mysql = $app->container->mysql;
 
 //        $itemPk = $app->managers->items->getEntity()->getPk();
         $itemTable = $app->managers->items->getEntity()->getTable();
@@ -52,11 +52,11 @@ class DeleteAttrsWithoutItemsAction
                 continue;
             }
 
-            $aff += $db->req(implode(' ', [
-                'DELETE ' . $db->quote('a'),
-                'FROM ' . $db->quote($table) . ' ' . $db->quote('a'),
-                'LEFT JOIN ' . $db->quote($itemTable) . ' ' . $db->quote('i') . ' USING (' . $db->quote($pk) . ')',
-                'WHERE ' . $db->quote($pk, 'i') . ' IS NULL'
+            $aff += $mysql->req(implode(' ', [
+                'DELETE ' . $mysql->quote('a'),
+                'FROM ' . $mysql->quote($table) . ' ' . $mysql->quote('a'),
+                'LEFT JOIN ' . $mysql->quote($itemTable) . ' ' . $mysql->quote('i') . ' USING (' . $mysql->quote($pk) . ')',
+                'WHERE ' . $mysql->quote($pk, 'i') . ' IS NULL'
             ]))->affectedRows();
         }
 
@@ -67,14 +67,14 @@ class DeleteAttrsWithoutItemsAction
     {
         $aff = 0;
 
-        $db = $app->container->db;
+        $mysql = $app->container->db;
 
         foreach ($app->managers->catalog->getMvaPkToTable() as $pk => $table) {
-            $aff += $db->req(implode(' ', [
-                'DELETE ' . $db->quote('a'),
-                'FROM ' . $db->quote($table) . ' ' . $db->quote('a'),
-                'LEFT JOIN ' . $db->quote('item_' . $table) . ' ' . $db->quote('ia') . ' USING (' . $db->quote($pk) . ')',
-                'WHERE ' . $db->quote($pk, 'ia') . ' IS NULL'
+            $aff += $mysql->req(implode(' ', [
+                'DELETE ' . $mysql->quote('a'),
+                'FROM ' . $mysql->quote($table) . ' ' . $mysql->quote('a'),
+                'LEFT JOIN ' . $mysql->quote('item_' . $table) . ' ' . $mysql->quote('ia') . ' USING (' . $mysql->quote($pk) . ')',
+                'WHERE ' . $mysql->quote($pk, 'ia') . ' IS NULL'
             ]))->affectedRows();
         }
 

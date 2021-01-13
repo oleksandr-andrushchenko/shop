@@ -34,7 +34,7 @@ class CatalogAction
 
         $app->managers->categories->clear();
 
-        $app->container->cache->getMulti([
+        $app->container->memcache->getMulti([
             $app->managers->categories->getAllIDsCacheKey(),
             $app->managers->pages->getMenuCacheKey(),
         ]);

@@ -3,7 +3,7 @@
 namespace SNOWGIRL_SHOP;
 
 use SNOWGIRL_CORE\Entity;
-use SNOWGIRL_CORE\Query;
+use SNOWGIRL_CORE\Mysql\MysqlQuery;
 use SNOWGIRL_SHOP\Catalog\SRC;
 use SNOWGIRL_SHOP\Catalog\URI;
 use SNOWGIRL_SHOP\Console\ConsoleApp;
@@ -12,7 +12,7 @@ use SNOWGIRL_SHOP\Http\HttpApp;
 use SNOWGIRL_SHOP\Item\URI as ItemURI;
 use SNOWGIRL_SHOP\Entity\Item;
 use SNOWGIRL_SHOP\Entity\Vendor;
-use SNOWGIRL_CORE\Query\Expression;
+use SNOWGIRL_CORE\Mysql\MysqlQueryExpression;
 use SNOWGIRL_SHOP\View\Builder as Views;
 
 /**
@@ -103,7 +103,7 @@ class Analytics extends \SNOWGIRL_CORE\Analytics
 
     public function getItemRatingStarCost(): ?int
     {
-        if ($this->app->container->cache->has(self::CACHE_ITEM_RATING_START_COST, $output)) {
+        if ($this->app->container->memcache->has(self::CACHE_ITEM_RATING_START_COST, $output)) {
             return $output;
         }
 
@@ -231,13 +231,13 @@ class Analytics extends \SNOWGIRL_CORE\Analytics
         $pk = $this->app->managers->items->getEntity()->getPk();
         $perGroup = 2 * SRC::getDefaultShowValue($this->app);
 
-        $query = new Query([
+        $query = new MysqlQuery([
             'params' => [],
             'columns' => [$pk],
             'orders' => ['rating' => SORT_DESC]
         ]);
 
-        $categoryIdToItems = $this->app->container->db->selectFromEachGroup(
+        $categoryIdToItems = $this->app->container->mysql->selectFromEachGroup(
             $this->app->managers->items->getEntity()->getTable(),
             $this->app->managers->categories->getEntity()->getPk(),
             $perGroup,
@@ -278,22 +278,21 @@ class Analytics extends \SNOWGIRL_CORE\Analytics
 
     private function updateCache($quantile = 0.95)
     {
-        $storage = $this->app->managers->items->getDb();
+        $mysql = $this->app->managers->items->getMysql();
 
-
-        $qr = $storage->quote('rating');
+        $qr = $mysql->quote('rating');
 
         $row = $this->app->managers->items->clear()
-            ->setColumns(new Expression(implode(' ', [
+            ->setColumns(new MysqlQueryExpression(implode(' ', [
                 'SUBSTRING_INDEX(SUBSTRING_INDEX(GROUP_CONCAT(' . $qr . ' ORDER BY ' . $qr . ' SEPARATOR \',\'), \',\', ' . $quantile . ' * COUNT(*) + 1), \',\', -1)',
-                'AS ' . $storage->quote('quantile')
+                'AS ' . $mysql->quote('quantile')
             ])))
             ->getArray();
 
         if ($row) {
-            return $this->app->container->cache->set(self::CACHE_ITEM_RATING_START_COST, ceil((float)$row['quantile'] / Views::ITEM_RATING_STAR_MAX));
+            return $this->app->container->memcache->set(self::CACHE_ITEM_RATING_START_COST, ceil((float)$row['quantile'] / Views::ITEM_RATING_STAR_MAX));
         }
 
-        return $this->app->container->cache->delete(self::CACHE_ITEM_RATING_START_COST);
+        return $this->app->container->memcache->delete(self::CACHE_ITEM_RATING_START_COST);
     }
 }

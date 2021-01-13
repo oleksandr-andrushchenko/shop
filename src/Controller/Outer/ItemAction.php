@@ -29,7 +29,7 @@ class ItemAction
 
         $key = 'item';
 
-        $app->container->cache->getMulti([
+        $app->container->memcache->getMulti([
             $app->managers->categories->getAllIDsCacheKey(),
             $app->managers->pages->getItemCacheKey($key),
             $app->managers->pages->getMenuCacheKey(),

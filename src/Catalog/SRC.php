@@ -3,7 +3,7 @@
 namespace SNOWGIRL_SHOP\Catalog;
 
 use SNOWGIRL_CORE\AbstractApp as App;
-use SNOWGIRL_CORE\Cache\CacheException;
+use SNOWGIRL_CORE\Cache\MemcacheException;
 use SNOWGIRL_SHOP\Catalog\SRC\DataProvider;
 
 use SNOWGIRL_CORE\Helper\Arrays;
@@ -50,7 +50,7 @@ class SRC
         $this->uri = $uri;
         $this->entities = Manager::mapEntitiesAddPksAsKeys($entities);
         $this->useCache = !!$uri->getApp()->config('catalog.cache', false);
-        $this->providerName = $this->getURI()->getApp()->config('data.provider.src', 'db');
+        $this->providerName = $this->getURI()->getApp()->config('data_provider.src', 'mysql');
     }
 
     public function getDataProvider(string $forceProvider = null): DataProvider
@@ -127,7 +127,7 @@ class SRC
 
         if ($this->useCache) {
             $cacheKey = $this->getItemsIdToAttrsCacheKey();
-            $cache = $this->getURI()->getApp()->container->cache($this->getMasterServices());
+            $cache = $this->getURI()->getApp()->container->memcache($this->getMasterServices());
 
             if (!$cache->has($cacheKey, $output)) {
                 $cache->set($cacheKey, $output = $fn());
@@ -152,13 +152,13 @@ class SRC
     /**
      * @param bool $total
      * @return Item[]
-     * @throws CacheException
+     * @throws MemcacheException
      */
     public function getItems(&$total = false): array
     {
         if (null === $total) {
             if ($this->useCache) {
-                $this->getURI()->getApp()->container->cache($this->getMasterServices())->getMulti([
+                $this->getURI()->getApp()->container->memcache($this->getMasterServices())->getMulti([
                     $this->getItemsIdToAttrsCacheKey(),
                     $this->getItemsCountCacheKey()
                 ]);
@@ -266,7 +266,7 @@ class SRC
                 $this->totalCount = $fn();
             } else {
                 $cacheKey = $this->getItemsCountCacheKey();
-                $cache = $this->getURI()->getApp()->container->cache($this->getMasterServices());
+                $cache = $this->getURI()->getApp()->container->memcache($this->getMasterServices());
 
                 if (!$cache->has($cacheKey, $output)) {
                     $cache->set($cacheKey, $output = $this->getDataProvider()->getTotalCount());

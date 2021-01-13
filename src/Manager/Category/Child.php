@@ -23,15 +23,15 @@ class Child extends Manager
             return true;
         }
 
-        $db = $this->app->container->db;
+        $mysql = $this->app->container->mysql;
         $table = $this->entity->getTable();
 
-        $db->getManager()->dropTable($table);
+        $mysql->dropTable($table);
 
-        $db->req(implode(' ', [
-            'CREATE ' . 'TABLE ' . $db->quote($table) . ' (',
-            $db->quote(CategoryEntity::getPk()) . ' int(11) NOT NULL,',
-            $db->quote('child_category_id') . ' int(11) NOT NULL',
+        $mysql->req(implode(' ', [
+            'CREATE ' . 'TABLE ' . $mysql->quote($table) . ' (',
+            $mysql->quote(CategoryEntity::getPk()) . ' int(11) NOT NULL,',
+            $mysql->quote('child_category_id') . ' int(11) NOT NULL',
             ') ENGINE=MyISAM DEFAULT CHARSET=utf8'
         ]));
 
@@ -40,8 +40,8 @@ class Child extends Manager
         $categories->deleteTreeCache();
 
         $query = implode(' ', [
-            'INSERT' . ' INTO ' . $db->quote($table),
-            '(' . $db->quote(CategoryEntity::getPk()) . ', ' . $db->quote('child_category_id') . ')',
+            'INSERT' . ' INTO ' . $mysql->quote($table),
+            '(' . $mysql->quote(CategoryEntity::getPk()) . ', ' . $mysql->quote('child_category_id') . ')',
             'VALUES'
         ]);
 
@@ -56,7 +56,7 @@ class Child extends Manager
 
         $query .= implode(', ', $tmp);
 
-        $db->req($query);
+        $mysql->req($query);
 
         return self::$createdAndFilled = true;
     }

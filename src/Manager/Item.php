@@ -4,7 +4,7 @@ namespace SNOWGIRL_SHOP\Manager;
 
 use SNOWGIRL_CORE\AbstractApp;
 use SNOWGIRL_CORE\Helper\Arrays;
-use SNOWGIRL_CORE\Query\Expression;
+use SNOWGIRL_CORE\Mysql\MysqlQueryExpression;
 use SNOWGIRL_CORE\Entity;
 use SNOWGIRL_SHOP\Catalog\SRC;
 use SNOWGIRL_SHOP\Catalog\URI;
@@ -26,7 +26,7 @@ use SNOWGIRL_SHOP\Entity\Category as CategoryEntity;
 use SNOWGIRL_SHOP\Entity\Color as ColorEntity;
 use SNOWGIRL_SHOP\Entity\Country as CountryEntity;
 use SNOWGIRL_SHOP\Entity\Vendor as VendorEntity;
-use SNOWGIRL_CORE\Query;
+use SNOWGIRL_CORE\Mysql\MysqlQuery;
 
 /**
  * @todo    split into Item\SRC and Item\URI (add alias URIs then after...)
@@ -250,30 +250,30 @@ class Item extends Manager implements GoLinkBuilderInterface
             $pk = $this->entity->getPk();
             $table = $this->entity->getTable();
 
-            $db = $this->app->container->db($this->masterServices);
+            $mysql = $this->app->container->mysql($this->masterServices);
 
             $columns = [];
             $joins = [];
-            $where = [new Expression($db->quote($pk, $table) . ' = ?', $item->getId())];
+            $where = [new MysqlQueryExpression($mysql->quote($pk, $table) . ' = ?', $item->getId())];
 
             foreach ($mva as $attrPk => $attrEntity) {
                 /** @var Entity $attrEntity */
 
                 /** @var Entity $entity */
                 $table2 = 'item_' . $attrEntity::getTable();
-                $joins[] = 'LEFT JOIN ' . $db->quote($table2) . ' ON ' . $db->quote($pk, $table) . ' = ' . $db->quote('item_id', $table2);
-                $columns[] = new Expression('GROUP_CONCAT(DISTINCT ' . $db->quote($attrPk) . ') AS ' . $db->quote($attrPk));
+                $joins[] = 'LEFT JOIN ' . $mysql->quote($table2) . ' ON ' . $mysql->quote($pk, $table) . ' = ' . $mysql->quote('item_id', $table2);
+                $columns[] = new MysqlQueryExpression('GROUP_CONCAT(DISTINCT ' . $mysql->quote($attrPk) . ') AS ' . $mysql->quote($attrPk));
             }
 
-            $query = new Query(['params' => []]);
+            $query = new MysqlQuery(['params' => []]);
             $query->text = implode(' ', [
-                $db->makeSelectSQL($columns, false, $query->params),
-                $db->makeFromSQL($table),
+                $mysql->makeSelectSQL($columns, false, $query->params),
+                $mysql->makeFromSQL($table),
                 implode(' ', $joins),
-                $db->makeWhereSQL($where, $query->params, null, $query->placeholders),
+                $mysql->makeWhereSQL($where, $query->params, null, $query->placeholders),
             ]);
 
-            $output = $db->reqToArray($query);
+            $output = $mysql->reqToArray($query);
 
             $this->getCache()->set($key, $output);
         }
@@ -543,23 +543,23 @@ class Item extends Manager implements GoLinkBuilderInterface
         $columns = array_keys($this->entity->getColumns());
         $groupColumn = 'category_id';
 
-        $db = $this->app->container->db($this->masterServices);
+        $mysql = $this->app->container->mysql($this->masterServices);
 
-        $query = new Query(['params' => []]);
+        $query = new MysqlQuery(['params' => []]);
         $query->text = implode(' ', [
-            $db->makeSelectSQL($columns, false, $query->params),
+            $mysql->makeSelectSQL($columns, false, $query->params),
             'FROM (',
-            'SELECT ' . implode(', ', array_merge($columns, ['@n := IF(@g = ' . $db->quote($groupColumn) . ', @n + 1, 1) AS ' . $db->quote('n'), '@g := ' . $db->quote($groupColumn)])),
-            'FROM ' . implode(', ', [$db->quote($table), '(SELECT @n := 0, @g := 0) ' . $db->quote('t')]),
-            $db->makeWhereSQL($where, $query->params, null, $query->placeholders),
-            $db->makeOrderSQL([$groupColumn => SORT_ASC, 'created_at' => SORT_DESC, 'partner_updated_at' => SORT_DESC], $query->params),
-            ') ' . $db->quote('t2'),
-            $db->makeWhereSQL(new Expression($db->quote('n') . ' < ?', $countPerGroup + 1), $query->params, null, $query->placeholders),
+            'SELECT ' . implode(', ', array_merge($columns, ['@n := IF(@g = ' . $mysql->quote($groupColumn) . ', @n + 1, 1) AS ' . $mysql->quote('n'), '@g := ' . $mysql->quote($groupColumn)])),
+            'FROM ' . implode(', ', [$mysql->quote($table), '(SELECT @n := 0, @g := 0) ' . $mysql->quote('t')]),
+            $mysql->makeWhereSQL($where, $query->params, null, $query->placeholders),
+            $mysql->makeOrderSQL([$groupColumn => SORT_ASC, 'created_at' => SORT_DESC, 'partner_updated_at' => SORT_DESC], $query->params),
+            ') ' . $mysql->quote('t2'),
+            $mysql->makeWhereSQL(new MysqlQueryExpression($mysql->quote('n') . ' < ?', $countPerGroup + 1), $query->params, null, $query->placeholders),
         ]);
 
         $output = [];
 
-        foreach ($db->reqToArrays($query) as $item) {
+        foreach ($mysql->reqToArrays($query) as $item) {
             $id = (int) $item[$groupColumn];
 
             if (!isset($output[$id])) {
@@ -731,7 +731,7 @@ class Item extends Manager implements GoLinkBuilderInterface
      * @param Entity|ItemEntity $entity
      * @return array|null
      */
-    public function getIndexerDocument(Entity $entity): ?array
+    public function getElasticsearchDocument(Entity $entity): ?array
     {
         $helper = new IndexerHelper();
         $helper->prepareData($this->app);

@@ -4,11 +4,11 @@ namespace SNOWGIRL_SHOP\Item\URI;
 
 use SNOWGIRL_CORE\AbstractApp as App;
 use SNOWGIRL_CORE\Http\HttpRequest;
-use SNOWGIRL_CORE\Query\Expression;
-use SNOWGIRL_CORE\Request;
-use SNOWGIRL_CORE\Route;
-use SNOWGIRL_CORE\Router;
-use SNOWGIRL_CORE\Db\DbInterface;
+use SNOWGIRL_CORE\Mysql\Mysql;
+use SNOWGIRL_CORE\Mysql\MysqlQueryExpression;
+use SNOWGIRL_CORE\AbstractRequest as Request;
+use SNOWGIRL_CORE\Http\Route;
+use SNOWGIRL_CORE\Http\Router;
 use SNOWGIRL_SHOP\Console\ConsoleApp;
 use SNOWGIRL_SHOP\Http\HttpApp;
 use SNOWGIRL_SHOP\Item\SRC;
@@ -30,9 +30,9 @@ class Manager
     protected $managers;
 
     /**
-     * @var DbInterface
+     * @var Mysql
      */
-    protected $db;
+    protected $mysql;
 
     /**
      * @var Router
@@ -42,7 +42,7 @@ class Manager
     public function __construct(App $app)
     {
         $this->managers = $app->managers;
-        $this->db = $app->container->db;
+        $this->mysql = $app->container->mysql;
         $this->router = $app->router;
     }
 
@@ -136,7 +136,7 @@ class Manager
 
             $brand = $this->managers->brands->clear()
                 ->setWhere(['uri' => $tmp])
-                ->setOrders(new Expression('LENGTH(' . $this->db->quote('uri') . ') DESC'))
+                ->setOrders(new MysqlQueryExpression('LENGTH(' . $this->mysql->quote('uri') . ') DESC'))
                 ->getObject();
 
             if ($brand) {

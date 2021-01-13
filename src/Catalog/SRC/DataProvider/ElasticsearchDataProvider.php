@@ -2,12 +2,12 @@
 
 namespace SNOWGIRL_SHOP\Catalog\SRC\DataProvider;
 
+use SNOWGIRL_CORE\Elasticsearch\ElasticsearchQuery;
 use SNOWGIRL_SHOP\Catalog\SRC\DataProvider;
 use SNOWGIRL_SHOP\Catalog\URI;
-use SNOWGIRL_SHOP\Entity\Item;
 use SNOWGIRL_SHOP\Manager\Item\IndexerHelper;
 
-class IndexerDataProvider extends DataProvider
+class ElasticsearchDataProvider extends DataProvider
 {
     public function getColumnsMapping(array $columns = null): array
     {
@@ -32,17 +32,56 @@ class IndexerDataProvider extends DataProvider
 
     public function getItemsAttrs(): array
     {
-        $columns = $this->getColumnsMapping();
-        $columns[Item::getPk()] = '_id';
+        $mappings = $this->getColumnsMapping();
 
-        return $this->src->getURI()->getApp()->container->indexer($this->src->getMasterServices())->search(
-            $this->src->getURI()->getApp()->managers->items->getEntity()->getTable(),
-            array_values($this->getWhere()),
-            $this->src->getOffset(),
-            $this->src->getLimit(),
-            $this->getOrder(),
-            $columns
-        );
+        $index = $this->src->getURI()->getApp()->managers->items->getEntity()->getTable();
+        $query = new ElasticsearchQuery();
+
+        $query->queryBoolFilter = array_values($this->getWhere());
+        $query->from = $this->src->getOffset();
+        $query->size = $this->src->getLimit();
+        $query->sort = $this->getOrder();
+        $query->sourceIncludes = $mappings;
+        $query->sourceIncludes = array_values($mappings);
+        $query->idsAsKeys = true;
+
+        $items = $this->src->getURI()->getApp()->container
+            ->elasticsearch($this->src->getMasterServices())
+            ->search($index, $query);
+
+        $output = [];
+
+        foreach ($items as $id => $item) {
+            $tmp = $item;
+            $tmp['item_id'] = $id;
+
+            foreach ($mappings as $k => $v) {
+                if (is_string($k)) {
+                    $tmp2 = $item;
+
+                    foreach (explode('.', $v) as $peace) {
+                        if (array_key_exists($peace, $tmp2)) {
+                            $tmp2 = $tmp2[$peace];
+                        } else {
+                            $tmp2 = null;
+                            $this->src->getURI()->getApp()->container->logger->warning("'$peace' peace key not found", [
+                                'item' => $item,
+                                'column_key' => $k,
+                                'column_value' => $v,
+                            ]);
+                            break;
+                        }
+                    }
+
+
+                    $tmp[$k] = $tmp2;
+                }
+            }
+
+            $output[] = $tmp;
+        }
+
+        return $output;
     }
 
     public function getWhere(bool $raw = false): array
@@ -173,9 +212,12 @@ class IndexerDataProvider extends DataProvider
 
     public function getTotalCount(): int
     {
-        return $this->src->getURI()->getApp()->container->indexer($this->src->getMasterServices())->count(
-            $this->src->getURI()->getApp()->managers->items->getEntity()->getTable(),
-            array_values($this->getWhere())
-        );
+        $index = $this->src->getURI()->getApp()->managers->items->getEntity()->getTable();
+        $query = new ElasticsearchQuery();
+
+        $query->queryBoolFilter = array_values($this->getWhere());
+
+        return $this->src->getURI()->getApp()->container->elasticsearch($this->src->getMasterServices())
+            ->count($index, $query);
     }
 }

@@ -2,7 +2,7 @@
 
 namespace SNOWGIRL_SHOP\Controller\Admin;
 
-use SNOWGIRL_CORE\Query\Expression;
+use SNOWGIRL_CORE\Mysql\MysqlQueryExpression;
 use SNOWGIRL_SHOP\Http\HttpApp as App;
 use SNOWGIRL_CORE\Controller\Admin\PrepareServicesTrait;
 use SNOWGIRL_SHOP\Entity\Category;
@@ -47,7 +47,7 @@ class CategoryFixesAction
         /** @var CategoryManager $src */
         $src = $app->managers->categories->clear();
 
-        $db = $app->container->db;
+        $mysql = $app->container->mysql;
 
         $srcWhat = ['*'];
         $srcWhere = [];
@@ -57,12 +57,12 @@ class CategoryFixesAction
 
         if (mb_strlen($searchBy) && mb_strlen($searchValue)) {
             if ($searchUseFulltext) {
-                $query = $db->makeQuery($searchValue);
-                $tmp = 'MATCH(' . $db->quote($searchBy) . ') AGAINST (? IN BOOLEAN MODE)';
+                $query = $mysql->makeQuery($searchValue);
+                $tmp = 'MATCH(' . $mysql->quote($searchBy) . ') AGAINST (? IN BOOLEAN MODE)';
 
-                $srcWhat[] = new Expression($tmp . ' AS ' . $db->quote('relevance'), $query);
-                $srcWhat[] = new Expression('CHAR_LENGTH(' . $db->quote($searchBy) . ') AS ' . $db->quote('length'));
-                $srcWhere[] = new Expression($tmp, $query);
+                $srcWhat[] = new MysqlQueryExpression($tmp . ' AS ' . $mysql->quote('relevance'), $query);
+                $srcWhat[] = new MysqlQueryExpression('CHAR_LENGTH(' . $mysql->quote($searchBy) . ') AS ' . $mysql->quote('length'));
+                $srcWhere[] = new MysqlQueryExpression($tmp, $query);
                 $srcOrder['length'] = SORT_ASC;
                 $srcOrder['relevance'] = SORT_DESC;
             } else {

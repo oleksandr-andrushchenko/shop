@@ -3,8 +3,8 @@
 namespace SNOWGIRL_SHOP\Manager;
 
 use SNOWGIRL_CORE\Entity;
-use SNOWGIRL_CORE\Query\Expression;
-use SNOWGIRL_CORE\Query;
+use SNOWGIRL_CORE\Mysql\MysqlQueryExpression;
+use SNOWGIRL_CORE\Mysql\MysqlQuery;
 use SNOWGIRL_SHOP\Entity\Brand as BrandEntity;
 use SNOWGIRL_SHOP\Manager\Item\Attr;
 
@@ -44,41 +44,41 @@ class Brand extends Attr
 
         $cacheKey = $this->getNonEmptyGroupedByFirstChar($perCharLimit);
 
-        if (!$this->app->container->cache->has($cacheKey, $list)) {
-            $db = $this->app->container->db;
+        if (!$this->app->container->memcache->has($cacheKey, $list)) {
+            $mysql = $this->app->container->mysql;
 
             if (1 == $perCharLimit) {
                 return $this->copy(true)
-                    ->setGroups(new Expression('UPPER(SUBSTR(' . $db->quote('name') . ', 1, 1))'))
+                    ->setGroups(new MysqlQueryExpression('UPPER(SUBSTR(' . $mysql->quote('name') . ', 1, 1))'))
                     ->setOrders(['name' => SORT_ASC])
                     ->getList();
             }
 
             $pk = $this->entity->getPk();
 
-            $query = new Query(['params' => [++$perCharLimit]]);
+            $query = new MysqlQuery(['params' => [++$perCharLimit]]);
             $query->text = implode(' ', [
-                $db->makeSelectSQL($pk, false, $query->params),
+                $mysql->makeSelectSQL($pk, false, $query->params),
                 'FROM (',
-                $db->makeSelectSQL([
+                $mysql->makeSelectSQL([
                     '*',
-                    new Expression('@num := IF(IFNULL(@group, \'\') = ' . $db->quote('char') . ', IFNULL(@num, 0) + 1, 1) AS ' . $db->quote('row')),
-                    new Expression('@group := ' . $db->quote('char'))
+                    new MysqlQueryExpression('@num := IF(IFNULL(@group, \'\') = ' . $mysql->quote('char') . ', IFNULL(@num, 0) + 1, 1) AS ' . $mysql->quote('row')),
+                    new MysqlQueryExpression('@group := ' . $mysql->quote('char'))
                 ], false, $query->params),
                 'FROM (',
-                $db->makeSelectSQL(['*', new Expression('UPPER(SUBSTR(' . $db->quote('name') . ', 1, 1)) AS ' . $db->quote('char'))], false, $query->params),
-                $db->makeFromSQL(BrandEntity::getTable()),
+                $mysql->makeSelectSQL(['*', new MysqlQueryExpression('UPPER(SUBSTR(' . $mysql->quote('name') . ', 1, 1)) AS ' . $mysql->quote('char'))], false, $query->params),
+                $mysql->makeFromSQL(BrandEntity::getTable()),
                 ') t',
-                $db->makeOrderSQL(['name' => SORT_ASC], $query->params),
+                $mysql->makeOrderSQL(['name' => SORT_ASC], $query->params),
                 ') AS x',
                 'WHERE x.row < ?'
             ]);
 
             $list = array_map(function ($row) use ($pk) {
                 return $row[$pk];
-            }, $db->reqToArrays($query));
+            }, $mysql->reqToArrays($query));
 
-            $this->app->container->cache->set($cacheKey, $list);
+            $this->app->container->memcache->set($cacheKey, $list);
         }
 
         /** @var BrandEntity[] $items */

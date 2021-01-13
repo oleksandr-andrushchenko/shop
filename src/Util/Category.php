@@ -2,11 +2,11 @@
 
 namespace SNOWGIRL_SHOP\Util;
 
-use SNOWGIRL_CORE\Db\DbInterface;
 use SNOWGIRL_CORE\Entity\Redirect;
 use SNOWGIRL_CORE\Exception;
-use SNOWGIRL_CORE\Query\Expression;
-use SNOWGIRL_CORE\Query;
+use SNOWGIRL_CORE\Mysql\Mysql;
+use SNOWGIRL_CORE\Mysql\MysqlQueryExpression;
+use SNOWGIRL_CORE\Mysql\MysqlQuery;
 use SNOWGIRL_CORE\Util;
 use SNOWGIRL_SHOP\Catalog\URI;
 use SNOWGIRL_SHOP\Console\ConsoleApp;
@@ -23,10 +23,7 @@ use SNOWGIRL_SHOP\Http\HttpApp;
 use Throwable;
 
 /**
- * Class Category
- *
  * @property HttpApp|ConsoleApp app
- * @package SNOWGIRL_SHOP\Util
  */
 class Category extends Util
 {
@@ -50,9 +47,9 @@ class Category extends Util
          */
 
         $pk = $this->app->managers->categories->getEntity()->getPk();
-        $qPk = $this->app->container->db->quote($pk);
-        $qName = $this->app->container->db->quote('name');
-        $qUri = $this->app->container->db->quote('uri');
+        $qPk = $this->app->container->mysql->quote($pk);
+        $qName = $this->app->container->mysql->quote('name');
+        $qUri = $this->app->container->mysql->quote('uri');
 
         $ignore = [-1];
 
@@ -61,8 +58,8 @@ class Category extends Util
                 $pk,
                 'name'
             ])->setWhere([
-                new Expression('ROUND((LENGTH(' . $qName . ') - LENGTH(REPLACE(' . $qName . ', "' . $delimiter . '", ""))) / LENGTH("' . $delimiter . '")) > 0'),
-                new Expression($qPk . ' NOT IN (' . implode(',', $ignore) . ')')
+                new MysqlQueryExpression('ROUND((LENGTH(' . $qName . ') - LENGTH(REPLACE(' . $qName . ', "' . $delimiter . '", ""))) / LENGTH("' . $delimiter . '")) > 0'),
+                new MysqlQueryExpression($qPk . ' NOT IN (' . implode(',', $ignore) . ')')
             ])->getObject()) {
             $rawParentName = explode($delimiter, $category->getName())[0];
             $parentName = CategoryEntity::normalizeText($rawParentName);
@@ -78,12 +75,12 @@ class Category extends Util
 
             try {
                 $this->app->managers->categories->updateMany([
-                    'name' => new Expression('REPLACE(' . $qName . ', ?, "")', $likeQuery),
-                    'uri' => new Expression('REPLACE(' . $qUri . ', ?, "")', $parent->getUri() . '-'),
+                    'name' => new MysqlQueryExpression('REPLACE(' . $qName . ', ?, "")', $likeQuery),
+                    'uri' => new MysqlQueryExpression('REPLACE(' . $qUri . ', ?, "")', $parent->getUri() . '-'),
                     'parent_category_id' => $parent->getId()
                 ], [
-                    new Expression($qName . ' LIKE ?', $likeQuery . '%'),
-                    new Expression($qPk . ' <> ?', $parent->getId())
+                    new MysqlQueryExpression($qName . ' LIKE ?', $likeQuery . '%'),
+                    new MysqlQueryExpression($qPk . ' <> ?', $parent->getId())
                 ], ['ignore' => true]);
             } catch (Throwable $e) {
                 $error = $e->getMessage();
@@ -107,17 +104,17 @@ class Category extends Util
     {
         $categoryToTags = [];
 
-        $db = $this->app->container->db;
+        $mysql = $this->app->container->mysql;
 
         /**
          * @return CategoryEntity[]
          */
-        $makeCategories = function () use ($db) {
+        $makeCategories = function () use ($mysql) {
             $this->app->managers->categories->deleteTreeCache();
 
             /** @var CategoryEntity[] $categories */
             $categories = $this->app->managers->categories->clear()
-                ->setWhere(new Expression($db->quote('parent_category_id') . ' IS NOT NULL'))
+                ->setWhere(new MysqlQueryExpression($mysql->quote('parent_category_id') . ' IS NOT NULL'))
                 ->getObjects(true);
 
             //cache categories parents
@@ -158,17 +155,17 @@ class Category extends Util
             }
 
             foreach ($tagsIds as $tagId) {
-                $query = new Query(['params' => []]);
+                $query = new MysqlQuery(['params' => []]);
                 $query->text = implode(' ', [
                     'INSERT IGNORE INTO',
-                    $db->quote(TagItem::getTable()),
-                    '(' . $db->quote('item_id') . ', ' . $db->quote('tag_id') . ')',
-                    'SELECT ' . $db->quote(Item::getPk()) . ', ' . $tagId,
-                    $db->makeFromSQL(Item::getTable()),
-                    $db->makeWhereSQL(['category_id' => $categoryId], $query->params, null, $query->placeholders)
+                    $mysql->quote(TagItem::getTable()),
+                    '(' . $mysql->quote('item_id') . ', ' . $mysql->quote('tag_id') . ')',
+                    'SELECT ' . $mysql->quote(Item::getPk()) . ', ' . $tagId,
+                    $mysql->makeFromSQL(Item::getTable()),
+                    $mysql->makeWhereSQL(['category_id' => $categoryId], $query->params, null, $query->placeholders)
                 ]);
 
-                $db->req($query);
+                $mysql->req($query);
 
                 $this->app->managers->catalog->updateMany(['category_id' => $parentCategory->getId(), 'tag_id' => $tagId], [
                     'category_id' => $categoryId
@@ -247,7 +244,7 @@ class Category extends Util
             }
         }
 
-        $this->app->container->cache->flush();
+        $this->app->container->memcache->flush();
 
         return true;
     }
@@ -312,19 +309,19 @@ class Category extends Util
 
         /** @var Tag[] $targetTags */
 
-        $this->app->container->db->makeTransaction(function (DbInterface $db) use ($sourceCategory, $targetCategory, $targetTags) {
+        $this->app->container->mysql->makeTransaction(function (Mysql $mysql) use ($sourceCategory, $targetCategory, $targetTags) {
             foreach ($targetTags as $targetTag) {
-                $query = new Query(['params' => []]);
+                $query = new MysqlQuery(['params' => []]);
                 $query->text = implode(' ', [
                     'INSERT IGNORE INTO',
-                    $db->quote(TagItem::getTable()),
-                    '(' . $db->quote('item_id') . ', ' . $db->quote('tag_id') . ')',
-                    'SELECT ' . $db->quote(Item::getPk()) . ', ' . $targetTag->getId(),
-                    $db->makeFromSQL(Item::getTable()),
-                    $db->makeWhereSQL(['category_id' => $sourceCategory->getId()], $query->params, null, $query->placeholders)
+                    $mysql->quote(TagItem::getTable()),
+                    '(' . $mysql->quote('item_id') . ', ' . $mysql->quote('tag_id') . ')',
+                    'SELECT ' . $mysql->quote(Item::getPk()) . ', ' . $targetTag->getId(),
+                    $mysql->makeFromSQL(Item::getTable()),
+                    $mysql->makeWhereSQL(['category_id' => $sourceCategory->getId()], $query->params, null, $query->placeholders)
                 ]);
 
-                $db->req($query);
+                $mysql->req($query);
             }
 
             $where = ['category_id' => $sourceCategory->getId()];
@@ -335,14 +332,14 @@ class Category extends Util
                 $columns = array_keys(Catalog::getColumns());
 
                 foreach ($targetTags as $targetTag) {
-                    $query = new Query(['params' => []]);
+                    $query = new MysqlQuery(['params' => []]);
                     $query->text = implode(' ', [
-                        'INSERT IGNORE INTO' . ' ' . $db->quote(Catalog::getTable()),
-                        '(' . implode(', ', array_map(function ($column) use ($db) {
-                            return $db->quote($column);
+                        'INSERT IGNORE INTO' . ' ' . $mysql->quote(Catalog::getTable()),
+                        '(' . implode(', ', array_map(function ($column) use ($mysql) {
+                            return $mysql->quote($column);
                         }, $columns)) . ')',
                         'SELECT',
-                        implode(', ', array_map(function ($column) use ($targetCategory, $targetTag, $db, $query) {
+                        implode(', ', array_map(function ($column) use ($targetCategory, $targetTag, $mysql, $query) {
                             if ('category_id' == $column) {
                                 $query->params[] = $targetCategory->getId();
                                 return '?';
@@ -350,14 +347,14 @@ class Category extends Util
                                 $query->params[] = $targetTag->getId();
                                 return '?';
                             } else {
-                                return $db->quote($column);
+                                return $mysql->quote($column);
                             }
                         }, $columns)),
-                        'FROM ' . $db->quote(Catalog::getTable()),
-                        $db->makeWhereSQL($where, $query->params, null, $query->placeholders)
+                        'FROM ' . $mysql->quote(Catalog::getTable()),
+                        $mysql->makeWhereSQL($where, $query->params, null, $query->placeholders)
                     ]);
 
-                    $db->req($query);
+                    $mysql->req($query);
                 }
 
                 $this->app->managers->catalog->deleteMany([
@@ -385,7 +382,7 @@ class Category extends Util
 //            $this->app->storage->elastic->restart($this->app);
             //@todo...
 //            $this->app->storage->elastic->rotate($this->app);
-            $this->app->container->cache->flush();
+            $this->app->container->memcache->flush();
         }
 
         return true;
@@ -421,7 +418,7 @@ class Category extends Util
 
         $rotate = 1 == $this->app->request->get('param_4', 0);
 
-        $this->app->container->db->makeTransaction(function () use ($sourceCategory, $targetCategory) {
+        $this->app->container->mysql->makeTransaction(function () use ($sourceCategory, $targetCategory) {
             $where = ['category_id' => $sourceCategory->getId()];
 
             $this->app->managers->items->updateMany(['category_id' => $targetCategory->getId()], $where, ['ignore' => true]);
@@ -439,7 +436,7 @@ class Category extends Util
         if ($rotate) {
             //@todo...
 //            $this->app->storage->elastic->rotate($this->app);
-            $this->app->container->cache->flush();
+            $this->app->container->memcache->flush();
         }
 
         return true;

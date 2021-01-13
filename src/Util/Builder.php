@@ -3,8 +3,6 @@
 namespace SNOWGIRL_SHOP\Util;
 
 /**
- * Class Builder
- *
  * @property Attr attrs
  * @property Brand brands
  * @property Catalog catalog
@@ -18,7 +16,6 @@ namespace SNOWGIRL_SHOP\Util;
  * @property Tag tags
  * @property Image images
  * @property Source sources
- * @package SNOWGIRL_SHOP\Util
  */
 class Builder extends \SNOWGIRL_CORE\Util\Builder
 {

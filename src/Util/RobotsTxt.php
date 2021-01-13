@@ -5,10 +5,6 @@ namespace SNOWGIRL_SHOP\Util;
 use SNOWGIRL_SHOP\Catalog\URI;
 use SNOWGIRL_SHOP\Manager\Page\Catalog;
 
-/**
- * Class RobotsTxt
- * @package SNOWGIRL_SHOP\Util
- */
 class RobotsTxt extends \SNOWGIRL_CORE\Util\RobotsTxt
 {
     protected function getDisallows()

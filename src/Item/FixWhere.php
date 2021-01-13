@@ -2,7 +2,7 @@
 
 namespace SNOWGIRL_SHOP\Item;
 
-use SNOWGIRL_CORE\Query\Expression;
+use SNOWGIRL_CORE\Mysql\MysqlQueryExpression;
 use SNOWGIRL_SHOP\Console\ConsoleApp as App;
 use SNOWGIRL_SHOP\Entity\Import\Source as ImportSource;
 
@@ -130,26 +130,26 @@ class FixWhere
         $orWhere = [];
 
         if ($this->partnerUpdatedAtFrom || $this->partnerUpdatedAtTo) {
-            $q = $this->app->container->db->quote('partner_updated_at');
+            $q = $this->app->container->mysql->quote('partner_updated_at');
 
             if ($tmp = $this->partnerUpdatedAtFrom) {
-                $where[] = new Expression($q . ' > ?', $tmp);
+                $where[] = new MysqlQueryExpression($q . ' > ?', $tmp);
             }
 
             if ($tmp = $this->partnerUpdatedAtTo) {
-                $where[] = new Expression($q . ' < ?', $tmp);
+                $where[] = new MysqlQueryExpression($q . ' < ?', $tmp);
             }
         }
 
         if ($this->createdAtFrom || $this->createdAtTo) {
-            $q = $this->app->container->db->quote('created_at', $this->app->managers->items->getEntity()->getTable());
+            $q = $this->app->container->mysql->quote('created_at', $this->app->managers->items->getEntity()->getTable());
 
             if ($tmp = $this->formatDate($this->createdAtFrom)) {
-                $where[] = new Expression($q . ' > ?', $tmp);
+                $where[] = new MysqlQueryExpression($q . ' > ?', $tmp);
             }
 
             if ($tmp = $this->formatDate($this->createdAtTo)) {
-                $where[] = new Expression($q . ' < ?', $tmp);
+                $where[] = new MysqlQueryExpression($q . ' < ?', $tmp);
             }
         }
 
@@ -159,18 +159,18 @@ class FixWhere
         }
 
         if ($this->updatedAtFrom || $this->updatedAtTo || $this->updatedAtIsNull) {
-            $q = $this->app->container->db->quote('updated_at', $this->app->managers->items->getEntity()->getTable());
+            $q = $this->app->container->mysql->quote('updated_at', $this->app->managers->items->getEntity()->getTable());
 
             if ($tmp = $this->formatDate($this->updatedAtFrom)) {
-                $where[] = new Expression(($this->updatedAtFromWithNulls ? ($q . ' IS NULL OR ') : '') . $q . ' > ?', $tmp);
+                $where[] = new MysqlQueryExpression(($this->updatedAtFromWithNulls ? ($q . ' IS NULL OR ') : '') . $q . ' > ?', $tmp);
             }
 
             if ($tmp = $this->formatDate($this->updatedAtTo)) {
-                $where[] = new Expression(($this->updatedAtToWithNulls ? ($q . ' IS NULL OR ') : '') . $q . ' < ?', $tmp);
+                $where[] = new MysqlQueryExpression(($this->updatedAtToWithNulls ? ($q . ' IS NULL OR ') : '') . $q . ' < ?', $tmp);
             }
 
             if ($this->updatedAtIsNull) {
-                $where[] = new Expression($q . ' IS NULL');
+                $where[] = new MysqlQueryExpression($q . ' IS NULL');
             }
         }
 
@@ -211,13 +211,12 @@ class FixWhere
     }
 
     /**
-     * @param Expression   $expr1
-     * @param Expression   $expr2
+     * @param MysqlQueryExpression   $expr1
+     * @param MysqlQueryExpression   $expr2
      * @param string $template
-     *
-     * @return Expression
+     * @return MysqlQueryExpression
      */
-    protected function mergeExprs(Expression $expr1, Expression $expr2, $template = '($1) AND ($2)')
+    protected function mergeExprs(MysqlQueryExpression $expr1, MysqlQueryExpression $expr2, $template = '($1) AND ($2)')
     {
         $args = [];
 
@@ -232,18 +231,17 @@ class FixWhere
         $args = array_merge($args, $pos1 < $pos2 ? $expr1->getParams() : $expr2->getParams());
         $args = array_merge($args, $pos1 < $pos2 ? $expr2->getParams() : $expr1->getParams());
 
-        return new Expression(...$args);
+        return new MysqlQueryExpression(...$args);
     }
 
     /**
      * @param array  $input
      * @param string $template
-     *
-     * @return Expression
+     * @return MysqlQueryExpression
      */
     protected function mergeExprsArray(array $input, $template = '($1) AND ($2)')
     {
-        /** @var Expression $output */
+        /** @var MysqlQueryExpression $output */
         $output = array_shift($input);
 
         foreach ($input as $v) {

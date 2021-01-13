@@ -2,23 +2,23 @@
 
 namespace SNOWGIRL_SHOP\Manager\Item\DataProvider;
 
-use SNOWGIRL_CORE\Query;
-use SNOWGIRL_CORE\Query\Expression;
+use SNOWGIRL_CORE\Mysql\MysqlQuery;
+use SNOWGIRL_CORE\Mysql\MysqlQueryExpression;
 use SNOWGIRL_SHOP\Catalog\URI;
 use SNOWGIRL_SHOP\Manager\Item\DataProvider;
 
-class DbDataProvider extends DataProvider
+class MysqlDataProvider extends DataProvider
 {
-    use \SNOWGIRL_CORE\Manager\DataProvider\Traits\DbDataProvider;
+    use \SNOWGIRL_CORE\Manager\DataProvider\Traits\MysqlDataProvider;
 
     public function getPricesByUri(URI $uri): array
     {
-        $db = $this->manager->getApp()->container->db($this->manager->getMasterServices());
+        $mysql = $this->manager->getApp()->container->mysql($this->manager->getMasterServices());
 
         $columns = [];
         $groups = [];
 
-        $pq = $db->quote('price');
+        $pq = $mysql->quote('price');
 
         $ranges = $this->manager->getPriceRanges();
         $s = count($ranges) - 1;
@@ -32,17 +32,17 @@ class DbDataProvider extends DataProvider
                 $tmp = $pq . ' > ' . $r[0] . ' AND ' . $pq . ' <= ' . $r[1];
             }
 
-            $columns[] = new Expression('IF (' . $tmp . ', 1, 0) AS ' . $db->quote($groups[] = 'r_' . $r[0] . '_' . $r[1]));
+            $columns[] = new MysqlQueryExpression('IF (' . $tmp . ', 1, 0) AS ' . $mysql->quote($groups[] = 'r_' . $r[0] . '_' . $r[1]));
         }
 
-        $columns[] = new Expression('COUNT(*) AS ' . $db->quote('cnt'));
+        $columns[] = new MysqlQueryExpression('COUNT(*) AS ' . $mysql->quote('cnt'));
 
-        $where = $uri->getSRC()->getDataProvider('db')->getWhere();
+        $where = $uri->getSRC()->getDataProvider('mysql')->getWhere();
 
         unset($where[URI::PRICE_FROM]);
         unset($where[URI::PRICE_TO]);
 
-        return $db->selectMany($this->manager->getEntity()->getTable(), new Query([
+        return $mysql->selectMany($this->manager->getEntity()->getTable(), new MysqlQuery([
             'columns' => $columns,
             'where' => $where,
             'groups' => $groups,
@@ -52,7 +52,7 @@ class DbDataProvider extends DataProvider
     public function getTypesByUri(URI $uri, &$map = [], &$current = []): array
     {
         $copy = $this->manager->copy(true)
-            ->setDb($this->manager->getApp()->container->db($this->manager->getMasterServices()));
+            ->setMysql($this->manager->getApp()->container->mysql($this->manager->getMasterServices()));
 
         $map = [];
         $current = [];
@@ -71,10 +71,10 @@ class DbDataProvider extends DataProvider
             $current[URI::SIZE_PLUS] = $uri->get(URI::SIZE_PLUS);
         }
 
-        $db = $this->manager->getApp()->container->db($this->manager->getMasterServices());
+        $mysql = $this->manager->getApp()->container->mysql($this->manager->getMasterServices());
 
         if (in_array(URI::SALES, URI::TYPE_PARAMS)) {
-            $copy->addColumn(new Expression('IF(' . $db->quote('old_price') . ' > 0, 1, 0) AS ' . $db->quote('is_sales')))
+            $copy->addColumn(new MysqlQueryExpression('IF(' . $mysql->quote('old_price') . ' > 0, 1, 0) AS ' . $mysql->quote('is_sales')))
                 ->addGroup('is_sales');
             $map[URI::SALES] = 'is_sales';
             $current[URI::SALES] = $uri->get(URI::SALES);
@@ -82,8 +82,8 @@ class DbDataProvider extends DataProvider
 
         $exclude = array_merge($map, array_keys($map));
 
-        $copy->addColumn(new Expression('COUNT(*) AS ' . $db->quote('cnt')))
-            ->addWhere(array_filter($uri->getSRC()->getDataProvider('db')->getWhere(), function ($k) use ($exclude) {
+        $copy->addColumn(new MysqlQueryExpression('COUNT(*) AS ' . $mysql->quote('cnt')))
+            ->addWhere(array_filter($uri->getSRC()->getDataProvider('mysql')->getWhere(), function ($k) use ($exclude) {
                 return !in_array($k, $exclude);
             }, ARRAY_FILTER_USE_KEY));
 

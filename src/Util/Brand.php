@@ -18,10 +18,7 @@ use SNOWGIRL_SHOP\Manager\Brand\Term as BrandTermManager;
 use Throwable;
 
 /**
- * Class Brand
- *
  * @property HttpApp|ConsoleApp app
- * @package SNOWGIRL_SHOP\Util
  */
 class Brand extends Util
 {
@@ -74,7 +71,7 @@ class Brand extends Util
                                 ->getObject();
 
                             if ($new) {
-                                $this->app->container->db->updateMany(Item::getTable(), [BrandEntity::getPk() => $new->getId()], [
+                                $this->app->container->mysql->updateMany(Item::getTable(), [BrandEntity::getPk() => $new->getId()], [
                                     BrandEntity::getPk() => $item->getId()
                                 ]);
 
@@ -89,7 +86,7 @@ class Brand extends Util
                                 ->getObject();
 
                             if ($new) {
-                                $this->app->container->db->updateMany(Item::getTable(), [BrandEntity::getPk() => $new->getId()], [
+                                $this->app->container->mysql->updateMany(Item::getTable(), [BrandEntity::getPk() => $new->getId()], [
                                     BrandEntity::getPk() => $item->getId()
                                 ]);
 
@@ -111,11 +108,11 @@ class Brand extends Util
     {
         (new WalkChunk(1000))
             ->setFnGet(function ($page, $size) {
-                return $this->app->container->db->reqToArrays(implode(' ', [
-                    'SELECT ' . $this->app->container->db->quote('b') . '.*, COUNT(*) AS ' . $this->app->container->db->quote('cnt'),
-                    'FROM ' . $this->app->container->db->quote(BrandEntity::getTable()) . ' AS ' . $this->app->container->db->quote('b'),
-                    'INNER JOIN ' . $this->app->container->db->quote(Item::getTable()) . ' AS ' . $this->app->container->db->quote('i') . ' USING(' . $this->app->container->db->quote(BrandEntity::getPk()) . ')',
-                    'GROUP BY ' . $this->app->container->db->quote(BrandEntity::getPk(), 'b'),
+                return $this->app->container->mysql->reqToArrays(implode(' ', [
+                    'SELECT ' . $this->app->container->mysql->quote('b') . '.*, COUNT(*) AS ' . $this->app->container->mysql->quote('cnt'),
+                    'FROM ' . $this->app->container->mysql->quote(BrandEntity::getTable()) . ' AS ' . $this->app->container->mysql->quote('b'),
+                    'INNER JOIN ' . $this->app->container->mysql->quote(Item::getTable()) . ' AS ' . $this->app->container->mysql->quote('i') . ' USING(' . $this->app->container->mysql->quote(BrandEntity::getPk()) . ')',
+                    'GROUP BY ' . $this->app->container->mysql->quote(BrandEntity::getPk(), 'b'),
                     'LIMIT ' . (($page - 1) * $size) . ', ' . $size
                 ]));
             })
@@ -166,7 +163,7 @@ class Brand extends Util
 
         $rotate = 1 == $this->app->request->get('param_4', 0);
 
-        $this->app->container->db->makeTransaction(function () use ($sourceBrand, $targetBrand) {
+        $this->app->container->mysql->makeTransaction(function () use ($sourceBrand, $targetBrand) {
             $where = ['brand_id' => $sourceBrand->getId()];
 
             $this->app->managers->items->updateMany(['brand_id' => $targetBrand->getId()], $where, ['ignore'=>true]);
@@ -191,7 +188,7 @@ class Brand extends Util
             $this->app->utils->items->doIndexIndexer(1);
             //@todo...
 //            $this->app->utils->catalog->doDeleteIndexer(['brand.id' => $sourceBrand->getId()]);
-            $this->app->container->cache->flush();
+            $this->app->container->memcache->flush();
         }
 
         return true;

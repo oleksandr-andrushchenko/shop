@@ -137,13 +137,13 @@ class Catalog extends Manager
     {
         $key = 'page-by-params-' . md5(serialize($params));
 
-        if ($this->app->container->cache->has($key, $output)) {
+        if ($this->app->container->memcache->has($key, $output)) {
             return self::makeObjectFromCache($output);
         }
 
         $output = $this->copy(true)->getObjectByParams($params);
 
-        $this->app->container->cache->set($key, self::makeCacheFromObject($output));
+        $this->app->container->memcache->set($key, self::makeCacheFromObject($output));
 
         return $output;
     }
@@ -187,14 +187,14 @@ class Catalog extends Manager
         $uri = $this->entity->normalizeUri($uri);
         $key = 'page-by-uri-' . str_replace('/', '_', $uri);
 
-        if ($this->app->container->cache->has($key, $output)) {
+        if ($this->app->container->memcache->has($key, $output)) {
             return self::makeObjectFromCache($output);
         }
 
         $output = $this->copy(true)
             ->getObjectByUri($uri);
 
-        $this->app->container->cache->set($key, self::makeCacheFromObject($output));
+        $this->app->container->memcache->set($key, self::makeCacheFromObject($output));
 
         return $output;
     }
@@ -356,7 +356,7 @@ class Catalog extends Manager
      * @param Entity|PageCatalogEntity $entity
      * @return array|null
      */
-    public function getIndexerDocument(Entity $entity): ?array
+    public function getElasticsearchDocument(Entity $entity): ?array
     {
         $handler = new IndexerHelper();
         $handler->prepareData($this->app);

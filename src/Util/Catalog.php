@@ -7,7 +7,7 @@ use SNOWGIRL_CORE\Entity;
 use SNOWGIRL_CORE\Helper\Arrays;
 use SNOWGIRL_CORE\Helper\Classes;
 use SNOWGIRL_CORE\Helper\WalkChunk2;
-use SNOWGIRL_CORE\Query\Expression;
+use SNOWGIRL_CORE\Mysql\MysqlQueryExpression;
 use SNOWGIRL_CORE\Util;
 
 use SNOWGIRL_SHOP\Catalog\SEO;
@@ -29,9 +29,7 @@ use SNOWGIRL_SHOP\Manager\Page\Catalog\IndexerHelper;
 use Throwable;
 
 /**
- * Class Catalog
  * @property HttpApp|ConsoleApp app
- * @package SNOWGIRL_SHOP\Util
  */
 class Catalog extends Util
 {
@@ -60,7 +58,7 @@ class Catalog extends Util
             'seo_texts',
             'updated_at' => 'created_at',
         ];
-        $where = new Expression($this->app->container->db->quote('updated_at') . ' IS NOT NULL');
+        $where = new MysqlQueryExpression($this->app->container->mysql->quote('updated_at') . ' IS NOT NULL');
 
         return $this->app->utils->database->doMigrateDataFromTableToTable($tableFrom, $tableTo, $columns, $where);
     }
@@ -86,7 +84,7 @@ class Catalog extends Util
             ->setFnGet(function ($lastId, $size) use ($manager, $where) {
                 if ($lastId) {
                     $itemPk = $this->app->managers->catalog->getEntity()->getPk();
-                    $where[] = new Expression($this->app->container->db->quote($itemPk) . ' > ?', $lastId);
+                    $where[] = new MysqlQueryExpression($this->app->container->mysql->quote($itemPk) . ' > ?', $lastId);
                 }
 
                 return $manager
@@ -103,7 +101,7 @@ class Catalog extends Util
                     $documents[$item[$itemPk]] = $this->indexerHelper->getDocumentByArray($item);
                 }
 
-                $aff += $this->app->container->indexer->getManager()->indexMany($index, $documents);
+                $aff += $this->app->container->elasticsearch->indexMany($index, $documents);
 
                 return end($documents) ? key($documents) : false;
             })
@@ -114,11 +112,10 @@ class Catalog extends Util
 
     public function doIndexElastic(): int
     {
-        $manager = $this->app->container->indexer->getManager();
         $alias = $this->app->managers->catalog->getEntity()->getTable();
         $mappings = $this->getElasticMappings();
 
-        return $manager->switchAliasIndex($alias, $mappings, function ($newIndex) {
+        return $this->app->container->elasticsearch->switchAliasIndex($alias, $mappings, function ($newIndex) {
             return $this->doRawIndexElastic($newIndex);
         });
     }
@@ -148,7 +145,7 @@ class Catalog extends Util
 
         $aff = 0;
 
-        $this->app->container->db->getManager()->truncateTable($this->catalogTable);
+        $this->app->container->mysql->truncateTable($this->catalogTable);
 
         $aff += $this->generateCatalogPages(false);
 
@@ -199,7 +196,7 @@ class Catalog extends Util
 
         $this->app->managers->categories->syncTree();
 
-        $db = $this->app->container->db;
+        $mysql = $this->app->container->mysql;
 
         $components = $this->components;
         $types = $this->types;
@@ -278,17 +275,17 @@ class Catalog extends Util
         ];
 
         $add = [
-            'uri_hash' => 'MD5(' . $db->quote('uri') . ')',
-            'params_hash' => 'MD5(' . $db->quote('params') . ')',
-            'meta' => 'CONCAT(\'{"count":\', ' . $db->quote('cnt') . ', ' . $db->quote('meta_add') . ', \'}\')',
+            'uri_hash' => 'MD5(' . $mysql->quote('uri') . ')',
+            'params_hash' => 'MD5(' . $mysql->quote('params') . ')',
+            'meta' => 'CONCAT(\'{"count":\', ' . $mysql->quote('cnt') . ', ' . $mysql->quote('meta_add') . ', \'}\')',
         ];
 
-        $queryTmp = implode(', ', array_map(function ($column) use ($db) {
-            return $db->quote($column);
+        $queryTmp = implode(', ', array_map(function ($column) use ($mysql) {
+            return $mysql->quote($column);
         }, $columnsToInsert));
 
-        $queryColumnsToInsert = $queryTmp . ', ' . implode(', ', array_map(function ($column) use ($db) {
-                return $db->quote($column);
+        $queryColumnsToInsert = $queryTmp . ', ' . implode(', ', array_map(function ($column) use ($mysql) {
+                return $mysql->quote($column);
             }, array_keys($add)));
 
         $queryColumnsToSelect = $queryTmp . ', ' . implode(', ', $add);
@@ -337,11 +334,11 @@ class Catalog extends Util
                     $tmp = '\'"' . $attrPk . '":\', ';
 
                     if (in_array($componentOrType, $mvaComponents)) {
-                        $tmp .= $db->quote($attrPk, 'item_' . $attrTable);
+                        $tmp .= $mysql->quote($attrPk, 'item_' . $attrTable);
                     } elseif (Category::getTable() == $attrTable) {
-                        $tmp .= $db->quote($attrPk, CategoryChild::getTable());
+                        $tmp .= $mysql->quote($attrPk, CategoryChild::getTable());
                     } else {
-                        $tmp .= $db->quote($attrPk, $componentOrType::getTable());
+                        $tmp .= $mysql->quote($attrPk, $componentOrType::getTable());
                     }
 
                     $queryParamsColumn[] = $tmp;
@@ -352,17 +349,17 @@ class Catalog extends Util
                 }
             }
 
-            $mapName = function ($componentOrType) use ($combination, $db, $components, $types, $typesTexts) {
+            $mapName = function ($componentOrType) use ($combination, $mysql, $components, $types, $typesTexts) {
                 if (in_array($componentOrType, $components)) {
                     /** @var $componentOrType ItemAttr|ItemAttrAlias */
                     $table = $componentOrType::getTable();
 
                     if (array_key_exists('name_multiply', $componentOrType::getColumns())) {
-                        $tmp = $db->quote('name_multiply', $table);
-                        return 'IF(' . $tmp . ' IS NULL OR ' . $tmp . ' = \'\', ' . $db->quote('name', $table) . ', ' . $tmp . ')';
+                        $tmp = $mysql->quote('name_multiply', $table);
+                        return 'IF(' . $tmp . ' IS NULL OR ' . $tmp . ' = \'\', ' . $mysql->quote('name', $table) . ', ' . $tmp . ')';
                     }
 
-                    return $db->quote('name', $table);
+                    return $mysql->quote('name', $table);
                 } elseif (in_array($componentOrType, $types)) {
                     return '\'' . $typesTexts[$componentOrType] . '\'';
                 } else {
@@ -371,10 +368,10 @@ class Catalog extends Util
             };
 
             //do not change  this logic, coz of page_catalog_custom.uri_hash link
-            $mapUri = function ($componentOrType) use ($combination, $db, $components, $types) {
+            $mapUri = function ($componentOrType) use ($combination, $mysql, $components, $types) {
                 if (in_array($componentOrType, $components)) {
                     /** @var $componentOrType ItemAttr|ItemAttrAlias */
-                    return $db->quote('uri', $componentOrType::getTable());
+                    return $mysql->quote('uri', $componentOrType::getTable());
                 } elseif (in_array($componentOrType, $types)) {
                     return '\'' . $componentOrType . '\'';
                 } else {
@@ -396,13 +393,13 @@ class Catalog extends Util
 
             foreach ($columnsToInsert as $column) {
                 if (isset($expr[$column])) {
-                    $baseColumnsToSelect[] = $expr[$column] . ' AS ' . $db->quote($column);
+                    $baseColumnsToSelect[] = $expr[$column] . ' AS ' . $mysql->quote($column);
                 } else {
                     new Exception('undefined column expr[' . $column . ']');
                 }
             }
 
-            $baseColumnsToSelect[] = 'COUNT(*) AS ' . $db->quote('cnt');
+            $baseColumnsToSelect[] = 'COUNT(*) AS ' . $mysql->quote('cnt');
 
             if ($aliases) {
                 $queryAliasesColumn = [];
@@ -411,21 +408,21 @@ class Catalog extends Util
                     if (in_array($componentOrType, $components)) {
                         /** @var $componentOrType ItemAttr|ItemAttrAlias */
                         if ($this->isComponentAlias($componentOrType)) {
-                            $queryAliasesColumn[] = '\'"' . $componentOrType::getAttrPk() . '":\', ' . $db->quote($componentOrType::getPk());
+                            $queryAliasesColumn[] = '\'"' . $componentOrType::getAttrPk() . '":\', ' . $mysql->quote($componentOrType::getPk());
                         }
                     }
                 }
 
-                $baseColumnsToSelect[] = 'CONCAT(\',"aliases":{\', ' . implode(', \',\', ', $queryAliasesColumn) . ', \'}\') AS ' . $db->quote('meta_add');
+                $baseColumnsToSelect[] = 'CONCAT(\',"aliases":{\', ' . implode(', \',\', ', $queryAliasesColumn) . ', \'}\') AS ' . $mysql->quote('meta_add');
             } else {
-                $baseColumnsToSelect[] = '\'\' AS ' . $db->quote('meta_add');
+                $baseColumnsToSelect[] = '\'\' AS ' . $mysql->quote('meta_add');
             }
 
             $queryBaseColumnsToSelect = implode(', ', $baseColumnsToSelect);
 
             $queryTablesToSelect = [];
-            $queryTablesToSelect[] = $db->quote($this->itemTable);
-            $queryTablesToSelect = array_merge($queryTablesToSelect, array_map(function ($component) use ($db, $aliases) {
+            $queryTablesToSelect[] = $mysql->quote($this->itemTable);
+            $queryTablesToSelect = array_merge($queryTablesToSelect, array_map(function ($component) use ($mysql, $aliases) {
                 /** @var $component ItemAttr|ItemAttrAlias */
                 if ($aliases && $this->isComponentAlias($component)) {
                     $attrTable = $component::getAttrTable();
@@ -436,47 +433,47 @@ class Catalog extends Util
                 }
 
                 if (Category::getTable() == $attrTable) {
-                    return $db->quote(CategoryChild::getTable()) . ', ' . $db->quote($table);
+                    return $mysql->quote(CategoryChild::getTable()) . ', ' . $mysql->quote($table);
                 }
 
-                return $db->quote($table);
+                return $mysql->quote($table);
             }, $componentsToSelect));
 
             $mvaComponentsToSelect = array_filter($componentsToSelect, function ($component) use ($mvaComponents) {
                 return in_array($component, $mvaComponents);
             });
 
-            $queryTablesToSelect = array_merge($queryTablesToSelect, array_map(function ($component) use ($db, $aliases) {
+            $queryTablesToSelect = array_merge($queryTablesToSelect, array_map(function ($component) use ($mysql, $aliases) {
                 /** @var $component ItemAttr|ItemAttrAlias */
                 $attrTable = $aliases && $this->isComponentAlias($component) ? $component::getAttrTable() : $component::getTable();
-                return $db->quote('item_' . $attrTable);
+                return $mysql->quote('item_' . $attrTable);
             }, $mvaComponentsToSelect));
 
             $queryTablesToSelect = implode(', ', $queryTablesToSelect);
 
             //sync with SRC::getWhere
             $queryWhere = [
-                $db->quote('is_in_stock', $this->itemTable) . ' = ' . Entity::normalizeBool(true),
+                $mysql->quote('is_in_stock', $this->itemTable) . ' = ' . Entity::normalizeBool(true),
             ];
 
             //sync with SRC::getWhere
             if (!in_array(URI::SPORT, $typesToSelect) && !in_array(Tag::class, $componentsToSelect)) {
-                $queryWhere[] = $db->quote('is_sport', $this->itemTable) . ' = ' . Entity::normalizeBool(false);
+                $queryWhere[] = $mysql->quote('is_sport', $this->itemTable) . ' = ' . Entity::normalizeBool(false);
             }
 
             if (!in_array(URI::SIZE_PLUS, $typesToSelect) && !in_array(Tag::class, $componentsToSelect)) {
-                $queryWhere[] = $db->quote('is_size_plus', $this->itemTable) . ' = ' . Entity::normalizeBool(false);
+                $queryWhere[] = $mysql->quote('is_size_plus', $this->itemTable) . ' = ' . Entity::normalizeBool(false);
             }
 
-            $queryWhere = array_merge($queryWhere, array_map(function ($type) use ($db, $typesColumns) {
+            $queryWhere = array_merge($queryWhere, array_map(function ($type) use ($mysql, $typesColumns) {
                 if (URI::SALES === $type) {
-                    return $db->quote('old_price', $this->itemTable) . ' > 0';
+                    return $mysql->quote('old_price', $this->itemTable) . ' > 0';
                 }
 
-                return $db->quote($typesColumns[$type], $this->itemTable) . ' = ' . Entity::normalizeBool(true);
+                return $mysql->quote($typesColumns[$type], $this->itemTable) . ' = ' . Entity::normalizeBool(true);
             }, $typesToSelect));
 
-            $queryWhere = array_merge($queryWhere, array_map(function ($component) use ($db, $mvaComponents, $aliases) {
+            $queryWhere = array_merge($queryWhere, array_map(function ($component) use ($mysql, $mvaComponents, $aliases) {
                 /** @var $component ItemAttr|ItemAttrAlias */
                 if ($aliases && $this->isComponentAlias($component)) {
                     $attrPk = $component::getAttrPk();
@@ -494,22 +491,22 @@ class Catalog extends Util
 
                 //@todo if alias and component has is_active column - join and make condition
                 if (array_key_exists('is_active', $component::getColumns())) {
-                    $where[] = $db->quote('is_active', $table) . ' = ' . $component::normalizeBool(true);
+                    $where[] = $mysql->quote('is_active', $table) . ' = ' . $component::normalizeBool(true);
                 }
 
                 if (in_array($component, $mvaComponents)) {
-                    $where[] = $db->quote($itemPk, $this->itemTable) . ' = ' . $db->quote(Item::getPk(), 'item_' . $attrTable);
-                    $where[] = $db->quote($attrPk, 'item_' . $attrTable) . ' = ' . $db->quote($attrPk, $table);
+                    $where[] = $mysql->quote($itemPk, $this->itemTable) . ' = ' . $mysql->quote(Item::getPk(), 'item_' . $attrTable);
+                    $where[] = $mysql->quote($attrPk, 'item_' . $attrTable) . ' = ' . $mysql->quote($attrPk, $table);
                     return implode(' AND ', $where);
                 }
 
                 if (Category::getTable() == $attrTable) {
-                    $where[] = $db->quote($attrPk, $this->itemTable) . ' = ' . $db->quote('child_category_id', CategoryChild::getTable());
-                    $where[] = $db->quote(Category::getPk(), CategoryChild::getTable()) . ' = ' . $db->quote(Category::getPk(), $table);
+                    $where[] = $mysql->quote($attrPk, $this->itemTable) . ' = ' . $mysql->quote('child_category_id', CategoryChild::getTable());
+                    $where[] = $mysql->quote(Category::getPk(), CategoryChild::getTable()) . ' = ' . $mysql->quote(Category::getPk(), $table);
                     return implode(' AND ', $where);
                 }
 
-                $where[] = $db->quote($attrPk, $this->itemTable) . ' = ' . $db->quote($attrPk, $table);
+                $where[] = $mysql->quote($attrPk, $this->itemTable) . ' = ' . $mysql->quote($attrPk, $table);
 
                 return implode(' AND ', $where);
             }, $componentsToSelect));
@@ -518,7 +515,7 @@ class Catalog extends Util
 
             $queryGroup = [];
 
-            $queryGroup = array_merge($queryGroup, array_map(function ($component) use ($db, $aliases) {
+            $queryGroup = array_merge($queryGroup, array_map(function ($component) use ($mysql, $aliases) {
                 /** @var $component ItemAttr|ItemAttrAlias */
                 if ($aliases && $this->isComponentAlias($component)) {
                     $attrPk = $component::getAttrPk();
@@ -531,10 +528,10 @@ class Catalog extends Util
                 }
 
                 if (Category::getTable() == $attrTable) {
-                    return $db->quote($attrPk, CategoryChild::getTable());
+                    return $mysql->quote($attrPk, CategoryChild::getTable());
                 }
 
-                return $db->quote($attrPk, $table);
+                return $mysql->quote($attrPk, $table);
             }, $componentsToSelect));
 
             $queryGroup = implode(', ', $queryGroup);
@@ -542,14 +539,14 @@ class Catalog extends Util
             $queryHaving = [];
 
             if ($checkCount) {
-                $queryHaving[] = $db->quote('cnt') . ' > 0';
+                $queryHaving[] = $mysql->quote('cnt') . ' > 0';
             }
 
             $queryHaving = implode(' ', $queryHaving);
 
             $query = implode(' ', [
                 'INSERT IGNORE INTO',
-                $db->quote($this->catalogTable) . ' (' . $queryColumnsToInsert . ')',
+                $mysql->quote($this->catalogTable) . ' (' . $queryColumnsToInsert . ')',
 //                '(',
                 'SELECT ' . $queryColumnsToSelect,
                 'FROM (',
@@ -558,12 +555,12 @@ class Catalog extends Util
                 $queryWhere ? ('WHERE ' . $queryWhere) : '',
                 $queryGroup ? ('GROUP BY ' . $queryGroup) : '',
                 $queryHaving ? ('HAVING ' . $queryHaving) : '',
-                ') AS ' . $db->quote('t'),
+                ') AS ' . $mysql->quote('t'),
             ]);
 
             try {
 //                $this->app->container->logger->make($query);
-                $aff += $db->req($query)->affectedRows();
+                $aff += $mysql->req($query)->affectedRows();
             } catch (Throwable $e) {
                 $this->app->container->logger->error($e);
             }

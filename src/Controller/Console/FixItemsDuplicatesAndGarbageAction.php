@@ -5,7 +5,7 @@ namespace SNOWGIRL_SHOP\Controller\Console;
 use SNOWGIRL_CORE\Controller\Console\OutputTrait;
 use SNOWGIRL_CORE\Controller\Console\PrepareServicesTrait;
 use SNOWGIRL_CORE\Helper\WalkChunk;
-use SNOWGIRL_CORE\Query\Expression;
+use SNOWGIRL_CORE\Mysql\MysqlQueryExpression;
 use SNOWGIRL_SHOP\Console\ConsoleApp as App;
 
 class FixItemsDuplicatesAndGarbageAction
@@ -47,11 +47,11 @@ class FixItemsDuplicatesAndGarbageAction
         foreach ($app->managers->sources->getObjects() as $source) {
             (new WalkChunk(1000))
                 ->setFnGet(function ($page, $size) use ($app, $source) {
-                    $pkQuoted = $app->container->db->quote($app->managers->items->getEntity()->getPk());
+                    $pkQuoted = $app->container->mysql->quote($app->managers->items->getEntity()->getPk());
 
                     return $app->managers->items
                         ->setColumns([
-                            new Expression('GROUP_CONCAT(' . $pkQuoted . ') AS ' . $pkQuoted),
+                            new MysqlQueryExpression('GROUP_CONCAT(' . $pkQuoted . ') AS ' . $pkQuoted),
                         ])
                         ->setWhere([
                             'import_source_id' => $source->getId(),
@@ -61,7 +61,7 @@ class FixItemsDuplicatesAndGarbageAction
                             'partner_link_hash',
                         ])
                         ->setHavings([
-                            new Expression('COUNT(*) > 1'),
+                            new MysqlQueryExpression('COUNT(*) > 1'),
                         ])
                         ->setOffset(($page - 1) * $size)
                         ->setLimit($size)
@@ -112,11 +112,11 @@ class FixItemsDuplicatesAndGarbageAction
         foreach ($app->managers->sources->getObjects() as $source) {
             (new WalkChunk(1000))
                 ->setFnGet(function ($page, $size) use ($app, $source) {
-                    $pkQuoted = $app->container->db->quote($app->managers->items->getEntity()->getPk());
+                    $pkQuoted = $app->container->mysql->quote($app->managers->items->getEntity()->getPk());
 
                     return $app->managers->items
                         ->setColumns([
-                            new Expression('GROUP_CONCAT(' . $pkQuoted . ') AS ' . $pkQuoted),
+                            new MysqlQueryExpression('GROUP_CONCAT(' . $pkQuoted . ') AS ' . $pkQuoted),
                         ])
                         ->setWhere([
                             'import_source_id' => $source->getId(),
@@ -126,7 +126,7 @@ class FixItemsDuplicatesAndGarbageAction
                             'image',
                         ])
                         ->setHavings([
-                            new Expression('COUNT(*) > 1'),
+                            new MysqlQueryExpression('COUNT(*) > 1'),
                         ])
                         ->setOffset(($page - 1) * $size)
                         ->setLimit($size)

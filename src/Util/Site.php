@@ -7,15 +7,12 @@ use SNOWGIRL_CORE\Entity\Contact;
 use SNOWGIRL_CORE\Entity\Subscribe;
 use SNOWGIRL_CORE\Entity\User;
 use SNOWGIRL_CORE\Util;
-use SNOWGIRL_CORE\AbstractApp;
+use SNOWGIRL_SHOP\Console\ConsoleApp;
 use SNOWGIRL_SHOP\Entity\Stock;
-use SNOWGIRL_CORE\Entity\Page\Regular as PageRegular;
+use SNOWGIRL_SHOP\Http\HttpApp;
 
 /**
- * Class Site
- *
- * @property App app
- * @package SNOWGIRL_SHOP\Util
+ * @property HttpApp|ConsoleApp app
  */
 class Site extends Util
 {
@@ -28,25 +25,25 @@ class Site extends Util
      */
     public function doAddTablesIdColumns($siteId)
     {
-        $db = $this->app->container->db;
+        $mysql = $this->app->container->mysql;
 
         $column = 'site_id';
         $options = 'tinyint(1) NOT NULL DEFAULT \'0\'';
 
-        $db->addTableColumn(Banner::getTable(), $column, $options . ' after ' . $db->quote('is_active'));
-        $db->addTableColumn(Contact::getTable(), $column, $options . ' after ' . $db->quote('body'));
-        $db->addTableColumn(Stock::getTable(), $column, $options . ' after ' . $db->quote('is_active'));
-        $db->addTableColumn(Subscribe::getTable(), $column, $options . ' after ' . $db->quote('is_active'));
-        $db->dropTableKey(Subscribe::getTable(), 'email');
-        $db->addTableKey(Subscribe::getTable(), 'email', ['site_id', 'email'], true);
-        $db->dropTableKey(Subscribe::getTable(), 'code');
-        $db->addTableKey(Subscribe::getTable(), 'code', ['site_id', 'code'], true);
-        $db->addTableColumn(User::getTable(), $column, $options . ' after ' . $db->quote('role'));
-        $db->dropTableKey(User::getTable(), 'login');
-        $db->addTableKey(User::getTable(), 'login', ['site_id', 'login'], true);
-        $db->addTableColumn(PageRegular::getTable(), $column, $options . ' after ' . $db->quote('is_menu'));
-        $db->dropTableKey(User::getTable(), 'key');
-        $db->addTableKey(User::getTable(), 'key', ['site_id', 'key'], true);
+        $mysql->addTableColumn(Banner::getTable(), $column, $options . ' after ' . $mysql->quote('is_active'));
+        $mysql->addTableColumn(Contact::getTable(), $column, $options . ' after ' . $mysql->quote('body'));
+        $mysql->addTableColumn(Stock::getTable(), $column, $options . ' after ' . $mysql->quote('is_active'));
+        $mysql->addTableColumn(Subscribe::getTable(), $column, $options . ' after ' . $mysql->quote('is_active'));
+        $mysql->dropTableKey(Subscribe::getTable(), 'email');
+        $mysql->addTableKey(Subscribe::getTable(), 'email', ['site_id', 'email'], true);
+        $mysql->dropTableKey(Subscribe::getTable(), 'code');
+        $mysql->addTableKey(Subscribe::getTable(), 'code', ['site_id', 'code'], true);
+        $mysql->addTableColumn(User::getTable(), $column, $options . ' after ' . $mysql->quote('role'));
+        $mysql->dropTableKey(User::getTable(), 'login');
+        $mysql->addTableKey(User::getTable(), 'login', ['site_id', 'login'], true);
+        $mysql->addTableColumn(PageRegular::getTable(), $column, $options . ' after ' . $mysql->quote('is_menu'));
+        $mysql->dropTableKey(User::getTable(), 'key');
+        $mysql->addTableKey(User::getTable(), 'key', ['site_id', 'key'], true);
 
         return true;
     }

@@ -2,16 +2,18 @@
 
 namespace SNOWGIRL_SHOP\Manager\Item\DataProvider;
 
+use RuntimeException;
+use SNOWGIRL_CORE\Elasticsearch\ElasticsearchQuery;
 use SNOWGIRL_SHOP\Catalog\URI;
 use SNOWGIRL_SHOP\Manager\Item\DataProvider;
 
-class IndexerDataProvider extends DataProvider
+class ElasticsearchDataProvider extends DataProvider
 {
-    use \SNOWGIRL_CORE\Manager\DataProvider\Traits\IndexerDataProvider;
+    use \SNOWGIRL_CORE\Manager\DataProvider\Traits\ElasticsearchDataProvider;
 
     public function getPricesByUri(URI $uri): array
     {
-        $where = $uri->getSRC()->getDataProvider('indexer')->getWhere();
+        $where = $uri->getSRC()->getDataProvider('elasticsearch')->getWhere();
         unset($where[URI::PRICE_FROM]);
         unset($where[URI::PRICE_TO]);
 
@@ -55,8 +57,11 @@ class IndexerDataProvider extends DataProvider
             'body' => $body
         ];
 
-        $raw = $this->manager->getApp()->container->indexer($this->manager->getMasterServices())
-            ->searchRaw($this->manager->getEntity()->getTable(), $params, ['aggregations', 'filtered', 'price_ranges', 'buckets']);
+        $query = new ElasticsearchQuery();
+        $query->paths = ['aggregations', 'filtered', 'price_ranges', 'buckets'];
+
+        $raw = $this->manager->getApp()->container->elasticsearch($this->manager->getMasterServices())
+            ->searchByParams($this->manager->getEntity()->getTable(), $params, $query);
 
         $output = [];
 
@@ -106,12 +111,12 @@ class IndexerDataProvider extends DataProvider
         }
 
         if (3 !== count($map)) {
-            throw new \RuntimeException('not supported, fix ::makeCntGroup first');
+            throw new RuntimeException('not supported, fix ::makeCntGroup first');
         }
 
         $exclude = array_merge($map, array_keys($map));
 
-        $where = array_filter($uri->getSRC()->getDataProvider('indexer')->getWhere(), function ($k) use ($exclude) {
+        $where = array_filter($uri->getSRC()->getDataProvider('elasticsearch')->getWhere(), function ($k) use ($exclude) {
             return !in_array($k, $exclude);
         }, ARRAY_FILTER_USE_KEY);
 
@@ -138,8 +143,8 @@ class IndexerDataProvider extends DataProvider
 
 //        print_r($params);die;
 
-        $raw = $this->manager->getApp()->container->indexer($this->manager->getMasterServices())
-            ->searchRaw($this->manager->getEntity()->getTable(), $params);
+        $raw = $this->manager->getApp()->container->elasticsearch($this->manager->getMasterServices())
+            ->searchByParams($this->manager->getEntity()->getTable(), $params);
 
         return array_filter([
             $this->makeCntGroup($raw, 0, 0, 0),

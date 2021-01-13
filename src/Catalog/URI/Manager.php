@@ -6,9 +6,9 @@ use Psr\Log\LoggerInterface;
 use SNOWGIRL_CORE\AbstractApp as App;
 use SNOWGIRL_CORE\Entity;
 use SNOWGIRL_CORE\Http\HttpRequest;
-use SNOWGIRL_CORE\Query\Expression;
-use SNOWGIRL_CORE\Db\DbInterface;
-use SNOWGIRL_CORE\Query;
+use SNOWGIRL_CORE\Mysql\MysqlInterface;
+use SNOWGIRL_CORE\Mysql\MysqlQueryExpression;
+use SNOWGIRL_CORE\Mysql\MysqlQuery;
 use SNOWGIRL_SHOP\Catalog\URI;
 use SNOWGIRL_SHOP\Console\ConsoleApp;
 use SNOWGIRL_SHOP\Http\HttpApp;
@@ -26,9 +26,9 @@ class Manager
     private $managers;
 
     /**
-     * @var DbInterface
+     * @var MysqlInterface
      */
-    private $db;
+    private $mysql;
 
     /**
      * @var LoggerInterface
@@ -45,7 +45,7 @@ class Manager
     public function __construct(App $app)
     {
         $this->managers = $app->managers;
-        $this->db = $app->managers->catalog->getDb();
+        $this->mysql = $app->managers->catalog->getMysql();
         $this->logger = $app->container->logger;
     }
 
@@ -290,12 +290,12 @@ class Manager
         $componentsTableToPk = $this->getComponentsTableToPk();
         $table = array_intersect(URI::getPagePath([], true), array_keys($componentsTableToPk));
 
-        $req = new Query(['params' => []]);
+        $req = new MysqlQuery(['params' => []]);
         $req->text = 'SELECT ' . implode(', ', [
-                'GROUP_CONCAT(' . $this->db->quote('table') . ') AS ' . $this->db->quote('table'),
-                $this->db->quote('uri'),
-                $this->db->quote('id'),
-//                'COUNT(*) AS ' . $this->db->quote('cnt')
+                'GROUP_CONCAT(' . $this->mysql->quote('table') . ') AS ' . $this->mysql->quote('table'),
+                $this->mysql->quote('uri'),
+                $this->mysql->quote('id'),
+//                'COUNT(*) AS ' . $this->mysql->quote('cnt')
             ]) . ' FROM (' .
             implode(' UNION ', array_map(function ($table) use ($uri, $componentsTableToPk, $activeOnly, $req) {
                 $where = ['uri' => $uri];
@@ -308,17 +308,17 @@ class Manager
 //                $where['is_404'] = 0;
 
                 return implode(' ', [
-                    $this->db->makeSelectSQL(new Expression(implode(', ', [
-                        '\'' . $table . '\' AS ' . $this->db->quote('table'),
-                        $this->db->quote('uri'),
-                        $this->db->quote($componentsTableToPk[$table]) . ' AS ' . $this->db->quote('id')
+                    $this->mysql->makeSelectSQL(new MysqlQueryExpression(implode(', ', [
+                        '\'' . $table . '\' AS ' . $this->mysql->quote('table'),
+                        $this->mysql->quote('uri'),
+                        $this->mysql->quote($componentsTableToPk[$table]) . ' AS ' . $this->mysql->quote('id')
                     ])), false, $req->params),
-                    $this->db->makeFromSQL($table),
-                    $this->db->makeWhereSQL($where, $req->params, null, $req->placeholders)
+                    $this->mysql->makeFromSQL($table),
+                    $this->mysql->makeWhereSQL($where, $req->params, null, $req->placeholders)
                 ]);
-            }, $table)) . ') AS ' . $this->db->quote('t') . ' GROUP BY ' . $this->db->quote('uri');
+            }, $table)) . ') AS ' . $this->mysql->quote('t') . ' GROUP BY ' . $this->mysql->quote('uri');
 
-        $req = $this->db->reqToArrays($req);
+        $req = $this->mysql->reqToArrays($req);
 
         $known = [];
 
@@ -373,10 +373,10 @@ class Manager
     {
         /** @var PageCatalog $page */
         $page = $this->managers->catalog
-            ->setWhere(new Expression(implode(' ', [
-                $this->db->quote('uri_history') . ' IS NOT NULL',
+            ->setWhere(new MysqlQueryExpression(implode(' ', [
+                $this->mysql->quote('uri_history') . ' IS NOT NULL',
                 'AND',
-                'FIND_IN_SET(?, ' . $this->db->quote('uri_history') . ')'
+                'FIND_IN_SET(?, ' . $this->mysql->quote('uri_history') . ')'
             ]), $rawUri))
             ->getObject();
 
@@ -449,7 +449,7 @@ class Manager
                     $query = htmlspecialchars_decode($query);
 
                     foreach (explode('&', $query) as $kv) {
-                        list($k, $v) = explode('=', $kv);
+                        [$k, $v] = explode('=', $kv);
                         $params[$k] = $v;
                     }
                 }

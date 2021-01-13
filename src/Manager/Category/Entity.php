@@ -2,9 +2,9 @@
 
 namespace SNOWGIRL_SHOP\Manager\Category;
 
-use SNOWGIRL_CORE\Query;
+use SNOWGIRL_CORE\Mysql\MysqlQuery;
 use SNOWGIRL_CORE\Manager;
-use SNOWGIRL_CORE\Query\Expression;
+use SNOWGIRL_CORE\Mysql\MysqlQueryExpression;
 use SNOWGIRL_SHOP\Console\ConsoleApp;
 use SNOWGIRL_SHOP\Entity\Category as CategoryEntity;
 use SNOWGIRL_SHOP\Entity\Category;
@@ -62,29 +62,29 @@ class Entity extends Manager
             return true;
         }
 
-        $db = $this->getDb();
+        $mysql = $this->getMysql();
         $table = $this->getEntity()->getTable();
 
-        $categoryPkQuoted = $db->quote($this->app->managers->categories->getEntity()->getPk());
-        $categoryTableQuoted = $db->quote($this->app->managers->categories->getEntity()->getTable());
+        $categoryPkQuoted = $mysql->quote($this->app->managers->categories->getEntity()->getPk());
+        $categoryTableQuoted = $mysql->quote($this->app->managers->categories->getEntity()->getTable());
 
         $this->deleteMany(['is_active' => 0]);
 
-        $query = new Query(['params' => [self::INCLUDE_ENTITY_COUNT_FROM]]);
+        $query = new MysqlQuery(['params' => [self::INCLUDE_ENTITY_COUNT_FROM]]);
         $query->text = implode(' ', [
-            'INSERT' . ' INTO ' . $db->quote($table),
-            '(' . $db->quote('category_id') . ', ' . $db->quote('entity') . ', ' . $db->quote('entity_hash') . ', ' . $db->quote('count') . ')',
-            '(SELECT ' . $categoryPkQuoted . ', ' . $db->quote('entity') . ', MD5(' . $db->quote('entity') . '), COUNT(*) AS ' . $db->quote('cnt'),
-            'FROM ' . $db->quote($this->app->managers->items->getEntity()->getTable()),
-            'WHERE ' . $db->quote('entity') . ' <> \'\'',
-            'GROUP BY ' . $db->quote('entity') . ', ' . $categoryPkQuoted,
-            'HAVING ' . $db->quote('cnt') . ' > ?)',
-            'ON DUPLICATE KEY UPDATE ' . $db->quote('count') . ' = VALUES(' . $db->quote('count') . ')'
+            'INSERT' . ' INTO ' . $mysql->quote($table),
+            '(' . $mysql->quote('category_id') . ', ' . $mysql->quote('entity') . ', ' . $mysql->quote('entity_hash') . ', ' . $mysql->quote('count') . ')',
+            '(SELECT ' . $categoryPkQuoted . ', ' . $mysql->quote('entity') . ', MD5(' . $mysql->quote('entity') . '), COUNT(*) AS ' . $mysql->quote('cnt'),
+            'FROM ' . $mysql->quote($this->app->managers->items->getEntity()->getTable()),
+            'WHERE ' . $mysql->quote('entity') . ' <> \'\'',
+            'GROUP BY ' . $mysql->quote('entity') . ', ' . $categoryPkQuoted,
+            'HAVING ' . $mysql->quote('cnt') . ' > ?)',
+            'ON DUPLICATE KEY UPDATE ' . $mysql->quote('count') . ' = VALUES(' . $mysql->quote('count') . ')'
         ]);
 
-        $db->req($query);
+        $mysql->req($query);
 
-        $this->deleteMany(new Expression($categoryPkQuoted . ' NOT IN (SELECT ' . $categoryPkQuoted . ' FROM ' . $categoryTableQuoted . ')'));
+        $this->deleteMany(new MysqlQueryExpression($categoryPkQuoted . ' NOT IN (SELECT ' . $categoryPkQuoted . ' FROM ' . $categoryTableQuoted . ')'));
         $this->deleteMany(['is_active' => 0, 'count' => 0]);
 
         return self::$generated = true;
@@ -161,13 +161,13 @@ class Entity extends Manager
             return '%' . trim($stopWord) . '%';
         }, explode(',', $stopWords));
 
-        $query = $this->app->container->db->quote('name') . ' NOT LIKE ?';
+        $query = $this->app->container->mysql->quote('name') . ' NOT LIKE ?';
         $query = implode(' OR ', array_fill(0, count($params), $query));
 //        $query = '(' . $query . ')';
 
         array_unshift($params, $query);
 
-        return [new Expression(...$params)];
+        return [new MysqlQueryExpression(...$params)];
     }
 
     public function updateByParentsAndEntities(FixWhere $fixWhere = null, array $params = []): int
@@ -213,7 +213,7 @@ class Entity extends Manager
                     array_merge($where, [
                         'category_id' => $parentCategoryId,
                         'entity' => '',
-                        new Expression($this->app->container->db->quote('name') . ' LIKE ?', $category->getName() . '%')
+                        new MysqlQueryExpression($this->app->container->mysql->quote('name') . ' LIKE ?', $category->getName() . '%')
                     ]),
                     $params
                 );
@@ -240,7 +240,7 @@ class Entity extends Manager
                         array_merge($where, [
                             'category_id' => $parentCategoryId,
                             'entity' => '',
-                            new Expression($this->app->container->db->quote('name') . ' LIKE ?', $entity->getEntity() . '%')
+                            new MysqlQueryExpression($this->app->container->mysql->quote('name') . ' LIKE ?', $entity->getEntity() . '%')
                         ], $this->getStopWordsWhere($entity->getStopWords())),
                         $params
                     );
@@ -289,7 +289,7 @@ class Entity extends Manager
                     __FUNCTION__,
                     $entity->getCategoryId(),
                     array_merge($where, [
-                        new Expression($this->app->container->db->quote('entity') . ' LIKE ?', $entity->getEntity() . '%')
+                        new MysqlQueryExpression($this->app->container->mysql->quote('entity') . ' LIKE ?', $entity->getEntity() . '%')
                     ], $this->getStopWordsWhere($entity->getStopWords())),
                     $params
                 );

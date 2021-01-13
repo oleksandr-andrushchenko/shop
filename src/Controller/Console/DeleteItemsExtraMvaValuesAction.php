@@ -40,7 +40,7 @@ class DeleteItemsExtraMvaValuesAction
     {
         $aff = 0;
 
-        $db = $app->container->db;
+        $mysql = $app->container->mysql;
 
         $itemPk = $app->managers->items->getEntity()->getPk();
 
@@ -50,7 +50,7 @@ class DeleteItemsExtraMvaValuesAction
             $table = $manager->getEntity()->getTable();
             $pk = $manager->getEntity()->getPk();
 
-            $affTmp = $db->deleteFromEachGroup('item_' . $table, $itemPk, self::MVA_VALUES_LIMIT, null, $pk, true);
+            $affTmp = $mysql->deleteFromEachGroup('item_' . $table, $itemPk, self::MVA_VALUES_LIMIT, null, $pk, true);
 
             $this->output($affTmp . ' deleted from item_' . $table . ' [more then ' . self::MVA_VALUES_LIMIT . ' values]', $app);
             $aff += $affTmp;

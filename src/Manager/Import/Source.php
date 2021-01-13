@@ -2,7 +2,7 @@
 
 namespace SNOWGIRL_SHOP\Manager\Import;
 
-use SNOWGIRL_CORE\Query;
+use SNOWGIRL_CORE\Mysql\MysqlQuery;
 use SNOWGIRL_CORE\AbstractApp;
 use SNOWGIRL_CORE\Entity;
 use SNOWGIRL_SHOP\Entity\Item;
@@ -175,17 +175,17 @@ class Source extends Manager
 
     public function deleteItems(ImportSourceEntity $source)
     {
-        $items = $this->app->container->db->makeTransaction(function () use ($source) {
+        $items = $this->app->container->mysql->makeTransaction(function () use ($source) {
             $where = [
                 'vendor_id' => $source->getVendorId(),
             ];
 
-            $items = $this->app->container->db->selectMany(Item::getTable(), new Query([
+            $items = $this->app->container->mysql->selectMany(Item::getTable(), new MysqlQuery([
                 'columns' => 'image',
                 'where' => $where,
             ]));
 
-            $this->app->container->db->deleteMany(Item::getTable(), new Query(['where' => $where]));
+            $this->app->container->mysql->deleteMany(Item::getTable(), new MysqlQuery(['where' => $where]));
 
             return $items;
         });

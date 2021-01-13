@@ -2,7 +2,7 @@
 
 namespace SNOWGIRL_SHOP\Controller\Admin;
 
-use SNOWGIRL_CORE\Query\Expression;
+use SNOWGIRL_CORE\Mysql\MysqlQueryExpression;
 use SNOWGIRL_SHOP\Http\HttpApp as App;
 use SNOWGIRL_CORE\Controller\Admin\PrepareServicesTrait;
 use SNOWGIRL_SHOP\Entity\Page\Catalog\Custom as PageCatalogCustom;
@@ -37,7 +37,7 @@ class CatalogAction
             ->calcTotal(true);
 
 //        if (rdbms) {
-        $manager->addOrder(new Expression('ABS(JSON_EXTRACT(' . $app->container->db->quote('meta') . ', \'$.count\')) DESC'));
+        $manager->addOrder(new MysqlQueryExpression('ABS(JSON_EXTRACT(' . $app->container->mysql->quote('meta') . ', \'$.count\')) DESC'));
 //        }
 
 //        if ($content->searchTerm) {
@@ -51,7 +51,7 @@ class CatalogAction
         $params = [
             $content->searchTerm ?: '',
             $content->searchPrefix ? true : false,
-            $content->searchInDb ? 'db' : null
+            $content->searchInDb ? 'mysql' : null
         ];
 
         $objects = $manager->getObjectsByQuery(...$params);

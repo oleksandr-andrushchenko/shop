@@ -6,8 +6,8 @@ use SNOWGIRL_CORE\Entity;
 use SNOWGIRL_CORE\Helper\Arrays;
 use SNOWGIRL_CORE\Helper\WalkChunk;
 use SNOWGIRL_CORE\Manager;
-use SNOWGIRL_CORE\Query\Expression;
-use SNOWGIRL_CORE\Query;
+use SNOWGIRL_CORE\Mysql\MysqlQueryExpression;
+use SNOWGIRL_CORE\Mysql\MysqlQuery;
 use SNOWGIRL_CORE\Util;
 use SNOWGIRL_SHOP\Console\ConsoleApp as App;
 use SNOWGIRL_SHOP\Item\FixWhere;
@@ -16,10 +16,7 @@ use SNOWGIRL_SHOP\Entity\Term as TermEntity;
 use SNOWGIRL_SHOP\Manager\Term as TermManager;
 
 /**
- * Class Attr
- *
  * @property App app
- * @package SNOWGIRL_SHOP\Util
  */
 class Attr extends Util
 {
@@ -27,7 +24,7 @@ class Attr extends Util
     {
         $aff = 0;
 
-        $db = $this->app->container->db;
+        $mysql = $this->app->container->mysql;
 
         $itemTable = $this->app->managers->items->getEntity()->getTable();
         $itemPk = $this->app->managers->items->getEntity()->getPk();
@@ -41,32 +38,32 @@ class Attr extends Util
             $linkManager = $manager->getMvaLinkManager();
             $linkTable = $linkManager->getEntity()->getTable();
 
-            $query = new Query($params);
+            $query = new MysqlQuery($params);
             $query->params = [];
             $query->text = implode(' ', [
-                'DELETE ' . $db->quote('ia'),
-                'FROM ' . $db->quote($linkTable) . ' ' . $db->quote('ia'),
-                'LEFT JOIN ' . $db->quote($table) . ' ' . $db->quote('a') . ' USING (' . $db->quote($pk) . ')',
-                'WHERE ' . $db->quote($pk, 'a') . ' IS NULL'
+                'DELETE ' . $mysql->quote('ia'),
+                'FROM ' . $mysql->quote($linkTable) . ' ' . $mysql->quote('ia'),
+                'LEFT JOIN ' . $mysql->quote($table) . ' ' . $mysql->quote('a') . ' USING (' . $mysql->quote($pk) . ')',
+                'WHERE ' . $mysql->quote($pk, 'a') . ' IS NULL'
             ]);
 
-            $affTmp1 = $db->req($query)->affectedRows();
+            $affTmp1 = $mysql->req($query)->affectedRows();
 
             $this->output($affTmp1 . ' deleted from ' . $linkTable . ' [not exists in ' . $table . ']');
 
             $where = $fixWhere ? $fixWhere->get() : [];
-            $where[] = new Expression($db->quote($itemPk, $itemTable) . ' IS NULL');
+            $where[] = new MysqlQueryExpression($mysql->quote($itemPk, $itemTable) . ' IS NULL');
 
-            $query = new Query($params);
+            $query = new MysqlQuery($params);
             $query->params = [];
             $query->text = implode(' ', [
-                'DELETE ' . $db->quote('ia'),
-                'FROM ' . $db->quote($linkTable) . ' ' . $db->quote('ia'),
-                'LEFT JOIN ' . $db->quote($itemTable) . ' USING (' . $db->quote($itemPk) . ')',
-                $db->makeWhereSQL($where, $query->params, null, $query->placeholders)
+                'DELETE ' . $mysql->quote('ia'),
+                'FROM ' . $mysql->quote($linkTable) . ' ' . $mysql->quote('ia'),
+                'LEFT JOIN ' . $mysql->quote($itemTable) . ' USING (' . $mysql->quote($itemPk) . ')',
+                $mysql->makeWhereSQL($where, $query->params, null, $query->placeholders)
             ]);
 
-            $affTmp2 = $db->req($query)->affectedRows();
+            $affTmp2 = $mysql->req($query)->affectedRows();
 
             $this->output($affTmp2 . ' deleted from ' . $linkTable . ' [not exists in ' . $itemTable . ']');
 
@@ -87,7 +84,7 @@ class Attr extends Util
         $pk = $manager->getEntity()->getPk();
 
         if ($manager->getEntity() instanceof Category) {
-            $manager->setOrders([new Expression('LENGTH(`name`) DESC'), 'name' => SORT_ASC]);
+            $manager->setOrders([new MysqlQueryExpression('LENGTH(`name`) DESC'), 'name' => SORT_ASC]);
         }
 
         foreach ($manager->setColumns([$pk, 'name'])->getArrays() as $row) {
@@ -129,7 +126,7 @@ class Attr extends Util
         $pk = $manager->getEntity()->getPk();
 
         if ($manager->getEntity() instanceof Category) {
-            $manager->setOrders([new Expression('LENGTH(`name`) DESC'), 'name' => SORT_ASC]);
+            $manager->setOrders([new MysqlQueryExpression('LENGTH(`name`) DESC'), 'name' => SORT_ASC]);
         }
 
         $manager->setColumns([$pk, 'name', 'uri']);
@@ -289,7 +286,7 @@ class Attr extends Util
     {
         $aff = 0;
 
-        $db = $this->app->container->db;
+        $mysql = $this->app->container->db;
 
         $mvaPkToTable = $this->app->managers->catalog->getMvaPkToTable();
         $mvaPkToTable['image_id'] = 'image';
@@ -298,15 +295,15 @@ class Attr extends Util
             $linkTable = 'item_' . $table;
 
             foreach ($fromToToItemId as $fromItemId => $toItemId) {
-                $query = new Query();
+                $query = new MysqlQuery();
                 $query->text = implode(' ', [
-                    'INSERT IGNORE INTO ' . $db->quote($linkTable) . ' (' . $db->quote('item_id') . ', ' . $db->quote($pk) . ')',
-                    'SELECT ' . $toItemId . ', ' . $db->quote($pk) . ' FROM ' . $db->quote($linkTable),
-                    'WHERE ' . $db->quote('item_id') . ' = ' . $fromItemId
+                    'INSERT IGNORE INTO ' . $mysql->quote($linkTable) . ' (' . $mysql->quote('item_id') . ', ' . $mysql->quote($pk) . ')',
+                    'SELECT ' . $toItemId . ', ' . $mysql->quote($pk) . ' FROM ' . $mysql->quote($linkTable),
+                    'WHERE ' . $mysql->quote('item_id') . ' = ' . $fromItemId
                 ]);
                 $query->placeholders = false;
 
-                $aff += $db->req($query)->affectedRows();
+                $aff += $mysql->req($query)->affectedRows();
             }
         }
 

@@ -2,7 +2,7 @@
 <?php
 
 use SNOWGIRL_CORE\View;
-use SNOWGIRL_CORE\Query\Expression;
+use SNOWGIRL_CORE\Mysql\MysqlQueryExpression;
 use SNOWGIRL_SHOP\Catalog\URI;
 
 /** @var View $this */
@@ -13,7 +13,7 @@ $this->getLayout()
 
 try {
     $categories = $this->app->managers->categories->clear()
-//                ->setWhere(new Expression('`image` IS NOT NULL'))
+//                ->setWhere(new MysqlQueryExpression('`image` IS NOT NULL'))
         ->setOrders(['rating' => SORT_DESC])
         ->setLimit(12)
         ->cacheOutput(true)
@@ -26,7 +26,7 @@ try {
 
 try {
     $brands = $this->app->managers->brands->clear()
-//                ->setWhere(new Expression('`image` IS NOT NULL'))
+//                ->setWhere(new MysqlQueryExpression('`image` IS NOT NULL'))
         ->setOrders(['rating' => SORT_DESC])
         ->setLimit(36)
         ->cacheOutput(true)

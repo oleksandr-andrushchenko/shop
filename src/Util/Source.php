@@ -8,10 +8,7 @@ use SNOWGIRL_SHOP\Entity\Import\Source as ImportSource;
 use SNOWGIRL_SHOP\Http\HttpApp;
 
 /**
- * Class Source
- *
  * @property HttpApp|ConsoleApp app
- * @package SNOWGIRL_SHOP\Util
  */
 class Source extends Util
 {

@@ -52,7 +52,7 @@ class MakeVendorFakeAction
             throw new LogicException('target vendor "' . $targetVendor->getName() . '" should not being fake');
         }
 
-        $aff = $app->container->db->makeTransaction(function () use ($app, $vendor, $targetVendor) {
+        $aff = $app->container->mysql->makeTransaction(function () use ($app, $vendor, $targetVendor) {
             $aff = $app->managers->items->updateMany(['is_in_stock' => 0], ['vendor_id' => $vendor->getId()]);
             $vendor->setTargetVendorId($targetVendor->getId());
             $app->managers->vendors->updateOne($vendor);

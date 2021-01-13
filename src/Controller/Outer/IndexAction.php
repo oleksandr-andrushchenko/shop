@@ -51,7 +51,7 @@ class IndexAction
 //            'image' => $image
         ]);
 
-//        $nonEmptyImage = new Expression('`image` IS NOT NULL');
+//        $nonEmptyImage = new MysqlQueryExpression('`image` IS NOT NULL');
         $ratingDesc = ['rating' => SORT_DESC];
 
         $content->addParams([

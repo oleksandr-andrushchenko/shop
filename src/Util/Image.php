@@ -2,37 +2,35 @@
 
 namespace SNOWGIRL_SHOP\Util;
 
-use SNOWGIRL_CORE\Query\Expression;
-use SNOWGIRL_CORE\AbstractApp;
+use SNOWGIRL_CORE\Mysql\MysqlQueryExpression;
 use SNOWGIRL_CORE\Image as ImageObject;
+use SNOWGIRL_SHOP\Console\ConsoleApp;
+use SNOWGIRL_SHOP\Http\HttpApp;
 
 /**
- * Class Image
- *
- * @property App app
- * @package SNOWGIRL_SHOP\Util
+ * @property HttpApp|ConsoleApp app
  */
 class Image extends \SNOWGIRL_CORE\Util\Image
 {
     public function doDeleteBadQuality()
     {
-        $db = $this->app->container->db;
+        $mysql = $this->app->container->mysql;
         $itemTable = $this->app->managers->items->getEntity()->getTable();
 
         $query = implode(' ', [
             'SELECT',
-            $db->quote('image'),
+            $mysql->quote('image'),
             'FROM',
             $itemTable,
             'WHERE',
-            $tmp = 'DATE(' . $db->quote('created_at') . ') > \'2016-09-05\''
+            $tmp = 'DATE(' . $mysql->quote('created_at') . ') > \'2016-09-05\''
         ]);
 
-        foreach ($db->reqToArrays($query) as $item) {
+        foreach ($mysql->reqToArrays($query) as $item) {
             (new ImageObject($item['image']))->delete();
             $this->output($item['image'] . ' deleted');
         }
 
-        return $db->deleteMany($itemTable, new Expression($tmp));
+        return $mysql->deleteMany($itemTable, new MysqlQueryExpression($tmp));
     }
 }

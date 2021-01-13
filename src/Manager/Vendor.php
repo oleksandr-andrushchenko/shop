@@ -3,7 +3,7 @@
 namespace SNOWGIRL_SHOP\Manager;
 
 use SNOWGIRL_CORE\Entity;
-use SNOWGIRL_CORE\Query\Expression;
+use SNOWGIRL_CORE\Mysql\MysqlQueryExpression;
 use SNOWGIRL_SHOP\Manager\Item\Attr;
 use SNOWGIRL_SHOP\Entity\Vendor as VendorEntity;
 use SNOWGIRL_SHOP\Vendor as VendorAdapter;
@@ -33,14 +33,14 @@ class Vendor extends Attr implements GoLinkBuilderInterface
     {
         $key = $this->getNonEmptyCacheKey();
 
-        if (!$this->app->container->cache->has($key, $list)) {
+        if (!$this->app->container->memcache->has($key, $list)) {
             $pk = $this->entity->getPk();
 
-            $columns = new Expression('DISTINCT(' . $pk . ') AS ' . $this->app->container->db->quote($pk));
+            $columns = new MysqlQueryExpression('DISTINCT(' . $pk . ') AS ' . $this->app->container->mysql->quote($pk));
 
             $list = $this->app->managers->items->clear()->getColumn($pk, $columns);
 
-            $this->app->container->cache->set($key, $list);
+            $this->app->container->memcache->set($key, $list);
         }
 
         return $this->populateList($list);

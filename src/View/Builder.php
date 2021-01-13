@@ -2,7 +2,6 @@
 
 namespace SNOWGIRL_SHOP\View;
 
-use SNOWGIRL_CORE\Query\Expression;
 use SNOWGIRL_SHOP\Entity\Item;
 use SNOWGIRL_SHOP\Http\HttpApp;
 use SNOWGIRL_SHOP\View\Widget\Grid\Categories;
