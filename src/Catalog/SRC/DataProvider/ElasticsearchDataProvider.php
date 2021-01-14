@@ -187,7 +187,7 @@ class ElasticsearchDataProvider extends DataProvider
 
         if ($cache) {
             //this column should be enumerated according to this method non-cache output
-            $output[] = $info->cache_column . ':asc';
+            $output[$info->cache_column] = SORT_ASC;
             return $output;
         }
 
@@ -195,7 +195,7 @@ class ElasticsearchDataProvider extends DataProvider
 //        $output[] = 'partner_updated_at:desc';
 
         if ($info->column) {
-            $output[] = $info->column . ':' . ($info->order ? 'desc' : 'asc');
+            $output[$info->column] = $info->order ? SORT_DESC : SORT_ASC;
         }
 
 //        $output[] = 'created_at:desc';
