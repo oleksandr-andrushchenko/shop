@@ -67,7 +67,7 @@ class DeleteAttrsWithoutItemsAction
     {
         $aff = 0;
 
-        $mysql = $app->container->db;
+        $mysql = $app->container->mysql;
 
         foreach ($app->managers->catalog->getMvaPkToTable() as $pk => $table) {
             $aff += $mysql->req(implode(' ', [

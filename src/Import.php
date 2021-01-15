@@ -2503,7 +2503,7 @@ class Import
             }
         }
 
-        $mysql = $this->app->container->db;
+        $mysql = $this->app->container->mysql;
 
         foreach ($this->app->managers->items->clear()
                      ->setColumns([

@@ -157,7 +157,7 @@ class Sitemap extends \SNOWGIRL_CORE\Util\Sitemap
     {
         return function (Generator $sitemap) use ($inStock) {
             $app = $this->app;
-            $mysql = $app->container->db;
+            $mysql = $app->container->mysql;
             $items = $app->managers->items->clear();
             $pk = $items->getEntity()->getPk();
 

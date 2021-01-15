@@ -286,7 +286,7 @@ class Attr extends Util
     {
         $aff = 0;
 
-        $mysql = $this->app->container->db;
+        $mysql = $this->app->container->mysql;
 
         $mvaPkToTable = $this->app->managers->catalog->getMvaPkToTable();
         $mvaPkToTable['image_id'] = 'image';
