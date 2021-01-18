@@ -2067,7 +2067,11 @@ class Import
 
     private function getDescriptionByRow($row)
     {
-        if (isset($this->mappings['description']) && isset($this->indexes[$this->mappings['description']['column']])) {
+        if (isset(
+            $this->mappings['description'],
+            $this->mappings['description']['column'],
+            $this->indexes[$this->mappings['description']['column']]
+        )) {
             $value = $this->clearText($row[$this->indexes[$this->mappings['description']['column']]]);
 
             if ($value) {
@@ -2138,8 +2142,15 @@ class Import
      */
     private function getOldPriceByRow($row)
     {
-        if (isset($this->mappings['old_price']) && $v = (float) trim($row[$this->indexes[$this->mappings['old_price']['column']]])) {
-            if ($v > 999999.99) {
+        if (isset(
+            $this->mappings['old_price'],
+            $this->mappings['old_price']['column'],
+            $this->indexes[$this->mappings['old_price']['column']],
+            $row[$this->indexes[$this->mappings['old_price']['column']]]
+        )) {
+            $v = (float) trim($row[$this->indexes[$this->mappings['old_price']['column']]]);
+
+            if ($v <= 0 || $v > 999999.99) {
                 return null;
             }
 
@@ -2200,7 +2211,11 @@ class Import
 
     private function getEntityByRow($row): ?string
     {
-        if (isset($this->mappings['entity']) && isset($this->indexes[$this->mappings['entity']['column']])) {
+        if (isset(
+            $this->mappings['entity'],
+            $this->mappings['entity']['column'],
+            $this->indexes[$this->mappings['entity']['column']]
+        )) {
             $map = $this->mappings['entity'];
             $value = $this->clearText($row[$this->indexes[$map['column']]]);
 
