@@ -70,7 +70,7 @@ class Sitemap extends \SNOWGIRL_CORE\Util\Sitemap
             $catalog = $app->managers->catalog->clear();
             $customCatalog = $app->managers->catalogCustom->clear();
 
-            $mysql = $app->managers->catalogCustom->getDb();
+            $mysql = $app->managers->catalogCustom->getMysql();
 
             $pk = $customCatalog->getEntity()->getPk();
 
