@@ -287,8 +287,8 @@ class Import
                 $this->initMeta();
 
                 $this->cacheDropped = true;
-            } catch (Throwable $e) {
-                $this->logger->error($e);
+            } catch (Throwable $exception) {
+                $this->logger->error($exception);
                 return false;
             }
         }
@@ -652,8 +652,8 @@ class Import
         foreach ($importSources as $importSource) {
             try {
                 $app->managers->sources->getImport($importSource, $debug, $profile)->run();
-            } catch (Throwable $e) {
-                $app->container->logger->error($e);
+            } catch (Throwable $exception) {
+                $app->container->logger->error($exception);
                 $app->container->logger->debug('import failed!');
             }
         }
@@ -1026,9 +1026,9 @@ class Import
             }
 
             return true;
-        } catch (Throwable $e) {
-            $this->logger->error($e);
-            $this->error = $e->getTraceAsString();
+        } catch (Throwable $exception) {
+            $this->logger->error($exception);
+            $this->error = $exception->getMessage() . "\r\n" . $exception->getTraceAsString();
             return false;
         } finally {
             $this->profile('afterWalkImport', function () {
@@ -1135,8 +1135,8 @@ class Import
             }
 
             $this->deleteOldFiles();
-        } catch (Throwable $e) {
-            $this->logger->error($e);
+        } catch (Throwable $exception) {
+            $this->logger->error($exception);
         }
 
         $this->deletePid();
@@ -1661,8 +1661,8 @@ class Import
 
                             $data['nameToId'][$nameOrIdLower] = $id;
                             $data['uriToId'][$uri] = $id;
-                        } catch (Throwable $e) {
-                            $this->logger->error($e);
+                        } catch (Throwable $exception) {
+                            $this->logger->error($exception);
                         }
                     }
                 }
@@ -1897,8 +1897,8 @@ class Import
             $aff = $insert ? $manager->insertMany($insert, ['ignore' => true, 'log' => $this->debug]) : 0;
 
             $this->logger->info('AFF ' . $table . ': ' . $aff);
-        } catch (Throwable $e) {
-            $this->logger->error($e);
+        } catch (Throwable $exception) {
+            $this->logger->error($exception);
         }
 
         $this->images = [];
@@ -1971,10 +1971,10 @@ class Import
 
                                         break;
                                     }
-                                } catch (Throwable $e) {
-                                    $this->logger->error($e);
+                                } catch (Throwable $exception) {
+                                    $this->logger->error($exception);
 
-                                    if (Exception::_check($e, 'Duplicate entry')) {
+                                    if (Exception::_check($exception, 'Duplicate entry')) {
                                         $tmp = $this->app->container->mysql->selectOne($table, new MysqlQuery([
                                             'columns' => $entityPk,
                                             'where' => ['uri' => $newUri],
@@ -2006,8 +2006,8 @@ class Import
                 $aff = $insert ? $manager->getMvaLinkManager()->insertMany($insert, ['ignore' => true, 'log' => $this->debug]) : 0;
 
                 $this->logger->info('AFF ' . $manager->getMvaLinkManager()->getEntity()->getTable() . ': ' . $aff);
-            } catch (Throwable $e) {
-                $this->logger->error($e);
+            } catch (Throwable $exception) {
+                $this->logger->error($exception);
             }
 
             $this->mva[$entityPk]['values'] = [];
@@ -2328,8 +2328,8 @@ class Import
 
             $this->logger->info('AFF item: ' . $aff);
             return $aff;
-        } catch (Throwable $e) {
-            $this->logger->error($e);
+        } catch (Throwable $exception) {
+            $this->logger->error($exception);
             return null;
         }
     }
@@ -2638,8 +2638,8 @@ class Import
             $this->afterRememberRow($row);
 
             return $values;
-        } catch (Throwable $e) {
-            $this->logger->error($e);
+        } catch (Throwable $exception) {
+            $this->logger->error($exception);
             return false;
         }
     }
@@ -2711,7 +2711,7 @@ class Import
 
             try {
                 return $job($metric);
-            } catch (Throwable $e) {
+            } catch (Throwable $exception) {
                 $context['error'] = true;
             } finally {
                 $time = (float) substr(microtime(true) - $time, 0, 7);
